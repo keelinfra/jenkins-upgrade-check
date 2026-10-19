@@ -283,7 +283,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	image := fs.String("image", "", "base image instead of jenkins/jenkins:<core>-jdk<N>")
 	outDir := fs.String("out-dir", "", "keep the Jenkins log here")
 	timeout := fs.Duration("timeout", 10*time.Minute, "how long Jenkins may take to start")
-	keep := fs.Bool("keep", false, "keep the container, image and work directory")
+	keep := fs.Bool("keep", false, "keep the container and the work directory")
 	out := fs.String("o", "", "write the Markdown report here (default: stdout)")
 	jsonOut := fs.String("json", "", "also write the result as JSON")
 	if err := fs.Parse(args); err != nil {
@@ -481,10 +481,32 @@ func cmdVerify(ctx context.Context, args []string) (int, error) {
 		in.Log = string(lb)
 	}
 	after, err := c.Collect(ctx)
-	if err != nil {
+	switch {
+	case errors.Is(err, snapshot.ErrRefused):
 		return 0, err
+	case err != nil:
+		// A controller that does not answer after an upgrade is a verdict,
+		// not a usage error: it did not start.
+		in.Down = err.Error()
 	}
 	in.After = after
+	if after != nil && in.Before != nil {
+		// Why an agent did not come back is in its connection log.
+		online := map[string]bool{}
+		for _, a := range in.Before.Agents {
+			online[a.Name] = !a.Offline
+		}
+		for _, a := range after.Agents {
+			if online[a.Name] && a.Offline {
+				if l, err := c.AgentLog(ctx, a.Name); err == nil {
+					if in.AgentLogs == nil {
+						in.AgentLogs = map[string]string{}
+					}
+					in.AgentLogs[a.Name] = l
+				}
+			}
+		}
+	}
 	res := verify.Run(in)
 	if *jsonOut != "" {
 		if err := writeJSON(*jsonOut, res); err != nil {

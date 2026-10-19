@@ -1,0 +1,67 @@
+name: Upgrade end to end
+
+# Upgrades a seeded controller by running the runbook the tool writes, once
+# as written and three times with a problem that verify must catch and the
+# rollback must undo. Long, so only on request or when the test changes.
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: Version the controller starts on
+        default: 2.346.3
+      to:
+        description: Target version, or lts
+        default: lts
+  pull_request:
+    paths:
+      - hack/e2e/**
+      - .github/workflows/e2e.yml
+
+permissions:
+  contents: read
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [go, forgot-plugins, missing-plugin, old-agent]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: go build -o /usr/local/bin/jenkins-upgrade-check ./cmd/jenkins-upgrade-check
+      - name: Upgrade
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          FROM: ${{ inputs.from || '2.346.3' }}
+          TO: ${{ inputs.to || 'lts' }}
+        run: sudo -E env "PATH=$PATH" hack/e2e/run.sh "$SCENARIO" "$FROM" "$TO"
+      - name: Report
+        if: always()
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+        run: |
+          d="e2e-$SCENARIO"
+          sudo chmod -R a+rX "$d" /var/tmp/jenkins-upgrade 2>/dev/null || true
+          cat "$d/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
+          cat "$d/summary.md" || true
+          echo "===== runbook"; cat "$d/runbook.md" || true
+          echo "===== start logs"; tail -n 200 /var/tmp/jenkins-upgrade/start.log || true
+          echo "===== jenkins (last start), first errors"; grep -m 3 -A 25 -E "SEVERE|ExceptionInInitializerError" "$d/jenkins.log" || true
+          echo "===== jenkins (last start)"; tail -n 300 "$d/jenkins.log" || true
+          echo "===== agent"; tail -n 50 "$d/agent.log" || true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: e2e-${{ matrix.scenario }}
+          path: |
+            e2e-${{ matrix.scenario }}/
+            !e2e-${{ matrix.scenario }}/plugins/
+            !e2e-${{ matrix.scenario }}/cookies
+            /var/tmp/jenkins-upgrade/*.md
+            /var/tmp/jenkins-upgrade/*.json
+            /var/tmp/jenkins-upgrade/start.log

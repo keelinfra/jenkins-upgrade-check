@@ -115,3 +115,84 @@ func TestGetOnly(t *testing.T) {
 		t.Error("POST must be refused")
 	}
 }
+
+// A controller without the versioncolumn plugin: the Java of an online
+// agent comes from its System Information page. The markup is as 2.580.1
+// writes it (values hidden behind a button) and as 2.346.3 does (plain).
+func TestCollectAgentJavaFromSystemInfo(t *testing.T) {
+	var asked []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Jenkins", "2.346.3")
+		asked = append(asked, r.URL.Path)
+		switch r.URL.Path {
+		case "/api/json":
+			w.Write([]byte(`{"jobs":[]}`))
+		case "/pluginManager/api/json":
+			w.Write([]byte(`{"plugins":[]}`))
+		case "/computer/api/json":
+			w.Write([]byte(`{"computer":[
+				{"_class":"hudson.model.Hudson$MasterComputer","displayName":"Built-In Node","offline":false,"monitorData":{}},
+				{"_class":"hudson.slaves.SlaveComputer","displayName":"linux 1","offline":false,"monitorData":{}},
+				{"_class":"hudson.slaves.SlaveComputer","displayName":"gone","offline":true,"monitorData":{}}
+			]}`))
+		case "/computer/linux 1/systemInfo":
+			w.Write([]byte(`<table class="jenkins-table sortable" id="t1"><tbody>
+<tr>
+  <td>
+    file.encoding
+  </td>
+  <td style="white-space: normal" class="property-table__value"><div>UTF-8</div></td>
+</tr>
+<tr><td>java.version</td><td style="white-space: normal" class="property-table__value"><div class="app-hidden-info-reveal"><button class="jenkins-button jenkins-button--transparent jenkins-!-color-blue"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 512 512"><title/><circle cx="256" cy="256" r="80"/></svg> Hidden value, click to show this value
+                  </button></div><div class="app-hidden-info-hide jenkins-hidden"><button class="jenkins-button jenkins-button--transparent"><span class="jenkins-!-color-blue"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 512 512"><title/><path d="M432 448"/></svg> 17<wbr>.0<wbr>.12</span></button></div></td></tr>
+<tr><td>os.name</td><td style="white-space: normal">Linux</td></tr>
+</tbody></table>`))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	c := &Collector{URL: srv.URL, Tool: "t"}
+	s, err := c.Collect(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(s.Agents) != 2 || s.Agents[0].Java != "17.0.12" || s.Agents[0].OS != "Linux" {
+		t.Errorf("agents = %+v", s.Agents)
+	}
+	if s.Agents[1].Java != "" {
+		t.Errorf("an offline agent was read: %+v", s.Agents[1])
+	}
+	if len(s.Notes) != 0 {
+		t.Errorf("notes = %q", s.Notes)
+	}
+	for _, p := range asked {
+		if strings.Contains(p, "gone") {
+			t.Errorf("asked the offline agent: %s", p)
+		}
+	}
+}
+
+func TestCollectAgentJavaUnknown(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Jenkins", "2.346.3")
+		switch r.URL.Path {
+		case "/api/json":
+			w.Write([]byte(`{"jobs":[]}`))
+		case "/pluginManager/api/json":
+			w.Write([]byte(`{"plugins":[]}`))
+		case "/computer/api/json":
+			w.Write([]byte(`{"computer":[{"_class":"hudson.slaves.SlaveComputer","displayName":"a1","offline":false,"monitorData":{}}]}`))
+		default:
+			w.WriteHeader(http.StatusForbidden)
+		}
+	}))
+	defer srv.Close()
+	s, err := (&Collector{URL: srv.URL}).Collect(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(s.Notes) != 1 || !strings.Contains(s.Notes[0], "Overall/Administer") || !strings.Contains(s.Notes[0], "a1") {
+		t.Errorf("notes = %q", s.Notes)
+	}
+}

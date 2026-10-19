@@ -8,6 +8,7 @@
 package dryrun
 
 import (
+	"archive/tar"
 	"bufio"
 	"bytes"
 	"context"
@@ -19,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
@@ -210,30 +212,27 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 	}
 
-	dockerfile := "FROM " + base + "\n" +
-		"ENV JAVA_OPTS=\"-Djenkins.install.runSetupWizard=false -Dhudson.model.UpdateCenter.never=true\"\n"
+	// The configuration goes into the image's reference directory, which
+	// the entrypoint copies into JENKINS_HOME. Copied into a created
+	// container rather than built into an image, it leaves no image and no
+	// build cache behind: a few hundred plugins each time otherwise.
+	name := fmt.Sprintf("juc-%s-%d", strings.ReplaceAll(sanitize(o.Core), ".", "-"), time.Now().UnixNano())
+	args := []string{"create", "--name", name, "--network", "none",
+		"-e", "JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.model.UpdateCenter.never=true"}
 	if casc != "" {
-		dockerfile += "ENV CASC_JENKINS_CONFIG=" + casc + "\n"
+		args = append(args, "-e", "CASC_JENKINS_CONFIG="+casc)
 	}
-	dockerfile += "COPY --chown=jenkins:jenkins ref/ /usr/share/jenkins/ref/\n"
-	if err := os.WriteFile(filepath.Join(work, "Dockerfile"), []byte(dockerfile), 0o644); err != nil {
-		return nil, err
-	}
-	tag := fmt.Sprintf("jenkins-upgrade-check:%s-%d", sanitize(o.Core), time.Now().UnixNano())
-	o.logf("building %s", tag)
-	if out, err := o.run(ctx, "build", "-q", "-t", tag, work); err != nil {
-		return nil, fmt.Errorf("docker build: %v\n%s", err, out)
-	}
-	if !o.Keep {
-		defer o.run(context.Background(), "rmi", "-f", tag)
-	}
-
-	name := "juc-" + strings.ReplaceAll(strings.TrimPrefix(tag, "jenkins-upgrade-check:"), ".", "-")
-	if out, err := o.run(ctx, "run", "-d", "--name", name, "--network", "none", tag); err != nil {
-		return nil, fmt.Errorf("docker run: %v\n%s", err, out)
+	if out, err := o.run(ctx, append(args, base)...); err != nil {
+		return nil, fmt.Errorf("docker create: %v\n%s", err, out)
 	}
 	if !o.Keep {
 		defer o.run(context.Background(), "rm", "-f", name)
+	}
+	if err := o.copyIn(ctx, work, "ref", name+":/usr/share/jenkins/"); err != nil {
+		return nil, err
+	}
+	if out, err := o.run(ctx, "start", name); err != nil {
+		return nil, fmt.Errorf("docker start: %v\n%s", err, out)
 	}
 	o.logf("starting Jenkins %s without network (container %s)", o.Core, name)
 
@@ -625,6 +624,14 @@ func attribute(errs []string, pluginDir string, failed map[string]bool, versions
 	return out, rest
 }
 
+// Attribute names the plugin behind each error that names a class, using
+// the plugin files in pluginDir (JENKINS_HOME/plugins, for example), and
+// returns the errors it could not place. Plugins in failed are already
+// explained and are left out.
+func Attribute(errs []string, pluginDir string, failed map[string]bool) ([]Failure, []string) {
+	return attribute(errs, pluginDir, failed, nil)
+}
+
 var unsafeChars = regexp.MustCompile(`[^A-Za-z0-9_.-]`)
 
 func sanitize(s string) string { return unsafeChars.ReplaceAllString(s, "_") }
@@ -636,6 +643,85 @@ func (o *Options) run(ctx context.Context, args ...string) (string, error) {
 	cmd.Stderr = &buf
 	err := cmd.Run()
 	return buf.String(), err
+}
+
+// jenkinsUID is the user the official images run Jenkins as.
+const jenkinsUID = 1000
+
+// copyIn copies dir/sub into the container at dest, owned by the Jenkins
+// user, as a tar stream: the same on every host, and nothing to clean up.
+func (o *Options) copyIn(ctx context.Context, dir, sub, dest string) error {
+	cmd := exec.CommandContext(ctx, o.docker(), "cp", "-a", "-", dest)
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+	cmd.Stderr = &buf
+	w, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("docker cp: %w", err)
+	}
+	werr := writeTar(w, dir, sub, jenkinsUID)
+	w.Close()
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("docker cp: %v\n%s", err, buf.String())
+	}
+	if werr != nil {
+		return fmt.Errorf("docker cp: %w", werr)
+	}
+	return nil
+}
+
+// writeTar writes dir/sub as a tar archive whose entries start with sub and
+// belong to uid.
+func writeTar(w io.Writer, dir, sub string, uid int) error {
+	tw := tar.NewWriter(w)
+	err := filepath.WalkDir(filepath.Join(dir, sub), func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		link := ""
+		if info.Mode()&fs.ModeSymlink != 0 {
+			if link, err = os.Readlink(p); err != nil {
+				return err
+			}
+		}
+		h, err := tar.FileInfoHeader(info, link)
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(dir, p)
+		if err != nil {
+			return err
+		}
+		h.Name = filepath.ToSlash(rel)
+		if d.IsDir() {
+			h.Name += "/"
+		}
+		h.Uid, h.Gid, h.Uname, h.Gname = uid, uid, "", ""
+		if err := tw.WriteHeader(h); err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+		f, err := os.Open(p)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		_, err = io.Copy(tw, f)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return tw.Close()
 }
 
 // pickImage pulls the first image that exists for the core, on the oldest

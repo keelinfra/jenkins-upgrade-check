@@ -1,4 +1,7 @@
 {"updateCenterVersion":"1","plugins":{
+ "stage-view":{
+   "2.28":{"name":"stage-view","version":"2.28","requiredCore":"2.222.4","url":"u","sha256":"x","dependencies":[{"name":"momentjs","version":"1.1.1","optional":false}]}
+ },
  "workflow-cps":{
    "2.90":{"name":"workflow-cps","version":"2.90","requiredCore":"2.222.4","url":"https://updates.jenkins.io/download/plugins/workflow-cps/2.90/workflow-cps.hpi","sha256":"x","dependencies":[{"name":"script-security","version":"1.75","optional":false}]},
    "3800.v1":{"name":"workflow-cps","version":"3800.v1","requiredCore":"2.440.3","url":"u","sha256":"x","dependencies":[{"name":"script-security","version":"1300.v1","optional":false},{"name":"workflow-api","version":"1200.v1","optional":false}]},

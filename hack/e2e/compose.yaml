@@ -1,0 +1,27 @@
+# The controller as the Docker runbook expects it: the official image, the
+# container named jenkins, JENKINS_HOME in the named volume jenkins_home.
+# The image comes from .env, which is what an administrator edits.
+services:
+  jenkins:
+    image: ${JENKINS_IMAGE:?set JENKINS_IMAGE in .env}
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+    environment:
+      # The JDK in old images (11.0.16 in 2.346.3) throws while reading the
+      # cgroups of a current kernel, which leaves the monitoring plugin
+      # failing every request. Container support off sidesteps that.
+      JAVA_OPTS: -Djenkins.install.runSetupWizard=false -XX:-UseContainerSupport
+      E2E_ADMIN_PASSWORD: ${E2E_ADMIN_PASSWORD:-e2e-admin}
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    networks:
+      - ci
+
+volumes:
+  jenkins_home:
+    name: jenkins_home
+
+networks:
+  ci:
+    name: ci

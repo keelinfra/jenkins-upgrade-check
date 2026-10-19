@@ -71,14 +71,17 @@ jenkins-upgrade-check collect --url https://jenkins.example.com --user me -o sna
 jenkins-upgrade-check plan --snapshot snapshot.json --to lts -o plan.md --json plan.json
 ```
 
-`collect` also records each agent's OS, and its Java version when the Versions Node
-Monitors plugin (`versioncolumn`) is installed, so the plan can say which agents
-will not reconnect after the upgrade.
+`collect` also records each agent's OS and Java version, so the plan can say which
+agents will not reconnect after the upgrade. The Java version comes from the Versions
+Node Monitors plugin (`versioncolumn`) when it is installed, and otherwise from each
+online agent's System Information page, which needs Overall/Administer.
 
 ## What it reads, what it sends
 
-- `collect` and `verify` send three GET requests to the controller (core version and
-  job names, plugins, agents) and refuse any other method. They write nothing to the
+- `collect` and `verify` send GET requests to the controller (core version and job
+  names, plugins, agents; without `versioncolumn`, one more per online agent for its
+  Java; after an upgrade, one per agent that did not come back, for its connection
+  log) and refuse any other method. They write nothing to the
   controller and need no plugin on it. The token is read from `JENKINS_TOKEN` so it
   stays out of shell history.
 - `plan` downloads public data from the Jenkins update center
