@@ -1,0 +1,4 @@
+/jenkins-upgrade-check
+/results/
+*.log
+snapshot.json
