@@ -1,0 +1,19 @@
+Running from: /usr/share/jenkins/jenkins.war
+webroot: /var/jenkins_home/war
+2026-10-19 17:01:10.351+0000 [id=1]	WARNING	o.e.j.ee9.nested.ContextHandler#setContextPath: Empty contextPath
+2026-10-19 17:01:12.762+0000 [id=41]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading plugin Fake fake-bad-class v1.0 (fake-bad-class)
+java.lang.ClassNotFoundException: org.example.Missing
+Caused: java.io.IOException: Unable to load org.example.Missing from fake-bad-class
+2026-10-19 17:01:12.773+0000 [id=43]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading plugin Fake fake-missing-dep v1.0 (fake-missing-dep)
+java.io.IOException: Failed to load: Fake fake-missing-dep (fake-missing-dep 1.0)
+[LF]>  - Plugin is missing: does-not-exist (1.0)
+2026-10-19 17:01:12.775+0000 [id=43]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading plugin Fake fake-needs-broken v1.0 (fake-needs-broken)
+java.io.IOException: Failed to load: Fake fake-needs-broken (fake-needs-broken 1.0)
+[LF]>  - Failed to load: Fake fake-missing-dep (fake-missing-dep 1.0)
+2026-10-19 17:01:12.776+0000 [id=43]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading plugin Fake fake-new-core v1.0 (fake-new-core)
+java.io.IOException: Failed to load: Fake fake-new-core (fake-new-core 1.0)
+[LF]>  - Jenkins (9.999) or higher required
+2026-10-19 17:01:14.257+0000 [id=46]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading item pipeline-job
+com.thoughtworks.xstream.mapper.CannotResolveClassException: flow-definition
+Caused: java.io.IOException: Unable to read /var/jenkins_home/jobs/pipeline-job/config.xml
+2026-10-19 17:01:14.512+0000 [id=60]	WARNING	h.m.DownloadService$Downloadable#updateNow: No tool installer metadata found for hudson.tasks.Maven.MavenInstaller
