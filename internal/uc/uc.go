@@ -257,3 +257,10 @@ func (db *Releases) Latest(name string) *Release {
 	}
 	return nil
 }
+
+// ArchiveURL is where the Jenkins download server keeps every release ever
+// published, including plugins the update center no longer lists. There is
+// no checksum for these.
+func ArchiveURL(name, v string) string {
+	return fmt.Sprintf("%s/download/plugins/%s/%s/%s.hpi", DefaultBase, name, v, name)
+}

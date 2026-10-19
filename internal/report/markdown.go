@@ -162,7 +162,7 @@ func reasons(pp plan.PluginPlan) []string {
 		out = append(out, "no longer distributed by the update center (suspended or removed); find a replacement or remove it")
 	}
 	if pp.Unknown {
-		out = append(out, "not published on the update center (a private build?); test it yourself")
+		out = append(out, "not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself")
 	}
 	return out
 }
@@ -171,24 +171,97 @@ func reasons(pp plan.PluginPlan) []string {
 func Rehearsal(w io.Writer, r *dryrun.Result) error {
 	b := &strings.Builder{}
 	fmt.Fprintf(b, "# Dry run: Jenkins %s with %d plugins\n\n", r.Core, r.Plugins)
-	fmt.Fprintf(b, "Image `%s`.\n\n", r.Image)
+	fmt.Fprintf(b, "Image `%s`", r.Image)
+	if r.JavaReason != "" {
+		fmt.Fprintf(b, " (Java %d because %s)", r.Java, r.JavaReason)
+	}
+	b.WriteString(". The container had no network and no executors, so nothing outside it was reached and no build ran.\n\n")
+
+	roots := r.Roots
+	if len(roots) == 0 && len(r.Failed) > 0 {
+		roots = dryrun.Roots(r.Failed)
+	}
 	switch {
 	case !r.Started:
-		fmt.Fprintf(b, "**Jenkins did not finish starting** (%s).\n\n", r.Reason)
-	case len(r.Failed) == 0:
-		fmt.Fprintf(b, "**Jenkins started in %.0fs and every plugin loaded.**\n\n", r.StartupSeconds)
+		fmt.Fprintf(b, "**Jenkins did not finish starting** (%s).", r.Reason)
+		if len(roots) > 0 {
+			b.WriteString(" The plugin failures below are the likely cause; the log has the rest.")
+		}
+		b.WriteString("\n\n")
+	case r.OK():
+		fmt.Fprintf(b, "**Jenkins started in %.0fs and every plugin loaded.**", r.StartupSeconds)
+		if r.Home != nil {
+			fmt.Fprintf(b, " All %d jobs and folders of your configuration came back.", r.Home.Items)
+		}
+		b.WriteString("\n\n")
+	case len(r.Failed) > 0:
+		fmt.Fprintf(b, "**Jenkins started in %.0fs, but %d plugin(s) did not load", r.StartupSeconds, len(r.Failed))
+		if len(roots) > 0 {
+			fmt.Fprintf(b, ", because of %d cause(s)", len(roots))
+		}
+		b.WriteString(".**")
+		if len(r.Broken) > 0 {
+			fmt.Fprintf(b, " %d more loaded only in part.", len(r.Broken))
+		}
+		b.WriteString(" Upgrading a controller with this set would break the jobs that use them.\n\n")
+	case len(r.Broken) > 0:
+		fmt.Fprintf(b, "**Jenkins started in %.0fs and every plugin loaded, but %d loaded only in part.**\n\n", r.StartupSeconds, len(r.Broken))
 	default:
-		fmt.Fprintf(b, "**Jenkins started in %.0fs; %d plugin(s) failed to load.**\n\n", r.StartupSeconds, len(r.Failed))
+		fmt.Fprintf(b, "**Jenkins started in %.0fs and every plugin loaded, but your configuration did not come back whole** (below).\n\n", r.StartupSeconds)
 	}
-	if len(r.Failed) > 0 {
-		b.WriteString("| Plugin | Version | Why |\n|---|---|---|\n")
+
+	if len(roots) > 0 {
+		b.WriteString("## What failed, and what to do\n\n")
+		b.WriteString("Each row is one cause. Plugins that failed only because another one did are listed with it: fix the first and they load too.\n\n")
+		b.WriteString("| Plugin | Why | What to do | Also fails because of it |\n|---|---|---|---|\n")
+		for _, rt := range roots {
+			name := rt.Name
+			if rt.Version != "" {
+				name += " " + rt.Version
+			}
+			fmt.Fprintf(b, "| %s | %s | %s | %s |\n", cell(name), cell(rt.Diagnosis.Why), cell(dash(rt.Diagnosis.Fix)), cell(dash(list(rt.Cascade, 12))))
+		}
+		b.WriteString("\n<details><summary>What Jenkins said for each plugin</summary>\n\n| Plugin | Version | Jenkins said |\n|---|---|---|\n")
 		for _, f := range r.Failed {
-			fmt.Fprintf(b, "| %s | %s | %s |\n", f.Name, dash(f.Version), dash(strings.Join(f.Reasons, "<br>")))
+			fmt.Fprintf(b, "| %s | %s | %s |\n", f.Name, dash(f.Version), cell(dash(strings.Join(f.Reasons, "\n"))))
+		}
+		b.WriteString("\n</details>\n\n")
+	}
+	if len(r.Broken) > 0 {
+		b.WriteString("## Loaded only in part\n\nThese plugins started, but some of their parts did not; the features those parts provide will be missing.\n\n| Plugin | Version | Error |\n|---|---|---|\n")
+		for _, f := range r.Broken {
+			fmt.Fprintf(b, "| %s | %s | %s |\n", f.Name, dash(f.Version), cell(strings.Join(f.Reasons, "\n")))
 		}
 		b.WriteString("\n")
 	}
+	if h := r.Home; h != nil {
+		b.WriteString("## Your configuration\n\n")
+		fmt.Fprintf(b, "Copied %d configuration files from `%s` (no build records, workspaces or logs).", h.Files, h.Source)
+		if r.Started {
+			fmt.Fprintf(b, " %d of %d jobs and folders loaded.", h.Loaded, h.Items)
+		}
+		b.WriteString("\n\n")
+		if len(h.Missing) > 0 {
+			fmt.Fprintf(b, "**Jobs and folders that did not load (%d).** Jenkins leaves them out after the upgrade, as if deleted, until the plugin they need loads:\n\n", len(h.Missing))
+			configTable(b, h.Missing)
+		}
+		if len(h.Unreadable) > 0 {
+			fmt.Fprintf(b, "**Settings Jenkins could not read (%d).** The item loads without them, and Jenkins drops them for good when the item is next saved:\n\n", len(h.Unreadable))
+			configTable(b, h.Unreadable)
+		}
+		if len(h.Monitors) > 0 {
+			b.WriteString("Warnings Jenkins shows administrators after the upgrade:\n\n")
+			for _, m := range h.Monitors {
+				fmt.Fprintf(b, "- %s\n", m)
+			}
+			b.WriteString("\n")
+		}
+		if len(h.CopyErrs) > 0 {
+			fmt.Fprintf(b, "Could not copy %d file(s), so they were not rehearsed: %s\n\n", len(h.CopyErrs), list(h.CopyErrs, 10))
+		}
+	}
 	if len(r.Skipped) > 0 {
-		fmt.Fprintf(b, "Not rehearsed (no download on the update center): %s.\n\n", strings.Join(r.Skipped, ", "))
+		fmt.Fprintf(b, "Not rehearsed (could not be downloaded): %s.\n\n", strings.Join(r.Skipped, "; "))
 	}
 	if len(r.Errors) > 0 {
 		b.WriteString("<details><summary>Other errors in the log</summary>\n\n```\n")
@@ -202,6 +275,35 @@ func Rehearsal(w io.Writer, r *dryrun.Result) error {
 	}
 	_, err := io.WriteString(w, b.String())
 	return err
+}
+
+func configTable(b *strings.Builder, ps []dryrun.ConfigProblem) {
+	b.WriteString("| Where | Comes from | Problem |\n|---|---|---|\n")
+	for i, p := range ps {
+		if i == 30 {
+			fmt.Fprintf(b, "| … | | %d more |\n", len(ps)-30)
+			break
+		}
+		from := "–"
+		if p.Plugin != "" {
+			from = "plugin " + p.Plugin + ", " + p.PluginState
+		}
+		fmt.Fprintf(b, "| %s | %s | %s |\n", cell(p.Item), cell(from), cell(p.Problem))
+	}
+	b.WriteString("\n")
+}
+
+// cell keeps text inside one Markdown table cell.
+func cell(s string) string {
+	s = strings.ReplaceAll(s, "|", "\\|")
+	return strings.ReplaceAll(s, "\n", "<br>")
+}
+
+func list(xs []string, max int) string {
+	if len(xs) > max {
+		return strings.Join(xs[:max], ", ") + fmt.Sprintf(" and %d more", len(xs)-max)
+	}
+	return strings.Join(xs, ", ")
 }
 
 func dash(s string) string {
