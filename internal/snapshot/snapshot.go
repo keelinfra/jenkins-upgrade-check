@@ -30,6 +30,10 @@ type Snapshot struct {
 	OS      string   `json:"os,omitempty"`
 	Plugins []Plugin `json:"plugins"`
 	Agents  []Agent  `json:"agents,omitempty"`
+	// Items are the full names of jobs and folders, four levels deep.
+	Items []string `json:"items,omitempty"`
+	// QuietingDown is true while the controller starts no new builds.
+	QuietingDown bool `json:"quietingDown,omitempty"`
 	// Notes are things the collection could not read, and why.
 	Notes []string `json:"notes,omitempty"`
 }

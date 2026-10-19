@@ -8,6 +8,7 @@ import (
 
 	"github.com/keelinfra/jenkins-upgrade-check/internal/dryrun"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
+	"github.com/keelinfra/jenkins-upgrade-check/internal/verify"
 )
 
 const footer = "\n---\n" +
@@ -165,6 +166,63 @@ func reasons(pp plan.PluginPlan) []string {
 		out = append(out, "not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself")
 	}
 	return out
+}
+
+// Verify writes the verdict on an upgraded controller.
+func Verify(w io.Writer, r *verify.Result) error {
+	b := &strings.Builder{}
+	fmt.Fprintf(b, "# Upgrade check: Jenkins %s\n\n", r.Core)
+	if r.Verdict == verify.Go {
+		b.WriteString("## GO: keep the upgrade\n\n")
+		if r.Quiet {
+			b.WriteString("Jenkins is still in quiet mode, so no build has run on the new version yet. Open it to users: Manage Jenkins > Cancel Shutdown (or `POST /cancelQuietDown`), and remove `init.groovy.d/zz-jenkins-upgrade-check.groovy` from JENKINS_HOME.\n\n")
+		}
+	} else {
+		b.WriteString("## ROLL BACK\n\n")
+		b.WriteString("Something that worked before does not work now (below). Follow the rollback section of your runbook")
+		if r.Quiet {
+			b.WriteString("; Jenkins is still in quiet mode, so no build ran on the new version and restoring the backup loses nothing")
+		}
+		b.WriteString(". Keep this report and the Jenkins log: they say what to fix before the next attempt.\n\n")
+	}
+	b.WriteString("| Check | | Result |\n|---|---|---|\n")
+	for _, c := range r.Checks {
+		mark := map[string]string{verify.OK: "✅", verify.Warn: "⚠️", verify.Fail: "❌"}[c.State]
+		detail := c.Detail
+		if len(c.Items) > 0 {
+			detail += ": " + list(c.Items, 15)
+		}
+		fmt.Fprintf(b, "| %s | %s | %s |\n", c.Name, mark, cell(detail))
+	}
+	b.WriteString("\n")
+	if len(r.Roots) > 0 {
+		b.WriteString("## Why plugins did not load\n\n| Plugin | Why | What to do | Also fails because of it |\n|---|---|---|---|\n")
+		for _, rt := range r.Roots {
+			name := rt.Name
+			if rt.Version != "" {
+				name += " " + rt.Version
+			}
+			fmt.Fprintf(b, "| %s | %s | %s | %s |\n", cell(name), cell(rt.Diagnosis.Why), cell(dash(rt.Diagnosis.Fix)), cell(dash(list(rt.Cascade, 12))))
+		}
+		b.WriteString("\n")
+	}
+	if len(r.Missing) > 0 {
+		b.WriteString("## Jobs and folders that did not load\n\n")
+		configTable(b, r.Missing)
+	}
+	if len(r.Unreadable) > 0 {
+		b.WriteString("## Settings Jenkins could not read\n\n")
+		configTable(b, r.Unreadable)
+	}
+	if len(r.Monitors) > 0 {
+		b.WriteString("## Warnings Jenkins shows administrators\n\n")
+		for _, m := range r.Monitors {
+			fmt.Fprintf(b, "- %s\n", m)
+		}
+		b.WriteString("\n")
+	}
+	_, err := io.WriteString(w, b.String())
+	return err
 }
 
 // Rehearsal writes a Markdown report of a dry run.

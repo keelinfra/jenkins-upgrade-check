@@ -54,7 +54,7 @@ func fakeController(t *testing.T) *httptest.Server {
 		}
 		switch r.URL.Path {
 		case "/api/json":
-			w.Write([]byte(`{"nodeName":""}`))
+			w.Write([]byte(`{"quietingDown":true,"jobs":[{"fullName":"app"},{"fullName":"team","jobs":[{"fullName":"team/deploy"}]}]}`))
 		case "/pluginManager/api/json":
 			if !strings.Contains(r.URL.RawQuery, "dependencies") {
 				t.Errorf("plugin tree does not ask for dependencies: %s", r.URL.RawQuery)
@@ -84,6 +84,9 @@ func TestCollect(t *testing.T) {
 	}
 	if len(s.Plugins) != 1 || len(s.Agents) != 1 || s.Agents[0].OS != "AIX (ppc64)" || !s.Agents[0].Offline {
 		t.Errorf("got %+v", s)
+	}
+	if !s.QuietingDown || strings.Join(s.Items, ",") != "app,team,team/deploy" {
+		t.Errorf("quietingDown = %v, items = %q", s.QuietingDown, s.Items)
 	}
 	if c.Requests() != 3 {
 		t.Errorf("requests = %d, want 3", c.Requests())

@@ -37,7 +37,8 @@ import (
 //go:embed probe.groovy
 var probeScript []byte
 
-const probeFile = "jenkins-upgrade-check-probe.json"
+// ProbeFile is where the probe script writes, in JENKINS_HOME.
+const ProbeFile = "jenkins-upgrade-check-probe.json"
 
 // Options configure one rehearsal.
 type Options struct {
@@ -262,7 +263,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 	}
 
-	var probe *probeData
+	var probe *Probe
 	if res.Started {
 		// The probe writes its final report a few seconds after startup.
 		for i := 0; i < 30 && probe == nil; i++ {
@@ -317,22 +318,22 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		var missing []string
 		res.Home.Loaded, missing = compareItems(expectedItems, probe.Items)
 		itemErrs := map[string]string{}
-		res.Errors, itemErrs = itemErrors(res.Errors)
+		res.Errors, itemErrs = ItemErrors(res.Errors)
 		for _, m := range missing {
-			p := ConfigProblem{Item: itemName(m), Path: m, Problem: shortClass(itemErrs[path.Base(m)])}
+			p := ConfigProblem{Item: itemName(m), Path: m, Problem: ShortClass(itemErrs[path.Base(m)])}
 			if p.Problem == "" {
 				p.Problem = "not loaded; the log has no reason"
 			}
-			blame(&p, ref, byName, active)
+			Blame(&p, ref, byName, active)
 			res.Home.Missing = append(res.Home.Missing, p)
 		}
 		for _, u := range probe.Unreadable {
-			u.Problem = shortClass(u.Problem)
-			blame(&u, ref, byName, active)
+			u.Problem = ShortClass(u.Problem)
+			Blame(&u, ref, byName, active)
 			res.Home.Unreadable = append(res.Home.Unreadable, u)
 		}
 		for _, m := range probe.Monitors {
-			if !isNoise(m.ID) {
+			if !IsNoise(m.ID) {
 				res.Home.Monitors = append(res.Home.Monitors, m.Name)
 			}
 		}
@@ -375,7 +376,7 @@ var rehearsalNoise = []string{
 	"jenkins.security.csp.impl.CspRecommendation",
 }
 
-func isNoise(id string) bool {
+func IsNoise(id string) bool {
 	for _, n := range rehearsalNoise {
 		if id == n || strings.HasPrefix(id, n+"-") {
 			return true
@@ -384,7 +385,8 @@ func isNoise(id string) bool {
 	return false
 }
 
-type probeData struct {
+// Probe is what the probe script saw inside Jenkins.
+type Probe struct {
 	Completed bool   `json:"completed"`
 	Version   string `json:"version"`
 	Java      string `json:"java"`
@@ -407,26 +409,62 @@ type probeData struct {
 	ProbeErrors []string `json:"probeErrors"`
 }
 
-func (o *Options) readProbe(ctx context.Context, container, work string) (*probeData, error) {
-	dest := filepath.Join(work, probeFile)
+func (o *Options) readProbe(ctx context.Context, container, work string) (*Probe, error) {
+	dest := filepath.Join(work, ProbeFile)
 	os.Remove(dest)
-	if out, err := o.run(ctx, "cp", container+":/var/jenkins_home/"+probeFile, dest); err != nil {
+	if out, err := o.run(ctx, "cp", container+":/var/jenkins_home/"+ProbeFile, dest); err != nil {
 		return nil, fmt.Errorf("%v: %s", err, out)
 	}
-	b, err := os.ReadFile(dest)
+	return ReadProbe(dest)
+}
+
+// ReadProbe reads the file the probe script writes.
+func ReadProbe(path string) (*Probe, error) {
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var p probeData
+	var p Probe
 	if err := json.Unmarshal(b, &p); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	return &p, nil
 }
 
+// ProbeScript is the Groovy script that writes ProbeFile into JENKINS_HOME.
+// With quiet, it also puts Jenkins into quiet mode as it starts, so no build
+// runs until someone cancels it.
+func ProbeScript(quiet bool) []byte {
+	if !quiet {
+		return probeScript
+	}
+	head := "// Start quiet: no build runs on the new version until you cancel quiet\n" +
+		"// mode (Manage Jenkins > Cancel Shutdown, or POST /cancelQuietDown).\n" +
+		"// Remove this file once the upgrade is verified.\n" +
+		"jenkins.model.Jenkins.get().doQuietDown()\n\n"
+	return append([]byte(head), probeScript...)
+}
+
+// Failures lists the plugins Jenkins did not load, with the reasons it
+// gave, and the plugins installed but not active.
+func (p *Probe) Failures() []Failure {
+	return mergeProbe(nil, p, nil)
+}
+
+// Active is the set of plugins running.
+func (p *Probe) Active() map[string]bool {
+	m := map[string]bool{}
+	for _, pl := range p.Plugins {
+		if pl.Active {
+			m[pl.Name] = true
+		}
+	}
+	return m
+}
+
 // mergeProbe adds what the probe saw to what the log said: plugins Jenkins
 // lists as failed, and plugins installed but not active.
-func mergeProbe(failed []Failure, probe *probeData, installed []plan.Pick) []Failure {
+func mergeProbe(failed []Failure, probe *Probe, installed []plan.Pick) []Failure {
 	idx := map[string]int{}
 	for i, f := range failed {
 		idx[f.Name] = i
@@ -445,6 +483,9 @@ func mergeProbe(failed []Failure, probe *probeData, installed []plan.Pick) []Fai
 	active := map[string]bool{}
 	for _, p := range probe.Plugins {
 		active[p.Name] = p.Active
+		if installed == nil && !p.Active && p.Enabled {
+			installed = append(installed, plan.Pick{Name: p.Name, Version: p.Version})
+		}
 	}
 	for _, p := range installed {
 		if active[p.Name] {
@@ -461,9 +502,9 @@ func mergeProbe(failed []Failure, probe *probeData, installed []plan.Pick) []Fai
 
 var failedItem = regexp.MustCompile(`Failed Loading item (\S+) — (.*)$`)
 
-// itemErrors takes the "Failed Loading item" errors out of the log errors,
+// ItemErrors takes the "Failed Loading item" errors out of the log errors,
 // by item name.
-func itemErrors(errs []string) ([]string, map[string]string) {
+func ItemErrors(errs []string) ([]string, map[string]string) {
 	out := map[string]string{}
 	var rest []string
 	for _, e := range errs {
@@ -476,9 +517,9 @@ func itemErrors(errs []string) ([]string, map[string]string) {
 	return rest, out
 }
 
-// shortClass drops the package of XStream's exception, which says nothing
+// ShortClass drops the package of XStream's exception, which says nothing
 // to an administrator.
-func shortClass(s string) string {
+func ShortClass(s string) string {
 	return strings.TrimPrefix(s, "com.thoughtworks.xstream.mapper.")
 }
 
@@ -920,4 +961,21 @@ func ParseLog(log string) ([]Failure, []string) {
 		out = append(out, f)
 	}
 	return out, errs
+}
+
+// Download fetches plugins into dir as name.jpi, checking the update
+// center's checksums, and returns what it got and what it could not get.
+func Download(ctx context.Context, picks []plan.Pick, dir, cacheDir string) ([]plan.Pick, []string) {
+	o := &Options{CacheDir: cacheDir}
+	var fetch []plan.Pick
+	var skipped []string
+	for _, p := range picks {
+		if p.URL == "" {
+			skipped = append(skipped, fmt.Sprintf("%s %s: no download known", p.Name, p.Version))
+			continue
+		}
+		fetch = append(fetch, p)
+	}
+	got, more := o.download(ctx, fetch, dir)
+	return got, append(skipped, more...)
 }

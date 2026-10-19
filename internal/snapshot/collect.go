@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -133,7 +134,26 @@ const (
 	architectureMonitor = "hudson.node_monitors.ArchitectureMonitor"
 	jvmVersionMonitor   = "hudson.plugin.versioncolumn.JVMVersionMonitor"
 	builtInClass        = "hudson.model.Hudson$MasterComputer"
+
+	// itemTree reads job and folder names four levels deep, which covers
+	// folders of folders; deeper items are not counted.
+	itemTree = "quietingDown,jobs[fullName,jobs[fullName,jobs[fullName,jobs[fullName]]]]"
 )
+
+type item struct {
+	FullName string `json:"fullName"`
+	Jobs     []item `json:"jobs"`
+}
+
+func flatten(items []item, out []string) []string {
+	for _, it := range items {
+		if it.FullName != "" {
+			out = append(out, it.FullName)
+		}
+		out = flatten(it.Jobs, out)
+	}
+	return out
+}
 
 // Collect reads the core version, the plugins and the agents.
 func (c *Collector) Collect(ctx context.Context) (*Snapshot, error) {
@@ -144,7 +164,11 @@ func (c *Collector) Collect(ctx context.Context) (*Snapshot, error) {
 
 	// The core version arrives as a header on every response, a refusal
 	// included.
-	h, err := c.get(ctx, "/api/json?tree=nodeName", nil)
+	var top struct {
+		QuietingDown bool   `json:"quietingDown"`
+		Jobs         []item `json:"jobs"`
+	}
+	h, err := c.get(ctx, "/api/json?tree="+url.QueryEscape(itemTree), &top)
 	if h != nil {
 		s.Core = h.Get("X-Jenkins")
 	}
@@ -157,6 +181,9 @@ func (c *Collector) Collect(ctx context.Context) (*Snapshot, error) {
 	if err != nil {
 		return nil, fmt.Errorf("the controller answered but refused the API token: %w", err)
 	}
+	s.QuietingDown = top.QuietingDown
+	s.Items = flatten(top.Jobs, nil)
+	sort.Strings(s.Items)
 
 	var pm pluginManager
 	if _, err := c.get(ctx, "/pluginManager/api/json?tree="+url.QueryEscape(pluginTree), &pm); err != nil {

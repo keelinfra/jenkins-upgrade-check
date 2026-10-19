@@ -58,7 +58,7 @@ func TestParseLogNewFormat(t *testing.T) {
 	if !reflect.DeepEqual(failed, want) {
 		t.Errorf("failed =\n%+v\nwant\n%+v", failed, want)
 	}
-	rest, items := itemErrors(errs)
+	rest, items := ItemErrors(errs)
 	if items["pipeline-job"] != "com.thoughtworks.xstream.mapper.CannotResolveClassException: flow-definition" {
 		t.Errorf("item errors = %q", items)
 	}
