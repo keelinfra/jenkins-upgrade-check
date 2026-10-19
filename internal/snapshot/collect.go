@@ -114,7 +114,11 @@ func (c *Collector) get(ctx context.Context, path string, into any) (http.Header
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<16))
-		return resp.Header, fmt.Errorf("GET %s: %s", path, resp.Status)
+		err := fmt.Errorf("GET %s: %s", path, resp.Status)
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			err = fmt.Errorf("%w: %w", ErrRefused, err)
+		}
+		return resp.Header, err
 	}
 	if into != nil {
 		if err := json.NewDecoder(io.LimitReader(resp.Body, 256<<20)).Decode(into); err != nil {
@@ -123,6 +127,10 @@ func (c *Collector) get(ctx context.Context, path string, into any) (http.Header
 	}
 	return resp.Header, nil
 }
+
+// ErrRefused marks a request the controller refused (401 or 403): the user
+// or the API token is wrong, or lacks a permission.
+var ErrRefused = errors.New("refused")
 
 // Requests is how many GET requests the collection sent.
 func (c *Collector) Requests() int { return c.requests }
@@ -178,8 +186,11 @@ func (c *Collector) Collect(ctx context.Context) (*Snapshot, error) {
 		}
 		return nil, errors.New("the response carries no X-Jenkins header; is --url a Jenkins controller?")
 	}
-	if err != nil {
+	if errors.Is(err, ErrRefused) {
 		return nil, fmt.Errorf("the controller answered but refused the API token: %w", err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("the controller answered with an error: %w", err)
 	}
 	s.QuietingDown = top.QuietingDown
 	s.Items = flatten(top.Jobs, nil)

@@ -625,6 +625,14 @@ func attribute(errs []string, pluginDir string, failed map[string]bool, versions
 	return out, rest
 }
 
+// Attribute names the plugin behind each error that names a class, using
+// the plugin files in pluginDir (JENKINS_HOME/plugins, for example), and
+// returns the errors it could not place. Plugins in failed are already
+// explained and are left out.
+func Attribute(errs []string, pluginDir string, failed map[string]bool) ([]Failure, []string) {
+	return attribute(errs, pluginDir, failed, nil)
+}
+
 var unsafeChars = regexp.MustCompile(`[^A-Za-z0-9_.-]`)
 
 func sanitize(s string) string { return unsafeChars.ReplaceAllString(s, "_") }

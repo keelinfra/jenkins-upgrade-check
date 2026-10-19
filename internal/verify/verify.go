@@ -4,6 +4,7 @@ package verify
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -41,6 +42,9 @@ type Input struct {
 	Home string
 	// Log is the Jenkins log of this start, if given.
 	Log string
+	// Down says why the controller could not be read, when it could not:
+	// then After is not used.
+	Down string
 }
 
 // Check is one thing verified.
@@ -63,10 +67,17 @@ type Result struct {
 	Unreadable []dryrun.ConfigProblem `json:"unreadable,omitempty"`
 	Monitors   []string               `json:"monitors,omitempty"`
 	Quiet      bool                   `json:"quietingDown"`
+	// Errors are severe errors from the Jenkins log, when it did not start.
+	Errors []string `json:"errors,omitempty"`
+	// Down is set when Jenkins did not answer.
+	Down bool `json:"down,omitempty"`
 }
 
 // Run compares.
 func Run(in Input) *Result {
+	if in.Down != "" {
+		return down(in)
+	}
 	r := &Result{Core: in.After.Core, Quiet: in.After.QuietingDown}
 	add := func(c Check) { r.Checks = append(r.Checks, c) }
 
@@ -207,6 +218,33 @@ func Run(in Input) *Result {
 			r.Verdict = RollBack
 		}
 	}
+	return r
+}
+
+// down is the verdict on a controller that does not answer: it did not
+// start, or it is stuck. The log says why.
+func down(in Input) *Result {
+	r := &Result{Core: in.Core, Verdict: RollBack, Down: true}
+	r.Checks = append(r.Checks, Check{Name: "Jenkins is up", State: Fail, Detail: "Jenkins does not answer (" + in.Down + "). If it is still starting, wait and run verify again; if it failed, the log below says why"})
+	if in.Log == "" {
+		r.Checks[0].Detail += "; pass the Jenkins log with --log to see why"
+		return r
+	}
+	failed, errs := dryrun.ParseLog(in.Log)
+	r.Roots = dryrun.Roots(failed)
+	if in.Home != "" {
+		byName := map[string]bool{}
+		for _, f := range failed {
+			byName[f.Name] = true
+		}
+		var broken []dryrun.Failure
+		broken, errs = dryrun.Attribute(errs, filepath.Join(in.Home, "plugins"), byName)
+		r.Roots = append(r.Roots, dryrun.Roots(broken)...)
+	}
+	if len(errs) > 10 {
+		errs = errs[:10]
+	}
+	r.Errors = errs
 	return r
 }
 

@@ -179,11 +179,17 @@ func Verify(w io.Writer, r *verify.Result) error {
 		}
 	} else {
 		b.WriteString("## ROLL BACK\n\n")
-		b.WriteString("Something that worked before does not work now (below). Follow the rollback section of your runbook")
-		if r.Quiet {
-			b.WriteString("; Jenkins is still in quiet mode, so no build ran on the new version and restoring the backup loses nothing")
+		if r.Down {
+			b.WriteString("Jenkins did not come up (below). Follow the rollback section of your runbook. Keep this report and the Jenkins log: they say what to fix before the next attempt.\n\n")
+		} else {
+			b.WriteString("Something that worked before does not work now (below). Follow the rollback section of your runbook")
 		}
-		b.WriteString(". Keep this report and the Jenkins log: they say what to fix before the next attempt.\n\n")
+		if !r.Down {
+			if r.Quiet {
+				b.WriteString("; Jenkins is still in quiet mode, so no build ran on the new version and restoring the backup loses nothing")
+			}
+			b.WriteString(". Keep this report and the Jenkins log: they say what to fix before the next attempt.\n\n")
+		}
 	}
 	b.WriteString("| Check | | Result |\n|---|---|---|\n")
 	for _, c := range r.Checks {
@@ -203,6 +209,13 @@ func Verify(w io.Writer, r *verify.Result) error {
 				name += " " + rt.Version
 			}
 			fmt.Fprintf(b, "| %s | %s | %s | %s |\n", cell(name), cell(rt.Diagnosis.Why), cell(dash(rt.Diagnosis.Fix)), cell(dash(list(rt.Cascade, 12))))
+		}
+		b.WriteString("\n")
+	}
+	if len(r.Errors) > 0 {
+		b.WriteString("## Errors in the Jenkins log\n\n")
+		for _, e := range r.Errors {
+			fmt.Fprintf(b, "- %s\n", e)
 		}
 		b.WriteString("\n")
 	}

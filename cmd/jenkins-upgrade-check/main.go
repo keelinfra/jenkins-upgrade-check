@@ -481,8 +481,13 @@ func cmdVerify(ctx context.Context, args []string) (int, error) {
 		in.Log = string(lb)
 	}
 	after, err := c.Collect(ctx)
-	if err != nil {
+	switch {
+	case errors.Is(err, snapshot.ErrRefused):
 		return 0, err
+	case err != nil:
+		// A controller that does not answer after an upgrade is a verdict,
+		// not a usage error: it did not start.
+		in.Down = err.Error()
 	}
 	in.After = after
 	res := verify.Run(in)
