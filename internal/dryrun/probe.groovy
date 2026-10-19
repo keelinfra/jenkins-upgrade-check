@@ -62,14 +62,31 @@ def collect = { boolean done ->
     tmp.renameTo(f)
 }
 
+// asSystem runs body with full rights. Without them, getAllItems leaves out
+// every item the anonymous user cannot read, which on a secured controller
+// is all of them.
+def asSystem = { Closure body ->
+    def ctx
+    try {
+        ctx = hudson.security.ACL.as2(hudson.security.ACL.SYSTEM2)
+    } catch (MissingPropertyException | MissingMethodException e) {
+        ctx = hudson.security.ACL.as(hudson.security.ACL.SYSTEM) // before 2.266
+    }
+    try {
+        body()
+    } finally {
+        ctx.close()
+    }
+}
+
 // Write once now, in case Jenkins never finishes starting, and again once
 // it has.
-collect(false)
+asSystem { collect(false) }
 Thread.start('jenkins-upgrade-check-probe') {
     def deadline = System.currentTimeMillis() + 30 * 60 * 1000
     while (Jenkins.get().initLevel != InitMilestone.COMPLETED && System.currentTimeMillis() < deadline) {
         sleep(500)
     }
     sleep(3000)
-    collect(true)
+    asSystem { collect(true) }
 }

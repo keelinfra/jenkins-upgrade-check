@@ -13,6 +13,9 @@
 #   missing-plugin  the plugin pipeline jobs need disappears during the
 #                   upgrade: verify must say ROLL BACK and name it, and the
 #                   rollback must bring back the controller as it was.
+#   old-agent       the agent runs Java 17, which the target does not
+#                   support: the plan must name it, verify must say ROLL
+#                   BACK and why, and the rollback must bring it back.
 #
 # The controller starts on FROM (default 2.346.3) with the TOP (default 300)
 # most installed plugins, configured by seed.groovy, with one inbound agent,
@@ -22,20 +25,23 @@
 # container names jenkins and agent1, the volume jenkins_home and port 8080.
 set -euo pipefail
 
-scenario=${1:?scenario: go, forgot-plugins or missing-plugin}
+scenario=${1:?scenario: go, forgot-plugins, missing-plugin or old-agent}
 from=${2:-2.346.3}
 to=${3:-lts}
 top=${TOP:-300}
 here=$(cd "$(dirname "$0")" && pwd)
 work=${E2E_WORK:-$PWD/e2e-$scenario}
 from_image=${FROM_IMAGE:-jenkins/jenkins:$from}
-agent_image=jenkins/inbound-agent:3384.v60d89463d9e0-1-jdk17@sha256:b0c41a6b69468ac7c72ad25c2a364e6b5f116a1ea44510642bd629a6323f0fab
+agent_image=jenkins/inbound-agent:3384.v60d89463d9e0-1-jdk21@sha256:6274f49f86429c5382b3943e96df81b65fd81712677347ae2a50b235b6c4e286
+if [ "$scenario" = old-agent ]; then
+  agent_image=jenkins/inbound-agent:3384.v60d89463d9e0-1-jdk17@sha256:b0c41a6b69468ac7c72ad25c2a364e6b5f116a1ea44510642bd629a6323f0fab
+fi
 url=http://localhost:8080
 home=/var/lib/docker/volumes/jenkins_home/_data
 password=e2e-admin
 seed_plugins=cloudbees-folder,credentials,plain-credentials,credentials-binding,matrix-auth,workflow-aggregator,pipeline-model-definition,timestamper,git,email-ext,ws-cleanup,build-timeout
 
-case $scenario in go | forgot-plugins | missing-plugin) ;; *)
+case $scenario in go | forgot-plugins | missing-plugin | old-agent) ;; *)
   echo "unknown scenario $scenario" >&2
   exit 2
   ;;
@@ -65,6 +71,7 @@ wait_up() {
   return 1
 }
 api() { curl -fsS -u "admin:$TOKEN" "$@"; }
+disk_free() { df -h --output=avail / | tail -1 | tr -d ' '; }
 core_now() { curl -fs -o /dev/null -D - "$url/login" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-jenkins"{print $2}'; }
 
 # Every job with its builds, one line per build: "full/name #n RESULT".
@@ -96,7 +103,10 @@ run_jobs() {
       [ -n "$r" ] && break
       sleep 3
     done
-    echo "$j ${r:-did-not-finish}"
+    if [ -z "$r" ]; then
+      r="did-not-finish($(api -g "$url/queue/api/json?tree=items[task[url],why]" | jq -r --arg u "$u/" '[.items[] | select(.task.url | endswith($u)) | .why] | first // "not queued"' | tr ' ' '_'))"
+    fi
+    echo "$j $r"
   done
 }
 
@@ -146,7 +156,7 @@ finish() {
 trap finish EXIT
 
 # --- The controller before the upgrade ------------------------------------
-log "setting up Jenkins $from ($from_image) with the $top most installed plugins"
+log "setting up Jenkins $from ($from_image) with the $top most installed plugins; $(disk_free) free on /"
 docker rm -f jenkins agent1 >/dev/null 2>&1 || true
 docker volume rm jenkins_home >/dev/null 2>&1 || true
 rm -rf /var/tmp/jenkins-upgrade /var/backups/jenkins-before-upgrade.tgz
@@ -196,6 +206,13 @@ target=$(jq -r .to plan.json)
 hops=$(jq -r '[.steps[] | select(.upgrade) | .core] | join(" → ")' plan.json)
 first_hop=$(jq -r '[.steps[] | select(.upgrade) | .core][0]' plan.json)
 log "plan: $from → $hops"
+java_seen=$(jq -r '.agents[]? | select(.name == "agent1") | .java // empty' snapshot.json)
+[ -n "$java_seen" ] || fail "collect did not read the Java of agent1"
+at_risk=$(jq -r '[.agents[]?.name] | join(" ")' plan.json)
+case $scenario in
+old-agent) [ "$at_risk" = agent1 ] || fail "the plan does not name agent1 (Java $java_seen) as unable to follow" ;;
+*) [ -z "$at_risk" ] || fail "the plan says these agents cannot follow: $at_risk" ;;
+esac
 
 # Split the runbook into its shell blocks, each with its section and lead.
 awk -v dir=blocks '
@@ -268,7 +285,7 @@ while IFS=$'\t' read -r -u 9 n sec lead; do
 done 9<blocks/index.tsv
 
 if [ -n "$rolled_back" ]; then
-  log "rolling back from $rolled_back"
+  log "rolling back from $rolled_back; $(disk_free) free on /"
   while IFS=$'\t' read -r -u 9 n sec lead; do
     if [ "$sec" = "Roll back" ]; then run_block "$n" "$sec" "$lead"; fi
   done 9<blocks/index.tsv
@@ -292,6 +309,10 @@ missing-plugin)
   grep -l workflow-job /var/tmp/jenkins-upgrade/verify-"$first_hop".md >/dev/null 2>&1 ||
     fail "the ROLL BACK report does not name workflow-job"
   ;;
+old-agent)
+  grep -l 'agent1: runs Java 17' /var/tmp/jenkins-upgrade/verify-2*.md >/dev/null 2>&1 ||
+    fail "the ROLL BACK report does not say agent1's Java is too old"
+  ;;
 esac
 wait_up || fail "Jenkins is not up at the end"
 now=$(core_now)
@@ -304,4 +325,4 @@ if agent_online 36; then log "agent1 is online on $now"; else fail "agent1 is no
 run_jobs | tee last-builds.txt
 bad=$(grep -v ' SUCCESS$' last-builds.txt || true)
 [ -z "$bad" ] || fail "builds on $now did not pass: $(echo "$bad" | paste -sd' ')"
-log "Jenkins $now: $(list_jobs | wc -l) jobs, $(wc -l <builds-before.txt) old builds kept, $(wc -l <last-builds.txt) new builds passed"
+log "Jenkins $now: $(list_jobs | wc -l) jobs, $(wc -l <builds-before.txt) old builds kept, $(grep -c ' SUCCESS$' last-builds.txt || true) of $(wc -l <last-builds.txt) new builds passed; $(disk_free) free on /"

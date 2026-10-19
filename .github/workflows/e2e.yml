@@ -1,7 +1,7 @@
 name: Upgrade end to end
 
 # Upgrades a seeded controller by running the runbook the tool writes, once
-# as written and twice with a mistake that verify must catch and the
+# as written and three times with a problem that verify must catch and the
 # rollback must undo. Long, so only on request or when the test changes.
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [go, forgot-plugins, missing-plugin]
+        scenario: [go, forgot-plugins, missing-plugin, old-agent]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0

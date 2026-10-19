@@ -7,13 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -29,7 +33,7 @@ type Collector struct {
 	Tool, ToolVersion string
 
 	client   *http.Client
-	requests int
+	requests atomic.Int64
 }
 
 type getOnly struct{ next http.RoundTripper }
@@ -42,6 +46,9 @@ func (g getOnly) RoundTrip(r *http.Request) (*http.Response, error) {
 }
 
 func (c *Collector) init() error {
+	if c.client != nil {
+		return nil
+	}
 	u, err := url.Parse(c.URL)
 	if err != nil || u.Host == "" {
 		return fmt.Errorf("--url %q is not a URL", c.URL)
@@ -94,6 +101,42 @@ func isLoopback(host string) bool {
 }
 
 func (c *Collector) get(ctx context.Context, path string, into any) (http.Header, error) {
+	resp, err := c.do(ctx, path)
+	if err != nil {
+		if resp != nil {
+			return resp.Header, err
+		}
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if into != nil {
+		if err := json.NewDecoder(io.LimitReader(resp.Body, 256<<20)).Decode(into); err != nil {
+			return resp.Header, fmt.Errorf("GET %s: %w", path, err)
+		}
+	}
+	return resp.Header, nil
+}
+
+// getText reads a page as text, at most its last limit bytes.
+func (c *Collector) getText(ctx context.Context, path string, limit int64) (string, error) {
+	resp, err := c.do(ctx, path)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 64<<20))
+	if err != nil {
+		return "", fmt.Errorf("GET %s: %w", path, err)
+	}
+	if int64(len(b)) > limit {
+		b = b[int64(len(b))-limit:]
+	}
+	return string(b), nil
+}
+
+// do sends one GET. On a status other than 200 the body is closed and the
+// response comes back with the error, for its headers.
+func (c *Collector) do(ctx context.Context, path string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(c.URL, "/")+path, nil)
 	if err != nil {
 		return nil, err
@@ -106,26 +149,21 @@ func (c *Collector) get(ctx context.Context, path string, into any) (http.Header
 		ua += "/" + c.ToolVersion
 	}
 	req.Header.Set("User-Agent", ua)
-	c.requests++
+	c.requests.Add(1)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<16))
+		resp.Body.Close()
 		err := fmt.Errorf("GET %s: %s", path, resp.Status)
 		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 			err = fmt.Errorf("%w: %w", ErrRefused, err)
 		}
-		return resp.Header, err
+		return resp, err
 	}
-	if into != nil {
-		if err := json.NewDecoder(io.LimitReader(resp.Body, 256<<20)).Decode(into); err != nil {
-			return resp.Header, fmt.Errorf("GET %s: %w", path, err)
-		}
-	}
-	return resp.Header, nil
+	return resp, nil
 }
 
 // ErrRefused marks a request the controller refused (401 or 403): the user
@@ -133,7 +171,7 @@ func (c *Collector) get(ctx context.Context, path string, into any) (http.Header
 var ErrRefused = errors.New("refused")
 
 // Requests is how many GET requests the collection sent.
-func (c *Collector) Requests() int { return c.requests }
+func (c *Collector) Requests() int { return int(c.requests.Load()) }
 
 const (
 	pluginTree   = "plugins[shortName,version,enabled,active,dependencies[shortName,version,optional]]"
@@ -182,6 +220,12 @@ func (c *Collector) Collect(ctx context.Context) (*Snapshot, error) {
 	}
 	if s.Core == "" {
 		if err != nil {
+			// Without the request URL, whose long tree query says nothing
+			// to the reader: "connection refused" is the news.
+			var ue *url.Error
+			if errors.As(err, &ue) {
+				err = ue.Err
+			}
 			return nil, fmt.Errorf("could not reach the controller: %w", err)
 		}
 		return nil, errors.New("the response carries no X-Jenkins header; is --url a Jenkins controller?")
@@ -227,10 +271,95 @@ func (c *Collector) Collect(ctx context.Context) (*Snapshot, error) {
 		}
 		s.Agents = append(s.Agents, Agent{Name: n.DisplayName, OS: osName, Java: java, Offline: n.Offline})
 	}
-	if !sawJava && len(nodes.Computer) > 0 {
-		s.Notes = append(s.Notes, "Java versions are not reported: Jenkins core does not publish them; install the Versions Node Monitors plugin (versioncolumn) to have them read")
+	if !sawJava && len(s.Agents) > 0 {
+		if note := c.agentJava(ctx, s.Agents); note != "" {
+			s.Notes = append(s.Notes, note)
+		}
 	}
 	return s, nil
+}
+
+// agentJava fills in the Java of online agents from their System
+// Information page, since core reports no Java version: one GET per agent,
+// a few at a time. It returns a note when some could not be read.
+func (c *Collector) agentJava(ctx context.Context, agents []Agent) string {
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		refused bool
+		missed  []string
+		sem     = make(chan struct{}, 8)
+	)
+	for i := range agents {
+		a := &agents[i]
+		if a.Offline {
+			continue
+		}
+		wg.Add(1)
+		sem <- struct{}{}
+		go func() {
+			defer wg.Done()
+			defer func() { <-sem }()
+			page, err := c.getText(ctx, "/computer/"+url.PathEscape(a.Name)+"/systemInfo", 8<<20)
+			props := systemProperties(page)
+			mu.Lock()
+			defer mu.Unlock()
+			if err != nil || props["java.version"] == "" {
+				refused = refused || errors.Is(err, ErrRefused)
+				missed = append(missed, a.Name)
+				return
+			}
+			a.Java = props["java.version"]
+			if a.OS == "" {
+				a.OS = props["os.name"]
+			}
+		}()
+	}
+	wg.Wait()
+	if len(missed) == 0 {
+		return ""
+	}
+	sort.Strings(missed)
+	why := "their System Information page did not say"
+	if refused {
+		why = "reading their System Information page needs Overall/Administer"
+	}
+	return fmt.Sprintf("the Java version of %d online agent(s) is not known (%s): %s; install the Versions Node Monitors plugin (versioncolumn) to have it reported", len(missed), why, strings.Join(missed, ", "))
+}
+
+var propertyRow = regexp.MustCompile(`(?s)<td[^>]*>\s*([A-Za-z0-9_.]+)\s*</td>\s*<td[^>]*>(.*?)</td>`)
+var tags = regexp.MustCompile(`<[^>]*>`)
+
+// systemProperties reads name and value pairs from the property tables of
+// a System Information page. Values come with <wbr> and other markup, which
+// is dropped; newer versions hide each value behind a button whose label
+// comes first, so only what follows the hidden part's opening tag counts.
+// The first table with a name wins: system properties come before
+// environment variables.
+func systemProperties(page string) map[string]string {
+	out := map[string]string{}
+	for _, m := range propertyRow.FindAllStringSubmatch(page, -1) {
+		if _, seen := out[m[1]]; seen {
+			continue
+		}
+		cell := m[2]
+		if i := strings.Index(cell, "app-hidden-info-hide"); i >= 0 {
+			cell = cell[i:]
+			if j := strings.IndexByte(cell, '>'); j >= 0 {
+				cell = cell[j+1:]
+			}
+		}
+		out[m[1]] = strings.Join(strings.Fields(html.UnescapeString(tags.ReplaceAllString(cell, ""))), " ")
+	}
+	return out
+}
+
+// AgentLog reads the end of an agent's connection log on the controller.
+func (c *Collector) AgentLog(ctx context.Context, name string) (string, error) {
+	if err := c.init(); err != nil {
+		return "", err
+	}
+	return c.getText(ctx, "/computer/"+url.PathEscape(name)+"/logText/progressiveText?start=0", 256<<10)
 }
 
 func monitorString(raw json.RawMessage) string {

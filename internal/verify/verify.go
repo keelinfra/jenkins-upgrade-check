@@ -5,12 +5,15 @@ package verify
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/keelinfra/jenkins-upgrade-check/internal/dryrun"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/snapshot"
+	"github.com/keelinfra/jenkins-upgrade-check/internal/version"
 )
 
 // Verdicts.
@@ -45,6 +48,9 @@ type Input struct {
 	// Down says why the controller could not be read, when it could not:
 	// then After is not used.
 	Down string
+	// AgentLogs are the controller's connection logs of agents that were
+	// online before and are not now, by name, as far as they could be read.
+	AgentLogs map[string]string
 }
 
 // Check is one thing verified.
@@ -204,12 +210,30 @@ func Run(in Input) *Result {
 		}
 	}
 	sort.Strings(gone)
-	switch {
-	case len(wasOnline) == 0:
-	case len(gone) == 0:
+	javaBefore := map[string]string{}
+	for _, a := range in.Before.Agents {
+		javaBefore[a.Name] = a.Java
+	}
+	var stuck, waiting []string
+	for _, name := range gone {
+		cause, final := agentCause(javaBefore[name], in.AgentLogs[name], in.After.Core)
+		switch {
+		case final:
+			stuck = append(stuck, name+": "+cause)
+		case cause != "":
+			waiting = append(waiting, name+" ("+cause+")")
+		default:
+			waiting = append(waiting, name)
+		}
+	}
+	if len(wasOnline) > 0 && len(gone) == 0 {
 		add(Check{Name: "Agents", State: OK, Detail: fmt.Sprintf("all %d agents that were online are online", len(wasOnline))})
-	default:
-		add(Check{Name: "Agents", State: Warn, Detail: fmt.Sprintf("%d agent(s) online before are offline now. Agents can take a few minutes to reconnect; run verify again. If they stay offline, check their Java version and logs", len(gone)), Items: gone})
+	}
+	if len(stuck) > 0 {
+		add(Check{Name: "Agents", State: Fail, Detail: fmt.Sprintf("%d agent(s) cannot connect to this version, so builds that need them would wait for good. Give them the Java it needs and run verify again, or roll back", len(stuck)), Items: stuck})
+	}
+	if len(waiting) > 0 {
+		add(Check{Name: "Agents", State: Warn, Detail: fmt.Sprintf("%d agent(s) online before are offline now. Agents can take a few minutes to reconnect; run verify again. If they stay offline, check their Java version and logs", len(waiting)), Items: waiting})
 	}
 
 	r.Verdict = Go
@@ -320,4 +344,36 @@ func blameItems(missing []string, in Input) []dryrun.ConfigProblem {
 		out = append(out, p)
 	}
 	return out
+}
+
+// classVersion is how a JVM refuses classes built for a newer Java.
+var classVersion = regexp.MustCompile(`class file version (\d+)\.0\), this version of the Java Runtime only recognizes class file versions up to (\d+)\.0`)
+
+// errorLine picks a line of an agent log that names what went wrong.
+var errorLine = regexp.MustCompile(`(Exception|Error|ERROR|SEVERE)\b`)
+
+// agentCause says why an agent that was online is not, from the Java it ran
+// before the upgrade and the controller's log of its connection. final means
+// it cannot connect to core as it is, rather than may still reconnect.
+func agentCause(javaBefore, log, core string) (string, bool) {
+	need := version.SupportedJava(core)
+	if j := plan.JavaMajor(javaBefore); j > 0 && len(need) > 0 && j < need[0] {
+		return fmt.Sprintf("runs Java %d; Jenkins %s needs Java %d or newer on agents", j, core, need[0]), true
+	}
+	if ms := classVersion.FindAllStringSubmatch(log, -1); len(ms) > 0 {
+		m := ms[len(ms)-1]
+		want, _ := strconv.Atoi(m[1])
+		has, _ := strconv.Atoi(m[2])
+		return fmt.Sprintf("runs Java %d; Jenkins %s needs Java %d or newer on agents (from its connection log)", has-44, core, want-44), true
+	}
+	lines := strings.Split(strings.TrimSpace(log), "\n")
+	for i := len(lines) - 1; i >= 0 && i >= len(lines)-200; i-- {
+		if l := strings.TrimSpace(lines[i]); errorLine.MatchString(l) {
+			if len(l) > 200 {
+				l = l[:200] + "…"
+			}
+			return "its log ends with: " + l, false
+		}
+	}
+	return "", false
 }

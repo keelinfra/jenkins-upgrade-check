@@ -93,3 +93,41 @@ func TestDown(t *testing.T) {
 		t.Errorf("errors = %q", r.Errors)
 	}
 }
+
+// An agent on Java 17 cannot connect to a core that needs 21: a reason to
+// roll back, not to wait. Its Java is known from before, or from its log.
+func TestAgentTooOldJava(t *testing.T) {
+	b := before()
+	b.Agents = []snapshot.Agent{{Name: "linux1", Java: "17.0.12"}, {Name: "linux2"}, {Name: "linux3"}, {Name: "linux4"}}
+	after := &snapshot.Snapshot{Core: "2.580.1",
+		Plugins: []snapshot.Plugin{{Name: "git", Version: "5.8", Active: true}, {Name: "workflow-cps", Version: "4000", Active: true}},
+		Items:   []string{"app", "team", "team/deploy"},
+		Agents:  []snapshot.Agent{{Name: "linux1", Offline: true}, {Name: "linux2", Offline: true}, {Name: "linux3", Offline: true}, {Name: "linux4", Offline: true}},
+	}
+	logs := map[string]string{
+		"linux2": "Caused by: java.lang.UnsupportedClassVersionError: hudson/slaves/SlaveComputer$SlaveVersion has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 61.0\n",
+		"linux3": "INFO: Connected\njava.io.EOFException: unexpected stream termination\nINFO: retrying\n",
+	}
+	r := Run(Input{Before: b, After: after, Core: "2.580.1", AgentLogs: logs})
+	if r.Verdict != RollBack {
+		t.Fatalf("verdict = %s", r.Verdict)
+	}
+	var fail, warn Check
+	for _, c := range r.Checks {
+		if c.Name == "Agents" && c.State == Fail {
+			fail = c
+		}
+		if c.Name == "Agents" && c.State == Warn {
+			warn = c
+		}
+	}
+	got := strings.Join(fail.Items, "\n")
+	for _, want := range []string{"linux1: runs Java 17; Jenkins 2.580.1 needs Java 21 or newer on agents", "linux2: runs Java 17; Jenkins 2.580.1 needs Java 21 or newer on agents (from its connection log)"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("fail items lack %q:\n%s", want, got)
+		}
+	}
+	if w := strings.Join(warn.Items, "\n"); w != "linux3 (its log ends with: java.io.EOFException: unexpected stream termination)\nlinux4" {
+		t.Errorf("warn items = %q", w)
+	}
+}

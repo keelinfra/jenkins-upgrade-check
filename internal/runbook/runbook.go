@@ -198,8 +198,9 @@ func (r *writer) before() {
 	if len(p.Agents) > 0 {
 		r.f("5. **Agents that cannot follow** (from the plan): %s. Sort them out first, or they stay offline after the upgrade.\n\n", agentNames(p))
 	}
-	r.b.WriteString("6. **Time the backup**, so you know how long the window is: the backup below copies everything but workspaces.\n\n")
-	r.sh(`du -sh --exclude=workspace "$JENKINS_HOME"`)
+	r.b.WriteString("6. **Check the space and time the backup.** The backup copies everything but workspaces, so its size tells how long the window is. It needs up to that much free space where it goes, and JENKINS_HOME needs twice the new plugins (Jenkins unpacks them); on one disk, add the two up. Short of space? Free some first: without a whole backup there is no rollback.\n\n")
+	r.sh(`du -sh --exclude=workspace --exclude=caches "$JENKINS_HOME" "$WORK"/step*-plugins`,
+		`df -h "$(dirname "$BACKUP")" "$JENKINS_HOME"`)
 	r.b.WriteString("   Hundreds of GB of build history? Take a disk or filesystem snapshot (LVM, ZFS, a cloud volume snapshot) instead of the tar backup, and restore from it in the rollback.\n\n")
 	r.b.WriteString("7. **Announce the window** to the people who use Jenkins.\n\n")
 }
@@ -310,19 +311,32 @@ func (r *writer) start() []string {
 	return []string{`START=$(date '+%Y-%m-%d %H:%M:%S')`, "systemctl start jenkins"}
 }
 
-func (r *writer) logCmd() string {
+// logs prints the Jenkins log since START.
+func (r *writer) logs() string {
 	switch r.o.Install {
 	case Docker:
-		return `docker logs --since "$START" "$CONTAINER" > "$WORK/start.log" 2>&1`
+		return `docker logs --since "$START" "$CONTAINER" 2>&1`
 	case War:
-		return `journalctl -u "$SERVICE" --since "$START" --no-pager > "$WORK/start.log"`
+		return `journalctl -u "$SERVICE" --since "$START" --no-pager`
 	}
-	return `journalctl -u jenkins --since "$START" --no-pager > "$WORK/start.log"`
+	return `journalctl -u jenkins --since "$START" --no-pager`
 }
 
-// waitUp waits for Jenkins to answer, for at most 15 minutes: one that does
-// not start must still reach verify, which says why from the log.
-const waitUp = `for i in $(seq 180); do curl -fs -o /dev/null "$JENKINS_URL/login" && break; sleep 5; done   # up to 15 minutes`
+func (r *writer) logCmd() string {
+	return r.logs() + ` > "$WORK/start.log"`
+}
+
+// waitUp waits for Jenkins to answer, for at most 15 minutes, and stops
+// early when the log shows it will not: one that does not start must still
+// reach verify, which says why from the log, and soon, since users wait.
+func (r *writer) waitUp() string {
+	return `for i in $(seq 180); do curl -fs -o /dev/null "$JENKINS_URL/login" && break; ` +
+		r.logs() + ` | grep -qE '` + failedStart + `' && break; sleep 5; done   # up to 15 minutes, less if it failed to start`
+}
+
+// failedStart matches log lines after which Jenkins does not come up by
+// itself: a boot failure, or a JVM too old for the war.
+const failedStart = `Failed to initialize Jenkins|UnsupportedClassVersionError|Could not create the Java Virtual Machine`
 
 // quietStart installs the probe, starts Jenkins and verifies it.
 func (r *writer) quietStart(core string) {
@@ -333,7 +347,7 @@ func (r *writer) quietStart(core string) {
 		fmt.Sprintf(`chown -R %s "$JENKINS_HOME/init.groovy.d"`, r.o.owner()),
 	}
 	lines = append(lines, r.start()...)
-	lines = append(lines, waitUp, "sleep 60   # let agents reconnect")
+	lines = append(lines, r.waitUp(), "sleep 60   # let agents reconnect")
 	r.sh(lines...)
 	r.b.WriteString("**Verify.** GO exits 0, ROLL BACK exits 1; the report says what failed and why.\n\n")
 	r.sh(r.logCmd(),
@@ -465,12 +479,15 @@ func (r *writer) rollback() {
 		}
 		lines = append(lines, fmt.Sprintf(`rm -f "/etc/systemd/system/%s.service.d/java.conf" && systemctl daemon-reload   # back to the Java it ran on`, unit))
 	}
+	// In place: a copy of the backup next to JENKINS_HOME would need its
+	// size again in free space, at the worst moment to run out.
 	lines = append(lines,
-		`mkdir -p "$WORK/restore" && tar -C "$WORK/restore" -xzf "$BACKUP"`,
-		`rsync -a --delete --exclude=/workspace --exclude=/caches "$WORK/restore/" "$JENKINS_HOME/"   # also removes the quiet-start script`,
-		`rm -rf "$WORK/restore"`)
+		`# nothing is removed unless the whole backup reads back; this also removes the quiet-start script`,
+		`tar -tzf "$BACKUP" > /dev/null &&`,
+		`  find "$JENKINS_HOME" -mindepth 1 -maxdepth 1 ! -name workspace ! -name caches -exec rm -rf {} + &&`,
+		`  tar -C "$JENKINS_HOME" -xzf "$BACKUP"`)
 	lines = append(lines, r.start()...)
-	lines = append(lines, waitUp,
+	lines = append(lines, r.waitUp(),
 		fmt.Sprintf(`jenkins-upgrade-check verify --before "$WORK/before.json" --url "$JENKINS_URL" --user "$JENKINS_USER" --core %s -o "$WORK/verify-rollback.md"`, p.From))
 	r.sh(lines...)
 	r.b.WriteString("The rollback is done when this last verify says GO: the controller is what it was before the window. Then tell users it is open again.\n\n")

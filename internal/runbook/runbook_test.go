@@ -1,6 +1,7 @@
 package runbook
 
 import (
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -41,7 +42,9 @@ func TestDeb(t *testing.T) {
 		"--core 2.580.1",
 		"## Roll back",
 		"jenkins=2.346.3",
-		"rsync -a --delete",
+		`tar -tzf "$BACKUP" > /dev/null &&`,
+		`df -h "$(dirname "$BACKUP")" "$JENKINS_HOME"`,
+		"grep -qE 'Failed to initialize Jenkins",
 		"solaris10",
 	} {
 		if !strings.Contains(out, want) {
@@ -63,6 +66,38 @@ func TestDocker(t *testing.T) {
 	}
 	if strings.Contains(out, "Install Java") {
 		t.Error("the image carries its Java; the Docker runbook must not ask to install one")
+	}
+}
+
+// TestShellSyntax runs every command block through bash -n: a quoting
+// slip in a long line would otherwise surface in the middle of a window.
+func TestShellSyntax(t *testing.T) {
+	bash, err := exec.LookPath("bash")
+	if err != nil {
+		t.Skip("no bash")
+	}
+	for _, install := range []string{Deb, RPM, War, Docker} {
+		var b strings.Builder
+		if err := Write(&b, testPlan(), Options{Install: install}); err != nil {
+			t.Fatal(err)
+		}
+		var script strings.Builder
+		in := false
+		for _, line := range strings.Split(b.String(), "\n") {
+			switch {
+			case line == "```sh":
+				in = true
+			case line == "```":
+				in = false
+			case in:
+				script.WriteString(line + "\n")
+			}
+		}
+		cmd := exec.Command(bash, "-n")
+		cmd.Stdin = strings.NewReader(script.String())
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Errorf("%s runbook: %v\n%s", install, err, out)
+		}
 	}
 }
 
