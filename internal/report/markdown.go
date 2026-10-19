@@ -173,7 +173,7 @@ func Verify(w io.Writer, r *verify.Result) error {
 	b := &strings.Builder{}
 	fmt.Fprintf(b, "# Upgrade check: Jenkins %s\n\n", r.Core)
 	if r.Verdict == verify.Go {
-		b.WriteString("## GO: keep the upgrade\n\n")
+		b.WriteString("## GO: what worked before works\n\n")
 		if r.Quiet {
 			b.WriteString("Jenkins is still in quiet mode, so no build has run on the new version yet. Open it to users: Manage Jenkins > Cancel Shutdown (or `POST /cancelQuietDown`), and remove `init.groovy.d/zz-jenkins-upgrade-check.groovy` from JENKINS_HOME.\n\n")
 		}

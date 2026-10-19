@@ -8,8 +8,8 @@
 #                   afterwards the jobs, their build history and the agent
 #                   must be there and builds must pass on the new version.
 #   forgot-plugins  at the first stop the operator forgets to copy the new
-#                   plugins: verify must say ROLL BACK, and the runbook's
-#                   rollback must bring back the controller as it was.
+#                   plugins: verify must say ROLL BACK and why, and the
+#                   runbook's rollback must bring back the controller as it was.
 #   missing-plugin  the plugin pipeline jobs need disappears during the
 #                   upgrade: verify must say ROLL BACK and name it, and the
 #                   rollback must bring back the controller as it was.
@@ -305,6 +305,10 @@ go)
   ;;
 esac
 case $scenario in
+forgot-plugins)
+  grep -l 'Why plugins did not load' /var/tmp/jenkins-upgrade/verify-"$first_hop".md >/dev/null 2>&1 ||
+    fail "the ROLL BACK report does not say why plugins did not load"
+  ;;
 missing-plugin)
   grep -l workflow-job /var/tmp/jenkins-upgrade/verify-"$first_hop".md >/dev/null 2>&1 ||
     fail "the ROLL BACK report does not name workflow-job"

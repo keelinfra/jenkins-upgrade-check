@@ -312,10 +312,12 @@ func (r *writer) start() []string {
 }
 
 // logs prints the Jenkins log since START.
+// logs prints the log of this start; Jenkins writes it to stderr, so a
+// caller redirects both streams.
 func (r *writer) logs() string {
 	switch r.o.Install {
 	case Docker:
-		return `docker logs --since "$START" "$CONTAINER" 2>&1`
+		return `docker logs --since "$START" "$CONTAINER"`
 	case War:
 		return `journalctl -u "$SERVICE" --since "$START" --no-pager`
 	}
@@ -323,7 +325,7 @@ func (r *writer) logs() string {
 }
 
 func (r *writer) logCmd() string {
-	return r.logs() + ` > "$WORK/start.log"`
+	return r.logs() + ` > "$WORK/start.log" 2>&1`
 }
 
 // waitUp waits for Jenkins to answer, for at most 15 minutes, and stops
@@ -331,7 +333,7 @@ func (r *writer) logCmd() string {
 // reach verify, which says why from the log, and soon, since users wait.
 func (r *writer) waitUp() string {
 	return `for i in $(seq 180); do curl -fs -o /dev/null "$JENKINS_URL/login" && break; ` +
-		r.logs() + ` | grep -qE '` + failedStart + `' && break; sleep 5; done   # up to 15 minutes, less if it failed to start`
+		r.logs() + ` 2>&1 | grep -qE '` + failedStart + `' && break; sleep 5; done   # up to 15 minutes, less if it failed to start`
 }
 
 // failedStart matches log lines after which Jenkins does not come up by

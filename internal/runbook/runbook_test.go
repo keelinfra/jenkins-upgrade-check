@@ -59,7 +59,7 @@ func TestDocker(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := b.String()
-	for _, want := range []string{"docker pull jenkins/jenkins:2.541.3-jdk17", "docker pull jenkins/jenkins:2.580.1-jdk21", "chown -R 1000:1000", "docker logs --since"} {
+	for _, want := range []string{"docker pull jenkins/jenkins:2.541.3-jdk17", "docker pull jenkins/jenkins:2.580.1-jdk21", "chown -R 1000:1000", `docker logs --since "$START" "$CONTAINER" > "$WORK/start.log" 2>&1`} {
 		if !strings.Contains(out, want) {
 			t.Errorf("runbook lacks %q", want)
 		}
@@ -92,6 +92,11 @@ func TestShellSyntax(t *testing.T) {
 			case in:
 				script.WriteString(line + "\n")
 			}
+		}
+		// Jenkins logs to stderr: "2>&1 > file" would send it to the
+		// terminal and leave verify a log without the reason.
+		if strings.Contains(script.String(), "2>&1 >") {
+			t.Errorf("%s runbook redirects stderr before stdout", install)
 		}
 		cmd := exec.Command(bash, "-n")
 		cmd.Stdin = strings.NewReader(script.String())
