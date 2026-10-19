@@ -1,0 +1,105 @@
+# Manual release: builds the binaries, tests them and install.sh, and publishes GitHub
+# Release v<version> with sha256sums.txt, an SBOM and signed build-provenance and SBOM
+# attestations. Actions > Release > Run workflow; dry run builds and tests only.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, like 0.1.0 (tagged v0.1.0)
+        required: true
+      dry_run:
+        description: Build and test only, publish nothing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      # Signed build-provenance and SBOM attestations (Sigstore, via GitHub).
+      id-token: write
+      attestations: write
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # go.mod's go line is the oldest Go that builds the source. A release is built with
+      # the newest stable Go, so the binaries carry its security fixes; the SBOM and the
+      # release notes name the version.
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version: stable
+          check-latest: true
+
+      - name: Check the version is new
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::version must look like 0.1.0"; exit 1; }
+          if gh release view "v$VERSION" > /dev/null 2>&1; then echo "::error::release v$VERSION exists"; exit 1; fi
+          if git ls-remote --exit-code --tags origin "v$VERSION" > /dev/null; then echo "::error::tag v$VERSION exists"; exit 1; fi
+
+      - run: go vet ./...
+      - run: go test ./...
+
+      - name: Build
+        run: hack/release-build.sh "$VERSION"
+
+      - name: Test install.sh with the built files
+        run: hack/test-install.sh dist "$VERSION"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: jenkins-upgrade-check-${{ inputs.version }}
+          path: dist/
+
+      # Anyone can check a binary came unmodified from this workflow:
+      #   gh attestation verify jenkins-upgrade-check_linux_amd64 --repo keelinfra/jenkins-upgrade-check
+      # GitHub signs attestations for private repositories only on Enterprise Cloud.
+      - name: Attest build provenance
+        if: ${{ !inputs.dry_run && !github.event.repository.private }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/jenkins-upgrade-check_*
+
+      - name: Attest SBOM
+        if: ${{ !inputs.dry_run && !github.event.repository.private }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/jenkins-upgrade-check_*
+          sbom-path: dist/jenkins-upgrade-check.cdx.json
+
+      - name: Publish release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          attest="Check a binary came unmodified from this repository's release workflow: \`gh attestation verify jenkins-upgrade-check_linux_amd64 --repo $GITHUB_REPOSITORY\`."
+          [ "$PRIVATE" != true ] || attest=""
+          go_version=$(jq -r '.components[] | select(.name == "stdlib") | .version' dist/jenkins-upgrade-check.cdx.json)
+          notes="Built from ${GITHUB_SHA::7} with Go $go_version.
+
+          Install on Linux or macOS (amd64, arm64); it checks the download against sha256sums.txt:
+
+          \`\`\`sh
+          curl -fsSL https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/install.sh | sh -s -- --version $VERSION
+          \`\`\`
+
+          On Windows, download jenkins-upgrade-check_windows_amd64.exe. SBOM (CycloneDX): jenkins-upgrade-check.cdx.json.
+          $attest
+          Security support: [SECURITY.md](https://github.com/$GITHUB_REPOSITORY/blob/main/SECURITY.md)."
+          git tag "v$VERSION" && git push origin "refs/tags/v$VERSION"
+          gh release create "v$VERSION" dist/* --title "jenkins-upgrade-check $VERSION" --notes "$notes"
+
+      - name: Install from the published release
+        if: ${{ !inputs.dry_run && !github.event.repository.private }}
+        run: |
+          curl -fsSL "https://github.com/$GITHUB_REPOSITORY/releases/latest/download/install.sh" | sh -s -- --dir "$RUNNER_TEMP/bin"
+          test "$("$RUNNER_TEMP/bin/jenkins-upgrade-check" version)" = "jenkins-upgrade-check $VERSION"

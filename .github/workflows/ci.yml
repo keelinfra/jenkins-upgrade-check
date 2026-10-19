@@ -21,3 +21,8 @@ jobs:
       - run: go vet ./...
       - run: go test ./...
       - run: go build ./cmd/jenkins-upgrade-check
+      - name: Release build and install.sh
+        run: |
+          shellcheck -s sh install.sh hack/release-build.sh hack/test-install.sh
+          hack/release-build.sh 0.0.0
+          hack/test-install.sh dist 0.0.0
