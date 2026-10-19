@@ -158,7 +158,7 @@ jenkins-upgrade-check resolve --core "$from" --top-plugins top.csv --top "$top" 
 names=$( (cut -d: -f1 top.txt && tr , '\n' <<<"$seed_plugins") | sort -u | paste -sd,)
 jenkins-upgrade-check resolve --core "$from" --names "$names" -o plugins.txt
 mkdir -p plugins
-tr : ' ' <plugins.txt | xargs -P 8 -n 2 sh -c 'curl -fsSL --retry 3 -o "plugins/$0.jpi" "https://updates.jenkins.io/download/plugins/$0/$1/$0.hpi"'
+tr : ' ' <plugins.txt | xargs -P 8 -n 2 sh -c 'curl -fsSL --retry 3 -o "plugins/$0.jpi" "https://updates.jenkins.io/download/plugins/$0/$1/$0.hpi" || { echo "could not download $0 $1" >&2; exit 1; }'
 
 docker compose up --no-start --quiet-pull 2>&1 | tail -2
 mkdir -p "$home/plugins" "$home/init.groovy.d"

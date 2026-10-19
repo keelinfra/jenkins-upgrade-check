@@ -76,6 +76,24 @@ func TestResolveUnknownAndImpossible(t *testing.T) {
 	}
 }
 
+func TestResolveRemovedDependency(t *testing.T) {
+	rel, _ := fixtures(t)
+	// By name only, as resolve --names does: the dependent says which
+	// version, and the download archive has it.
+	r := Resolve(rel, []Pick{{Name: "momentjs", Version: "0"}, {Name: "stage-view", Version: "0"}, {Name: "gone", Version: "0"}}, "2.346.3")
+	got := r.ByName()
+	m := got["momentjs"]
+	if m.Version != "1.1.1" || !m.Unknown || !strings.HasSuffix(m.URL, "/momentjs/1.1.1/momentjs.hpi") {
+		t.Errorf("momentjs = %+v, want 1.1.1 from the archive", m)
+	}
+	if _, ok := got["gone"]; ok {
+		t.Error("a removed plugin with no version and no dependent must be left out")
+	}
+	if len(r.Problems) != 2 {
+		t.Errorf("want problems about momentjs and gone, got %v", r.Problems)
+	}
+}
+
 func TestBuild(t *testing.T) {
 	rel, center := fixtures(t)
 	s := &snapshot.Snapshot{

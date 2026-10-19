@@ -61,8 +61,15 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 		cp := p
 		picks[p.Name] = &cp
 	}
+	var anyVersion []string // unknown plugins asked for by name only
 	for _, cur := range current {
 		p := Pick{Name: cur.Name, Version: cur.Version, Added: cur.Added, RequiredBy: cur.RequiredBy}
+		if !rel.Known(cur.Name) && (cur.Version == "" || cur.Version == "0") {
+			// No version to take it at: only a plugin that depends on it
+			// can say which.
+			anyVersion = append(anyVersion, cur.Name)
+			continue
+		}
 		if !rel.Known(cur.Name) {
 			p.Unknown = true
 			p.URL = uc.ArchiveURL(cur.Name, cur.Version)
@@ -118,6 +125,12 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 			if !version.Less(have.Version, d.Version) {
 				continue
 			}
+			if have.Unknown {
+				// Not in the update center any more: take the version asked
+				// for from the download archive.
+				have.Version, have.URL = d.Version, uc.ArchiveURL(d.Name, d.Version)
+				continue
+			}
 			cand := rel.LatestFor(d.Name, core)
 			if cand == nil || version.Less(cand.Version, d.Version) {
 				res.Problems = append(res.Problems, fmt.Sprintf("%s %s needs %s %s or newer, but the newest %s that runs on Jenkins %s is %s", name, p.Version, d.Name, d.Version, d.Name, core, have.Version))
@@ -128,6 +141,11 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 		}
 	}
 
+	for _, name := range anyVersion {
+		if _, ok := picks[name]; !ok {
+			res.Problems = append(res.Problems, fmt.Sprintf("%s: the update center no longer distributes it and no version was given; left out", name))
+		}
+	}
 	for _, name := range order {
 		p := picks[name]
 		if r := rel.Get(name, p.Version); r != nil {
