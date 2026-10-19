@@ -1,0 +1,15 @@
+Running from: /usr/share/jenkins/jenkins.war
+2024-10-30 12:00:01.123+0000 [id=35]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading plugin Pipeline: Groovy v2.90 (workflow-cps)
+java.io.IOException: Failed to load: Pipeline: Groovy (workflow-cps 2.90)
+ - Update required: Script Security Plugin (script-security 1.75) to be updated to 1336.vf33a_a_9863911 or higher
+	at hudson.PluginWrapper.resolvePluginDependencies(PluginWrapper.java:1018)
+	at hudson.PluginManager$2$1$1.run(PluginManager.java:552)
+2024-10-30 12:00:01.124+0000 [id=35]	SEVERE	jenkins.InitReactorRunner$1#onTaskFailed: Failed Loading plugin Pipeline v2.6 (workflow-aggregator)
+java.io.IOException: Failed to load: Pipeline (workflow-aggregator 2.6)
+ - Failed to load: Pipeline: Groovy (workflow-cps 2.90)
+	at hudson.PluginWrapper.resolvePluginDependencies(PluginWrapper.java:1018)
+2024-10-30 12:00:05.000+0000 [id=40]	SEVERE	hudson.ExtensionFinder$GuiceFinder$SezpozModule#configure: Failed to load org.example.Foo
+java.lang.NoClassDefFoundError: javax/servlet/ServletException
+	at java.base/java.lang.Class.forName0(Native Method)
+2024-10-30 12:00:06.000+0000 [id=40]	WARNING	hudson.ExtensionFinder$GuiceFinder$FaultTolerantScope$1#error: Failed to instantiate optional component org.x.Y; skipping
+2024-10-30 12:00:10.000+0000 [id=25]	INFO	hudson.lifecycle.Lifecycle#onReady: Jenkins is fully up and running
