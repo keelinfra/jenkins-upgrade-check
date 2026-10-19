@@ -20,8 +20,10 @@ import (
 	"github.com/keelinfra/jenkins-upgrade-check/internal/dryrun"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/report"
+	"github.com/keelinfra/jenkins-upgrade-check/internal/runbook"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/snapshot"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/uc"
+	"github.com/keelinfra/jenkins-upgrade-check/internal/verify"
 )
 
 const tool = "jenkins-upgrade-check"
@@ -29,22 +31,33 @@ const tool = "jenkins-upgrade-check"
 // Version is set at build time.
 var Version = "dev"
 
-const usage = `jenkins-upgrade-check plans and rehearses a Jenkins upgrade.
+const usage = `jenkins-upgrade-check plans, rehearses and verifies a Jenkins upgrade.
 
 Usage:
-  jenkins-upgrade-check collect  --url URL --user USER --token TOKEN [-o snapshot.json]
+  jenkins-upgrade-check collect  --url URL --user USER [-o snapshot.json]
   jenkins-upgrade-check plan     (--snapshot snapshot.json | --plugins-file FILE --core VERSION) [--to lts]
+                                 [--runbook runbook.md --install deb|rpm|war|docker]
   jenkins-upgrade-check dry-run  (--plan plan.json | --plugins-file FILE --core VERSION [--resolve]) [--home JENKINS_HOME]
+  jenkins-upgrade-check download --plan plan.json [--step N] --dir DIR
+  jenkins-upgrade-check probe    [--quiet]
+  jenkins-upgrade-check verify   --before before.json --url URL --user USER [--plan plan.json] [--core VERSION]
+                                 [--home JENKINS_HOME] [--log FILE]
   jenkins-upgrade-check resolve  --core VERSION (--plugins-file FILE | --names a,b | --top-plugins CSV --top N)
   jenkins-upgrade-check version
 
-collect   reads a controller with GET requests only: core version, plugins, agents.
+collect   reads a controller with GET requests only: core version, plugins, agents, jobs.
 plan      works out the path, the plugin versions for each step, and what the
           update center already knows is wrong (security warnings, deprecations,
-          plugins no longer distributed, agents that cannot follow).
+          plugins no longer distributed, agents that cannot follow). With
+          --runbook it also writes the commands for the upgrade and the rollback.
 dry-run   starts the target Jenkins in Docker, without network, with your plugin
           set and optionally a copy of your configuration (--home), and says what
           failed, why, and what to do about it.
+download  fetches the plugins of one plan step, checking checksums, before the window.
+probe     prints the Groovy init script that records what Jenkins loaded as it
+          starts; with --quiet it also starts Jenkins in quiet mode (no builds).
+verify    compares the upgraded controller with the snapshot from before and says
+          GO or ROLL BACK, and why (exit 0 or 1).
 resolve   prints a consistent plugin set for a core version (plugins.txt format).
 
 Run "jenkins-upgrade-check COMMAND -h" for the flags of one command.
@@ -68,6 +81,12 @@ func main() {
 		code, err = cmdDryRun(ctx, os.Args[2:])
 	case "resolve":
 		err = cmdResolve(ctx, os.Args[2:])
+	case "download":
+		err = cmdDownload(ctx, os.Args[2:])
+	case "probe":
+		err = cmdProbe(os.Args[2:])
+	case "verify":
+		code, err = cmdVerify(ctx, os.Args[2:])
 	case "version", "--version":
 		fmt.Println(tool, Version)
 	case "help", "-h", "--help":
@@ -196,8 +215,14 @@ func cmdPlan(ctx context.Context, args []string) error {
 	out := fs.String("o", "", "write the Markdown report here (default: stdout)")
 	jsonOut := fs.String("json", "", "also write the plan as JSON (dry-run --plan reads it)")
 	pluginsOut := fs.String("plugins-out", "", "also write the target plugin set as plugins.txt")
+	rb := fs.String("runbook", "", "also write the upgrade and rollback commands here (Markdown)")
+	install := fs.String("install", "", "with --runbook: how Jenkins is installed: "+strings.Join(runbook.Installs, ", "))
+	home := fs.String("home", "", "with --runbook: JENKINS_HOME on the controller host (default: the usual place for --install)")
 	if err := fs.Parse(args); err != nil {
 		return err
+	}
+	if *rb != "" && *install == "" {
+		return fmt.Errorf("--runbook needs --install, one of %s", strings.Join(runbook.Installs, ", "))
 	}
 	s, err := in.load()
 	if err != nil {
@@ -224,6 +249,20 @@ func cmdPlan(ctx context.Context, args []string) error {
 	}
 	if *pluginsOut != "" {
 		if err := writePicks(*pluginsOut, p.Target.Plugins); err != nil {
+			return err
+		}
+	}
+	if *rb != "" {
+		url := ""
+		if strings.HasPrefix(s.Source, "http") {
+			url = s.Source
+		}
+		planFile := *jsonOut
+		if planFile == "" {
+			planFile = "plan.json"
+		}
+		o := runbook.Options{Install: *install, Home: *home, URL: url, PlanFile: planFile}
+		if err := withOutput(*rb, func(w io.Writer) error { return runbook.Write(w, p, o) }); err != nil {
 			return err
 		}
 	}
@@ -307,6 +346,156 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 		return 0, err
 	}
 	if !res.OK() {
+		return 1, nil
+	}
+	return 0, nil
+}
+
+func readPlan(path string) (*plan.Plan, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var p plan.Plan
+	if err := json.Unmarshal(b, &p); err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return &p, nil
+}
+
+func cmdDownload(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("download", flag.ContinueOnError)
+	var sf sourceFlags
+	sf.register(fs)
+	planFile := fs.String("plan", "", "plan JSON written by plan --json")
+	step := fs.Int("step", -1, "which step's plugin set (0 is the plugin update on the current core; default: the last)")
+	dir := fs.String("dir", "", "where to put the .jpi files")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *planFile == "" || *dir == "" {
+		return errors.New("--plan and --dir are required")
+	}
+	p, err := readPlan(*planFile)
+	if err != nil {
+		return err
+	}
+	picks := p.Target.Plugins
+	core := p.Target.Core
+	if *step >= 0 {
+		if *step >= len(p.Steps) {
+			return fmt.Errorf("the plan has steps 0 to %d", len(p.Steps)-1)
+		}
+		picks, core = p.Steps[*step].Plugins, p.Steps[*step].Core
+		if len(picks) == 0 {
+			return fmt.Errorf("step %d has no plugin set; make the plan again with this version", *step)
+		}
+	}
+	if err := os.MkdirAll(*dir, 0o755); err != nil {
+		return err
+	}
+	cache := ""
+	if sf.cache != "" {
+		cache = filepath.Join(sf.cache, "plugins")
+	}
+	fmt.Fprintf(os.Stderr, "downloading %d plugins for Jenkins %s into %s\n", len(picks), core, *dir)
+	got, skipped := dryrun.Download(ctx, picks, *dir, cache)
+	for _, sk := range skipped {
+		fmt.Fprintln(os.Stderr, "not downloaded:", sk)
+	}
+	fmt.Fprintf(os.Stderr, "%d of %d plugins downloaded\n", len(got), len(picks))
+	if len(skipped) > 0 {
+		return fmt.Errorf("%d plugin(s) could not be downloaded; the plugins directory would be incomplete", len(skipped))
+	}
+	return nil
+}
+
+func cmdProbe(args []string) error {
+	fs := flag.NewFlagSet("probe", flag.ContinueOnError)
+	quiet := fs.Bool("quiet", false, "also put Jenkins into quiet mode as it starts, so no build runs until it is verified")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	_, err := os.Stdout.Write(dryrun.ProbeScript(*quiet))
+	return err
+}
+
+func cmdVerify(ctx context.Context, args []string) (int, error) {
+	fs := flag.NewFlagSet("verify", flag.ContinueOnError)
+	c := &snapshot.Collector{Tool: tool, ToolVersion: Version}
+	fs.StringVar(&c.URL, "url", os.Getenv("JENKINS_URL"), "controller URL (or JENKINS_URL)")
+	fs.StringVar(&c.User, "user", os.Getenv("JENKINS_USER"), "user name (or JENKINS_USER); the token comes from JENKINS_TOKEN")
+	fs.StringVar(&c.CAFile, "ca-file", "", "extra CA certificates (PEM) to trust")
+	fs.BoolVar(&c.AllowHTTP, "allow-http", false, "allow a plain http URL that is not localhost")
+	before := fs.String("before", "", "snapshot collected before the upgrade")
+	planFile := fs.String("plan", "", "plan JSON: the plugin versions the upgrade was meant to install")
+	core := fs.String("core", "", "the Jenkins version the upgrade was meant to reach (default: the plan's target)")
+	home := fs.String("home", "", "JENKINS_HOME, to read what the probe script recorded and name the plugin a broken job needs")
+	logFile := fs.String("log", "", "the Jenkins log of this start, to say why plugins did not load")
+	out := fs.String("o", "", "write the Markdown report here (default: stdout)")
+	jsonOut := fs.String("json", "", "also write the result as JSON")
+	if err := fs.Parse(args); err != nil {
+		return 0, err
+	}
+	c.Token = os.Getenv("JENKINS_TOKEN")
+	if *before == "" || c.URL == "" {
+		return 0, errors.New("--before and --url are required")
+	}
+	b, err := snapshot.Read(*before)
+	if err != nil {
+		return 0, err
+	}
+	in := verify.Input{Before: b, Core: *core, Home: *home}
+	if *planFile != "" {
+		p, err := readPlan(*planFile)
+		if err != nil {
+			return 0, err
+		}
+		if in.Core == "" {
+			in.Core = p.To
+		}
+		in.Plugins = p.Target.Plugins
+		for i := len(p.Steps) - 1; i >= 0; i-- {
+			if p.Steps[i].Core == in.Core && len(p.Steps[i].Plugins) > 0 {
+				in.Plugins = p.Steps[i].Plugins
+				break
+			}
+		}
+	}
+	if *home != "" {
+		pr, err := dryrun.ReadProbe(filepath.Join(*home, dryrun.ProbeFile))
+		switch {
+		case err != nil:
+			fmt.Fprintf(os.Stderr, "note: no probe record in %s (%v); install it with: jenkins-upgrade-check probe --quiet > %s\n", *home, err, filepath.Join(*home, "init.groovy.d", "zz-jenkins-upgrade-check.groovy"))
+		case in.Core != "" && pr.Version != in.Core:
+			fmt.Fprintf(os.Stderr, "note: the probe record is from Jenkins %s, not %s; ignoring it\n", pr.Version, in.Core)
+		default:
+			in.Probe = pr
+		}
+	}
+	if *logFile != "" {
+		lb, err := os.ReadFile(*logFile)
+		if err != nil {
+			return 0, err
+		}
+		in.Log = string(lb)
+	}
+	after, err := c.Collect(ctx)
+	if err != nil {
+		return 0, err
+	}
+	in.After = after
+	res := verify.Run(in)
+	if *jsonOut != "" {
+		if err := writeJSON(*jsonOut, res); err != nil {
+			return 0, err
+		}
+	}
+	if err := withOutput(*out, func(w io.Writer) error { return report.Verify(w, res) }); err != nil {
+		return 0, err
+	}
+	fmt.Fprintf(os.Stderr, "%s\n", res.Verdict)
+	if res.Verdict != verify.Go {
 		return 1, nil
 	}
 	return 0, nil

@@ -197,9 +197,9 @@ const (
 	PluginLoaded       = "loaded, but no longer provides it"
 )
 
-// blame fills in the plugin a problem comes from, reading the item's
-// config.xml from the rehearsal copy.
-func blame(p *ConfigProblem, ref string, failed, active map[string]bool) {
+// Blame fills in the plugin a problem comes from, reading the item's
+// config.xml under home.
+func Blame(p *ConfigProblem, ref string, failed, active map[string]bool) {
 	if p.Path == "" {
 		return
 	}
@@ -231,4 +231,10 @@ func blame(p *ConfigProblem, ref string, failed, active map[string]bool) {
 	default:
 		p.PluginState = PluginNotInstalled
 	}
+}
+
+// ItemPath turns a full name (a/b) into its directory under JENKINS_HOME
+// (jobs/a/jobs/b).
+func ItemPath(fullName string) string {
+	return "jobs/" + strings.ReplaceAll(fullName, "/", "/jobs/")
 }

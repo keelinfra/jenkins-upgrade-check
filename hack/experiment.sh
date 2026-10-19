@@ -10,6 +10,7 @@
 #   planned   TO with the plugin set `plan` computes
 #
 # Usage: hack/experiment.sh FROM [TO] [TOP] [MONTH]
+# Results go to results/FROM-topTOP.
 set -euo pipefail
 
 from=$1
@@ -17,7 +18,7 @@ to=${2:-lts}
 top=${3:-100}
 month=${4:-202603}
 bin=${BIN:-./jenkins-upgrade-check}
-out=results/$from
+out=results/$from-top$top
 mkdir -p "$out"
 
 if [ "$to" = lts ]; then
@@ -41,15 +42,22 @@ curl -fsSL "https://raw.githubusercontent.com/jenkins-infra/infra-statistics/gh-
   --out-dir "$out/planned" -o "$out/planned.md" --json "$out/planned.json" || true
 
 summary() {
-  jq -r --arg name "$1" '"| \($name) | \(if .started then "started" else "did not start" end) | \(.plugins) | \(.failed // [] | length) |"' "$2"
+  jq -r --arg name "$1" '"| \($name) | \(.image) | \(if .started then "started" else "did not start" end) | \(.plugins) | \(.failed // [] | length) | \(.roots // [] | length) | \(.broken // [] | length) | \(.skipped // [] | length) |"' "$2"
+}
+causes() {
+  jq -r --arg name "$1" '(.roots // [])[] | "- \($name): **\(.name) \(.version // "")** \(.diagnosis.kind): \(.diagnosis.why)\(if (.cascade // [] | length) > 0 then " (takes down \(.cascade | length) more: \(.cascade | join(", ")))" else "" end)"' "$2"
 }
 {
   echo "### $from → $to, $top most installed plugins"
   echo
-  echo "| Rehearsal | Jenkins | Plugins | Failed to load |"
-  echo "|---|---|---|---|"
+  echo "| Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |"
+  echo "|---|---|---|---|---|---|---|---|"
   summary "baseline: $from" "$out/baseline.json"
   summary "as-is: $to, plugins unchanged" "$out/as-is.json"
   summary "planned: $to, plugins from plan" "$out/planned.json"
+  echo
+  causes baseline "$out/baseline.json"
+  causes as-is "$out/as-is.json"
+  causes planned "$out/planned.json"
   echo
 } | tee "$out/summary.md"

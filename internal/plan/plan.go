@@ -46,6 +46,8 @@ type Step struct {
 	Upgrade  bool     `json:"upgrade"`
 	Changes  []Change `json:"changes,omitempty"`
 	Problems []string `json:"problems,omitempty"`
+	// Plugins is the whole plugin set once this step is done.
+	Plugins []Pick `json:"plugins,omitempty"`
 }
 
 // Change is one plugin moving between versions; From is empty for a plugin
@@ -134,12 +136,12 @@ func Build(s *snapshot.Snapshot, to string, rel *uc.Releases, center *uc.UpdateC
 	// Step 1: bring plugins up to date on the core that runs today, as the
 	// Jenkins upgrade guides ask.
 	first := Resolve(rel, current, s.Core)
-	p.Steps = append(p.Steps, Step{Core: s.Core, Changes: diff(current, first.Plugins), Problems: first.Problems})
+	p.Steps = append(p.Steps, Step{Core: s.Core, Changes: diff(current, first.Plugins), Problems: first.Problems, Plugins: first.Plugins})
 	prev := first.Plugins
 	last := first
 	for _, hop := range version.Path(s.Core, to) {
 		r := Resolve(rel, prev, hop.Core)
-		p.Steps = append(p.Steps, Step{Core: hop.Core, Java: hop.Java, Upgrade: true, Changes: diff(prev, r.Plugins), Problems: r.Problems})
+		p.Steps = append(p.Steps, Step{Core: hop.Core, Java: hop.Java, Upgrade: true, Changes: diff(prev, r.Plugins), Problems: r.Problems, Plugins: r.Plugins})
 		prev = r.Plugins
 		last = r
 	}
