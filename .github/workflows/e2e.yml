@@ -51,6 +51,7 @@ jobs:
           cat "$d/summary.md" || true
           echo "===== runbook"; cat "$d/runbook.md" || true
           echo "===== start logs"; tail -n 200 /var/tmp/jenkins-upgrade/start.log || true
+          echo "===== jenkins (last start), first errors"; grep -m 3 -A 25 -E "SEVERE|ExceptionInInitializerError" "$d/jenkins.log" || true
           echo "===== jenkins (last start)"; tail -n 300 "$d/jenkins.log" || true
           echo "===== agent"; tail -n 50 "$d/agent.log" || true
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

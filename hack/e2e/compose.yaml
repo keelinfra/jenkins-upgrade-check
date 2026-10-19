@@ -8,7 +8,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      JAVA_OPTS: -Djenkins.install.runSetupWizard=false
+      # The JDK in old images (11.0.16 in 2.346.3) throws while reading the
+      # cgroups of a current kernel, which leaves the monitoring plugin
+      # failing every request. Container support off sidesteps that.
+      JAVA_OPTS: -Djenkins.install.runSetupWizard=false -XX:-UseContainerSupport
       E2E_ADMIN_PASSWORD: ${E2E_ADMIN_PASSWORD:-e2e-admin}
     volumes:
       - jenkins_home:/var/jenkins_home
