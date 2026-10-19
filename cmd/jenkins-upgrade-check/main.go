@@ -34,7 +34,7 @@ const usage = `jenkins-upgrade-check plans and rehearses a Jenkins upgrade.
 Usage:
   jenkins-upgrade-check collect  --url URL --user USER --token TOKEN [-o snapshot.json]
   jenkins-upgrade-check plan     (--snapshot snapshot.json | --plugins-file FILE --core VERSION) [--to lts]
-  jenkins-upgrade-check dry-run  (--plan plan.json | --plugins-file FILE --core VERSION [--resolve])
+  jenkins-upgrade-check dry-run  (--plan plan.json | --plugins-file FILE --core VERSION [--resolve]) [--home JENKINS_HOME]
   jenkins-upgrade-check resolve  --core VERSION (--plugins-file FILE | --names a,b | --top-plugins CSV --top N)
   jenkins-upgrade-check version
 
@@ -42,8 +42,9 @@ collect   reads a controller with GET requests only: core version, plugins, agen
 plan      works out the path, the plugin versions for each step, and what the
           update center already knows is wrong (security warnings, deprecations,
           plugins no longer distributed, agents that cannot follow).
-dry-run   starts the target Jenkins in Docker with your plugin set and reports
-          which plugins fail to load. Only the plugin list goes into the container.
+dry-run   starts the target Jenkins in Docker, without network, with your plugin
+          set and optionally a copy of your configuration (--home), and says what
+          failed, why, and what to do about it.
 resolve   prints a consistent plugin set for a core version (plugins.txt format).
 
 Run "jenkins-upgrade-check COMMAND -h" for the flags of one command.
@@ -237,7 +238,9 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	sf.register(fs)
 	planFile := fs.String("plan", "", "plan JSON written by plan --json: rehearse its target")
 	resolve := fs.Bool("resolve", false, "with --plugins-file: move each plugin to the newest release --core can load first (default: use the versions as given)")
-	java := fs.Int("java", 0, "Java version of the image (default: the oldest the core supports)")
+	home := fs.String("home", "", "JENKINS_HOME (or a copy of it) whose configuration to rehearse: jobs, folders, nodes, credentials and settings, without build records")
+	casc := fs.String("casc", "", "Configuration as Code file or directory to load, if the controller reads it from outside JENKINS_HOME")
+	java := fs.Int("java", 0, "Java version of the image (default: the oldest the core and the plugins support)")
 	image := fs.String("image", "", "base image instead of jenkins/jenkins:<core>-jdk<N>")
 	outDir := fs.String("out-dir", "", "keep the Jenkins log here")
 	timeout := fs.Duration("timeout", 10*time.Minute, "how long Jenkins may take to start")
@@ -247,7 +250,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	if err := fs.Parse(args); err != nil {
 		return 0, err
 	}
-	o := dryrun.Options{Java: *java, Image: *image, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
+	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
 	if sf.cache != "" {
 		o.CacheDir = filepath.Join(sf.cache, "plugins")
 	}

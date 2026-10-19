@@ -34,8 +34,17 @@ func TestPlanReport(t *testing.T) {
 func TestRehearsalReport(t *testing.T) {
 	var b strings.Builder
 	Rehearsal(&b, &dryrun.Result{Core: "2.555.1", Image: "jenkins/jenkins:2.555.1-jdk21", Plugins: 3, Started: true, StartupSeconds: 40,
-		Failed: []dryrun.Failure{{Name: "workflow-cps", Version: "2.90", Reasons: []string{"Update required"}}}})
-	if !strings.Contains(b.String(), "1 plugin(s) failed to load") || !strings.Contains(b.String(), "workflow-cps") {
-		t.Error(b.String())
+		Failed: []dryrun.Failure{
+			{Name: "script-security", Version: "1.75", Reasons: []string{"Jenkins (2.400) or higher required"}},
+			{Name: "workflow-cps", Version: "2.90", Reasons: []string{"Failed to load: Script Security (script-security 1.75)"}},
+		},
+		Home: &dryrun.HomeResult{Source: "/var/lib/jenkins", Files: 12, Items: 3, Loaded: 2,
+			Missing: []dryrun.ConfigProblem{{Item: "deploy", Problem: "CannotResolveClassException: flow-definition", Plugin: "workflow-job 2.40", PluginState: dryrun.PluginFailed}}},
+	})
+	out := b.String()
+	for _, want := range []string{"2 plugin(s) did not load, because of 1 cause(s)", "| script-security 1.75 | this release needs Jenkins 2.400 or newer |", "| workflow-cps |", "2 of 3 jobs and folders loaded", "| deploy | plugin workflow-job 2.40, failed to load |"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("report lacks %q\n%s", want, out)
+		}
 	}
 }

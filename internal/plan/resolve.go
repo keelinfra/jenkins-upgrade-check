@@ -23,8 +23,10 @@ type Pick struct {
 	// required dependency.
 	Added      bool     `json:"added,omitempty"`
 	RequiredBy []string `json:"requiredBy,omitempty"`
-	// Unknown is true for a plugin the update center has never published (a
-	// private build, or one removed long ago). It is kept as it is.
+	// Unknown is true for a plugin the update center does not list: a
+	// private build, or one removed from distribution. It is kept as it is,
+	// and URL points at the download archive, which still has every public
+	// release (but no checksum).
 	Unknown bool `json:"unknown,omitempty"`
 }
 
@@ -63,6 +65,7 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 		p := Pick{Name: cur.Name, Version: cur.Version, Added: cur.Added, RequiredBy: cur.RequiredBy}
 		if !rel.Known(cur.Name) {
 			p.Unknown = true
+			p.URL = uc.ArchiveURL(cur.Name, cur.Version)
 			set(p)
 			continue
 		}
@@ -91,6 +94,13 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 			have, installed := picks[d.Name]
 			if !installed {
 				if d.Optional {
+					continue
+				}
+				if !rel.Known(d.Name) {
+					// Removed from the update center since; an installation
+					// of that age has it, so take the version asked for.
+					set(Pick{Name: d.Name, Version: d.Version, Added: true, RequiredBy: []string{name}, Unknown: true, URL: uc.ArchiveURL(d.Name, d.Version)})
+					res.Problems = append(res.Problems, fmt.Sprintf("%s %s needs %s %s, which the update center no longer distributes", name, p.Version, d.Name, d.Version))
 					continue
 				}
 				cand := rel.LatestFor(d.Name, core)
@@ -161,6 +171,7 @@ func Locate(rel *uc.Releases, picks []Pick) []Pick {
 			p.URL, p.SHA256 = r.URL, r.SHA256
 		} else if !rel.Known(p.Name) {
 			p.Unknown = true
+			p.URL = uc.ArchiveURL(p.Name, p.Version)
 		}
 		out[i] = p
 	}
