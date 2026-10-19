@@ -1,0 +1,49 @@
+name: Upgrade experiment
+
+# Rehearses upgrading a typical controller from several older versions to
+# the current LTS. Long and network-heavy, so only on request or when the
+# experiment itself changes.
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: Target version, or lts
+        default: lts
+      top:
+        description: How many of the most installed plugins
+        default: "100"
+  pull_request:
+    paths:
+      - hack/experiment.sh
+      - .github/workflows/experiment.yml
+
+permissions:
+  contents: read
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        from: ["2.346.3", "2.426.3", "2.462.3", "2.492.3", "2.541.3"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: go build ./cmd/jenkins-upgrade-check
+      - name: Rehearse
+        run: hack/experiment.sh "${{ matrix.from }}" "${{ inputs.to || 'lts' }}" "${{ inputs.top || '100' }}"
+      - name: Report
+        if: always()
+        run: |
+          d="results/${{ matrix.from }}"
+          cat "$d/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
+          for f in baseline as-is planned plan; do echo "===== $f"; cat "$d/$f.md" || true; done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: results-${{ matrix.from }}
+          path: results/
