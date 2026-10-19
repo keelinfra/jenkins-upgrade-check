@@ -45,6 +45,23 @@ The runbook follows the same method for every install type:
 Downtime is the time to stop, back up, start and verify. Open-source Jenkins cannot
 be upgraded with no downtime at all: two controllers cannot share one JENKINS_HOME.
 
+## Install
+
+On Linux or macOS (amd64 or arm64):
+
+```sh
+curl -fsSL https://github.com/keelinfra/jenkins-upgrade-check/releases/latest/download/install.sh | sh
+```
+
+It downloads the binary for your system from the latest release, checks it against
+the release's `sha256sums.txt`, and installs it in `/usr/local/bin`, or `~/.local/bin`
+when that is not writable. `sh -s -- --dir DIR --version 0.1.0` chooses the place and
+the release. On Windows, download `jenkins-upgrade-check_windows_amd64.exe` from the
+[releases](https://github.com/keelinfra/jenkins-upgrade-check/releases). It is one
+static binary with no dependencies; `dry-run` also needs Docker. With Go 1.24 or newer,
+`go install github.com/keelinfra/jenkins-upgrade-check/cmd/jenkins-upgrade-check@latest`
+works too.
+
 ## Quick start
 
 Get your plugin list. In **Manage Jenkins → Script Console** run:
@@ -56,8 +73,6 @@ Jenkins.instance.pluginManager.plugins.sort{it.shortName}.each{println "${it.sho
 Save the output as `plugins.txt`, then:
 
 ```sh
-go install github.com/keelinfra/jenkins-upgrade-check/cmd/jenkins-upgrade-check@latest
-
 jenkins-upgrade-check plan --plugins-file plugins.txt --core 2.426.3 --to lts \
   -o plan.md --json plan.json --runbook runbook.md --install deb
 jenkins-upgrade-check dry-run --plan plan.json --home /path/to/jenkins_home -o rehearsal.md   # needs Docker
@@ -89,9 +104,10 @@ online agent's System Information page, which needs Overall/Administer.
 - `dry-run` and `download` fetch the plugin files from the update center and check
   their SHA-256 (plugins the update center no longer lists come from its archive,
   which has no checksum). `dry-run` starts `jenkins/jenkins:<version>-jdk<N>` with
-  `--network none`. With `--home`, the configuration files of JENKINS_HOME go into a
-  local image, including `secret.key` and `secrets/` so credentials still decrypt;
-  the image and container are removed afterwards unless you pass `--keep`.
+  `--network none`. With `--home`, the configuration files of JENKINS_HOME, including
+  `secret.key` and `secrets/` so credentials still decrypt, are copied into the
+  container (no image is built); the container and its work directory are removed
+  afterwards unless you pass `--keep`.
 - The probe script writes one file, `jenkins-upgrade-check-probe.json`, into
   JENKINS_HOME. With `--quiet` it also puts Jenkins into quiet mode; nothing else.
 

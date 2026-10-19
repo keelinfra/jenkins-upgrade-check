@@ -1,5 +1,6 @@
 /jenkins-upgrade-check
 /results/
+/dist/
 *.log
 snapshot.json
 !**/testdata/*.log
