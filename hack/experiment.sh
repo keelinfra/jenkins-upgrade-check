@@ -51,6 +51,14 @@ for ((i = 1; i < steps; i++)); do
     2> >(tee "$out/stop-$i.err" >&2) || true
 done
 
+# A full disk makes every plugin after it fail; that says nothing about the
+# upgrade, so the row is not published.
+if grep -qs "No space left on device" "$out"/*/dry-run-*.log "$out"/*.err; then
+  echo "the runner ran out of disk space; these results are not usable" >&2
+  df -h / >&2
+  exit 1
+fi
+
 # brief turns a rehearsal into the fields the table needs; a rehearsal that
 # could not run at all (no image, say) has no JSON, only its last error.
 brief() {
@@ -59,7 +67,7 @@ brief() {
     jq -c '{core, java, javaReason, image, started, reason, plugins,
       failed: (.failed // [] | length), broken: (.broken // [] | length),
       brokenNames: [(.broken // [])[] | .name],
-      skipped: (.skipped // [] | length),
+      skipped: (.skipped // [] | length), skippedWhy: (.skipped // [])[:5],
       roots: [(.roots // [])[] | {name, version, kind: .diagnosis.kind, why: .diagnosis.why, cascade: (.cascade // [] | length)}]}' "$json"
   else
     jq -cn --arg core "$2" --arg why "$(tail -n 1 "$err" 2>/dev/null)" \
@@ -87,7 +95,9 @@ summary() {
 causes() {
   jq -r --arg name "$1" '(.roots[] | "- \($name): **\(.name) \(.version // "")** \(.kind): \(.why)\(if .cascade > 0 then " (takes down \(.cascade) more)" else "" end)"),
     (select((.brokenNames // []) != []) | "- \($name): loaded in part (extensions failed): \(.brokenNames | join(", "))"),
-    (select(.javaReason) | "- \($name): Java \(.java) because \(.javaReason)")'
+    (select(.javaReason) | "- \($name): Java \(.java) because \(.javaReason)"),
+    ((.skippedWhy // [])[] | "- \($name): not downloaded: \(.)"),
+    (select(.started | not) | "- \($name): \(.reason // "did not start")")'
 }
 {
   echo "### $from → $to, $top most installed plugins"

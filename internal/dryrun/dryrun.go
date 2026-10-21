@@ -261,7 +261,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 		running, _ := o.run(ctx, "inspect", "-f", "{{.State.Running}} {{.State.ExitCode}}", name)
 		if strings.HasPrefix(strings.TrimSpace(running), "false") {
+			logs, _ = o.run(ctx, "logs", name)
 			res.Reason = "the container exited (state: " + strings.TrimSpace(running) + ")"
+			if w := lastWords(logs); w != "" {
+				res.Reason += "; the log ends: " + w
+			}
 			break
 		}
 		if time.Now().After(deadline) {
@@ -990,6 +994,23 @@ var (
 	extensionFailure = regexp.MustCompile(`ExtensionFinder\S*: Failed to (?:scout|load|instantiate) [A-Za-z_$]`)
 	logHeader        = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}[ T][\d:.]+\S*\s+\[id=\d+\]\s+(SEVERE|WARNING)\s+(.*)$`)
 )
+
+// lastWords is the last line of the log that is not part of a stack trace,
+// which is usually why Jenkins stopped.
+func lastWords(log string) string {
+	lines := strings.Split(log, "\n")
+	for i := len(lines) - 1; i >= 0; i-- {
+		t := logLine(lines[i])
+		if t == "" || strings.HasPrefix(t, "at ") || strings.HasPrefix(t, "...") {
+			continue
+		}
+		if len(t) > 300 {
+			t = t[:300] + "…"
+		}
+		return t
+	}
+	return ""
+}
 
 // logLine trims a log line and the "[LF]>" marker newer Jenkins puts in
 // front of each continuation line of a multi-line message.

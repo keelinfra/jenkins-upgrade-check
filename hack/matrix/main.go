@@ -351,6 +351,8 @@ func cell(r Rehearsal) string {
 		s = "❌ Jenkins does not start"
 		if names := rootNames(r.Roots); names != "" {
 			s += ": " + names
+		} else if why := shortReason(r.Reason); why != "" {
+			s += " (" + why + ")"
 		}
 	case r.Failed > 0:
 		s = fmt.Sprintf("⚠️ %d of %d fail: %s", r.Failed, r.Plugins, rootNames(r.Roots))
@@ -366,6 +368,18 @@ func cell(r Rehearsal) string {
 		s += fmt.Sprintf(" (%d not downloadable)", r.Skipped)
 	}
 	return s
+}
+
+// shortReason keeps the part of a reason that says why Jenkins stopped.
+func shortReason(reason string) string {
+	if _, after, ok := strings.Cut(reason, "; the log ends: "); ok {
+		reason = after
+	}
+	reason = strings.ReplaceAll(reason, "|", "/")
+	if r := []rune(reason); len(r) > 120 {
+		reason = string(r[:120]) + "…"
+	}
+	return reason
 }
 
 func rootNames(roots []Root) string {

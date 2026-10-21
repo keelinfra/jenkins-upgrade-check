@@ -190,3 +190,43 @@ func TestStopPicksEachStepAndTheTarget(t *testing.T) {
 		t.Error("a step past the end should be an error")
 	}
 }
+
+// The newest trigger release that 2.60.3 can load needs a credentials release
+// that 2.60.3 cannot, so the older trigger is the one that works; a removed
+// dependency does not count against a release.
+func TestResolvePassesOverReleasesWithDependenciesTooNew(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "trigger":{
+  "2.0":{"requiredCore":"2.60.3","dependencies":[{"name":"credentials","version":"2.6.1.1","optional":false}]},
+  "1.0":{"requiredCore":"2.60.3","dependencies":[{"name":"credentials","version":"2.1.0","optional":false},{"name":"gone","version":"1.0","optional":false}]}
+ },
+ "credentials":{
+  "2.6.1.1":{"requiredCore":"2.138.4"},
+  "2.1.19":{"requiredCore":"2.60.3"}
+ },
+ "report":{
+  "3.0":{"requiredCore":"2.60.3","dependencies":[{"name":"token-macro","version":"2.8","optional":true}]}
+ },
+ "token-macro":{"2.6":{"requiredCore":"2.60.3"}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{{Name: "trigger", Version: "0"}, {Name: "report", Version: "0"}}, "2.60.3")
+	got := r.ByName()
+	if got["trigger"].Version != "1.0" || got["credentials"].Version != "2.1.19" {
+		t.Errorf("want trigger 1.0 with credentials 2.1.19, got %+v", r.Plugins)
+	}
+	if got["report"].Version != "3.0" {
+		t.Errorf("an optional dependency that is not installed does not hold a release back, got %+v", got["report"])
+	}
+	if len(r.Problems) != 1 || !strings.Contains(r.Problems[0], "gone") {
+		t.Errorf("want only the removed dependency as a problem, got %v", r.Problems)
+	}
+
+	// On a core that runs the newer credentials, the newer trigger wins.
+	r = Resolve(rel, []Pick{{Name: "trigger", Version: "0"}}, "2.138.4")
+	if got := r.ByName(); got["trigger"].Version != "2.0" || got["credentials"].Version != "2.6.1.1" {
+		t.Errorf("on 2.138.4 want trigger 2.0 with credentials 2.6.1.1, got %+v", r.Plugins)
+	}
+}

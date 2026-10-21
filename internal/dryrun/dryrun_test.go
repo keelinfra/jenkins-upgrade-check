@@ -252,3 +252,10 @@ func TestPickImageJava(t *testing.T) {
 		}
 	}
 }
+
+func TestLastWords(t *testing.T) {
+	log := "Running from: /usr/share/jenkins/jenkins.war\njava.lang.IllegalStateException: boom\n\tat a.b(C.java:1)\n\t... 3 more\n\n"
+	if got := lastWords(log); got != "java.lang.IllegalStateException: boom" {
+		t.Errorf("lastWords = %q", got)
+	}
+}

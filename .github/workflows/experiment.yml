@@ -109,6 +109,13 @@ jobs:
         from: ${{ fromJSON(needs.setup.outputs.from) }}
         top: ${{ fromJSON(needs.setup.outputs.top) }}
     steps:
+      # Five Jenkins images and four sets of a few hundred plugins, each
+      # also unpacked in its container, outgrow the runner's free disk.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
@@ -126,12 +133,17 @@ jobs:
         env:
           D: results/${{ matrix.from }}-top${{ matrix.top }}
         run: |
+          df -h /
           cat "$D/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
           cat "$D/summary.md" || true
           for log in "$D"/*/dry-run-*.log; do
             [ -f "$log" ] || continue
             echo "===== $log: first errors"
             grep -m 4 -A 12 -E "SEVERE|Exception in thread|Error: " "$log" | head -n 80 || true
+            if ! grep -q "Jenkins is fully up and running" "$log"; then
+              echo "===== $log: did not start; last lines"
+              grep -vE "^\s+at |^\s+\.\.\. [0-9]+ more" "$log" | tail -n 25
+            fi
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
@@ -174,9 +186,11 @@ jobs:
           path: table/
           retention-days: 90
 
+  # Only a complete table is published: a rehearsal that failed (a full disk,
+  # a download outage) would leave its row out.
   publish:
-    needs: [setup, table]
-    if: always() && needs.table.result == 'success' && needs.setup.outputs.publish == 'true'
+    needs: [setup, rehearse, table]
+    if: always() && needs.rehearse.result == 'success' && needs.table.result == 'success' && needs.setup.outputs.publish == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: write

@@ -55,6 +55,10 @@ func TestCellAndPath(t *testing.T) {
 	if got, want := cell(asIs), "⚠️ 4 of 108 load in part: email-ext, mailer, ssh-cli, and 1 more"; got != want {
 		t.Errorf("cell = %q, want %q", got, want)
 	}
+	down := Rehearsal{Core: "2.580.1", Image: "jenkins/jenkins:2.580.1-jdk21", Plugins: 373, Reason: "the container exited (state: false 1); the log ends: java.lang.OutOfMemoryError: Java heap space"}
+	if got, want := cell(down), "❌ Jenkins does not start (java.lang.OutOfMemoryError: Java heap space)"; got != want {
+		t.Errorf("cell = %q, want %q", got, want)
+	}
 	r := Row{Stops: []Rehearsal{
 		{Core: "2.346.3", Java: 11, PlanJava: 8, JavaReason: "gradle needs Java 11 or newer"},
 		{Core: "2.541.3", Java: 17, PlanJava: 17},
