@@ -1,6 +1,25 @@
 # jenkins-upgrade-check
 
-Plan a Jenkins upgrade, then rehearse it before you touch the real controller.
+[![CI](https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/ci.yml/badge.svg)](https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/ci.yml)
+[![Upgrade matrix](https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/experiment.yml/badge.svg)](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix)
+[![Release](https://img.shields.io/github/v/release/keelinfra/jenkins-upgrade-check)](https://github.com/keelinfra/jenkins-upgrade-check/releases)
+[![Go](https://img.shields.io/github/go-mod/go-version/keelinfra/jenkins-upgrade-check)](go.mod)
+[![License](https://img.shields.io/github/license/keelinfra/jenkins-upgrade-check)](LICENSE)
+
+Plan a Jenkins upgrade, rehearse it on a copy of your controller, and know within minutes
+of the real upgrade whether to keep it or roll back, and why.
+
+It is for the people who run a Jenkins controller and have put off upgrading it. One
+static binary; the rehearsal needs Docker. Nothing is installed on the controller.
+
+**Why rehearse.** We upgraded a controller with the 300 most installed plugins from the
+last release of every LTS line since 2.60.3 to 2.580.1
+([upgrade matrix](https://keelinfra.io/jenkins/upgrade-matrix/), 2026-10-21). Replacing only
+the war, package or image, Jenkins did not start from 12 of the 38 lines and started with
+plugins failing from 12 more; 13.6% of the controllers that report usage are on those lines.
+Following the path `plan` gives, every stop loaded every plugin, from all 38. From 2.356 or
+older the core-only upgrade fails with network access too: 2.580.1 no longer ships the plugins
+that were split out of core.
 
 Upgrading an old controller is rarely one step. Jenkins 2.346.3 cannot go straight
 to today's LTS: no Java version runs both, so the controller and every agent have
@@ -142,10 +161,16 @@ workflow runs it from the last release of every LTS line since 2.60.3 whenever a
 LTS is out, and publishes the table to the
 [matrix branch](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix).
 
-## Help with an upgrade
+## Status and help
 
-If you would rather not do the upgrade alone, keelinfra does Jenkins upgrade checks
-and upgrades: https://keelinfra.io/jenkins/pricing/
+jenkins-upgrade-check is new (0.x): commands and report formats may still change. Bugs and
+questions go to [GitHub issues](https://github.com/keelinfra/jenkins-upgrade-check/issues);
+security problems to [SECURITY.md](SECURITY.md). It gets free security updates until at least
+31 December 2031.
+
+To have your own plugin list rehearsed, or help with the upgrade itself, see
+[keelinfra.io/jenkins/upgrade-check](https://keelinfra.io/jenkins/upgrade-check/) or write to
+hello@keelinfra.io.
 
 ## License
 
