@@ -247,6 +247,13 @@ func Rehearsal(w io.Writer, r *dryrun.Result) error {
 		fmt.Fprintf(b, " (Java %d because %s)", r.Java, r.JavaReason)
 	}
 	b.WriteString(". The container had no network and no executors, so nothing outside it was reached and no build ran.\n\n")
+	if r.Upgrading != "" {
+		fmt.Fprintf(b, "Jenkins started as an upgrade from %s", r.Upgrading)
+		if len(r.Detached) > 0 {
+			fmt.Fprintf(b, " and installed %d plugin(s) split out of core since then from its own war: %s", len(r.Detached), strings.Join(r.Detached, ", "))
+		}
+		b.WriteString(".\n\n")
+	}
 
 	roots := r.Roots
 	if len(roots) == 0 && len(r.Failed) > 0 {

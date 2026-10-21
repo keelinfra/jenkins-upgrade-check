@@ -127,7 +127,7 @@ online agent's System Information page, which needs Overall/Administer.
 jenkins-upgrade-check collect  --url URL --user USER [-o snapshot.json]
 jenkins-upgrade-check plan     (--snapshot snapshot.json | --plugins-file FILE --core VERSION) [--to lts]
                                [--runbook runbook.md --install deb|rpm|war|docker]
-jenkins-upgrade-check dry-run  (--plan plan.json [--step N] | --plugins-file FILE --core VERSION [--resolve]) [--home DIR]
+jenkins-upgrade-check dry-run  (--plan plan.json [--step N] | --plugins-file FILE --core VERSION [--resolve] [--from VERSION]) [--home DIR]
 jenkins-upgrade-check download --plan plan.json [--step N] --dir DIR
 jenkins-upgrade-check probe    [--quiet]
 jenkins-upgrade-check verify   --before before.json --url URL --user USER [--plan plan.json] [--core VERSION]

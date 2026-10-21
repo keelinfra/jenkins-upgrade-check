@@ -51,6 +51,11 @@ type Options struct {
 	// it: the plan's Java for a stop. Plugins that need more win.
 	PreferJava int
 	Plugins    []plan.Pick
+	// Upgrading is the Jenkins version the controller ran before Core.
+	// Jenkins then starts as an in-place upgrade from it and, as on a
+	// real upgrade, installs the plugins split out of core since that
+	// version from its own war. A copied Home brings its own.
+	Upgrading string
 	// Home is a JENKINS_HOME whose configuration (not its build records)
 	// is copied into the rehearsal.
 	Home string
@@ -85,8 +90,12 @@ type Result struct {
 	Broken []Failure `json:"broken,omitempty"`
 	// Skipped are plugins that could not be downloaded, with why.
 	Skipped []string `json:"skipped,omitempty"`
-	Errors  []string `json:"errors,omitempty"`
-	LogFile string   `json:"logFile,omitempty"`
+	// Upgrading is the version Jenkins was told it upgraded from;
+	// Detached are the plugins split out of core it installed for that.
+	Upgrading string   `json:"upgrading,omitempty"`
+	Detached  []string `json:"detached,omitempty"`
+	Errors    []string `json:"errors,omitempty"`
+	LogFile   string   `json:"logFile,omitempty"`
 	// Home is set when a real configuration was rehearsed.
 	Home *HomeResult `json:"home,omitempty"`
 }
@@ -180,6 +189,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 			return nil, fmt.Errorf("--casc: %w", err)
 		}
 		casc = "/var/jenkins_home/casc_configs"
+	}
+	if ok, err := markUpgrade(ref, o.Upgrading, o.Core); err != nil {
+		return nil, err
+	} else if ok {
+		res.Upgrading = o.Upgrading
 	}
 	if err := os.MkdirAll(filepath.Join(ref, "init.groovy.d"), 0o755); err != nil {
 		return nil, err
@@ -305,6 +319,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	for _, p := range o.Plugins {
 		versions[p.Name] = p.Version
 	}
+	res.Detached = detachedPlugins(logs)
 	failed, errs := ParseLog(logs)
 	if probe != nil {
 		failed = mergeProbe(failed, probe, got)
@@ -987,7 +1002,8 @@ func copyTree(src, dst string) error {
 }
 
 var (
-	failedLoading = regexp.MustCompile(`Failed Loading plugin (.*?) v(\S+) \(([^)\s]+)\)`)
+	loadedDetached = regexp.MustCompile(`[Dd]etached plugins \(and dependencies\): \[([^\]]*)\]`)
+	failedLoading  = regexp.MustCompile(`Failed Loading plugin (.*?) v(\S+) \(([^)\s]+)\)`)
 	// Jenkins logs an extension it cannot load as a warning
 	// ("ExtensionFinder$Sezpoz#scout: Failed to scout <class>"); optional
 	// ones, which are allowed to fail, only at a finer level.
@@ -1148,4 +1164,36 @@ func Download(ctx context.Context, picks []plan.Pick, dir, cacheDir string) ([]p
 	}
 	got, more := o.download(ctx, fetch, dir)
 	return got, append(skipped, more...)
+}
+
+// lastExecVersion is the file in JENKINS_HOME where Jenkins records the
+// version it last ran; a newer core reads it to decide it is an upgrade.
+const lastExecVersion = "jenkins.install.InstallUtil.lastExecVersion"
+
+// markUpgrade records in the home that Jenkins last ran version from, so
+// that core starts as an in-place upgrade. A home that already records its
+// version keeps it.
+func markUpgrade(home, from, core string) (bool, error) {
+	if from == "" || from == core {
+		return false, nil
+	}
+	last := filepath.Join(home, lastExecVersion)
+	if _, err := os.Stat(last); !os.IsNotExist(err) {
+		return false, err
+	}
+	return true, os.WriteFile(last, []byte(from), 0o644)
+}
+
+// detachedPlugins returns the plugins split out of core that Jenkins
+// installed from its war because it was upgraded from an older version.
+func detachedPlugins(log string) []string {
+	var out []string
+	for _, m := range loadedDetached.FindAllStringSubmatch(log, -1) {
+		for _, n := range strings.Split(m[1], ",") {
+			if n = strings.TrimSpace(n); n != "" && !slices.Contains(out, n) {
+				out = append(out, n)
+			}
+		}
+	}
+	return out
 }

@@ -211,6 +211,18 @@ func (p *Plan) Stop(step int) (core string, picks []Pick, java int, err error) {
 	return st.Core, st.Plugins, st.Java, nil
 }
 
+// Previous is the core the controller runs before a stop (see Stop): the
+// core of the step before it, or "" for the first step.
+func (p *Plan) Previous(step int) string {
+	if step < 0 {
+		step = len(p.Steps) - 1
+	}
+	if step <= 0 || step >= len(p.Steps) {
+		return ""
+	}
+	return p.Steps[step-1].Core
+}
+
 func diff(before, after []Pick) []Change {
 	old := map[string]string{}
 	for _, b := range before {

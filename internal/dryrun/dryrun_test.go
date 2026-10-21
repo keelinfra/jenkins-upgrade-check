@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -265,5 +266,36 @@ func TestLastWords(t *testing.T) {
 		"2026-10-21 13:19:25.491+0000 [id=31]\tINFO\twinstone.Logger#logInternal: Control thread shutdown successfully\n"
 	if got, want := lastWords(log), "jenkins.InitReactorRunner$1#onTaskFailed: Failed to load the plugins — java.lang.LinkageError: boom"; got != want {
 		t.Errorf("lastWords = %q, want %q", got, want)
+	}
+}
+
+// A rehearsal of an upgrade tells Jenkins the version it came from, unless
+// the copied home already says so; Jenkins then logs the plugins split out
+// of core that it installs.
+func TestUpgradeFrom(t *testing.T) {
+	home := t.TempDir()
+	if ok, err := markUpgrade(home, "", "2.580.1"); ok || err != nil {
+		t.Errorf("no version: %v, %v", ok, err)
+	}
+	if ok, err := markUpgrade(home, "2.580.1", "2.580.1"); ok || err != nil {
+		t.Errorf("same version: %v, %v", ok, err)
+	}
+	if ok, err := markUpgrade(home, "2.249.3", "2.580.1"); !ok || err != nil {
+		t.Fatalf("upgrade: %v, %v", ok, err)
+	}
+	if b, _ := os.ReadFile(filepath.Join(home, lastExecVersion)); string(b) != "2.249.3" {
+		t.Errorf("recorded %q", b)
+	}
+	if ok, err := markUpgrade(home, "2.346.3", "2.580.1"); ok || err != nil {
+		t.Errorf("home with a version: %v, %v", ok, err)
+	}
+
+	log := "2026-10-21 13:36:01.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded Jenkins from version 2.249.3 to version 2.580.1. Loaded detached plugins (and dependencies): [sshd, javax-mail-api, instance-identity]\n" +
+		"2026-10-21 13:36:02.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded detached plugins (and dependencies): [sshd]\n"
+	if got := detachedPlugins(log); !slices.Equal(got, []string{"sshd", "javax-mail-api", "instance-identity"}) {
+		t.Errorf("detached = %q", got)
+	}
+	if got := detachedPlugins("Jenkins is fully up and running"); got != nil {
+		t.Errorf("no upgrade: %q", got)
 	}
 }

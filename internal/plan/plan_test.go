@@ -230,3 +230,15 @@ func TestResolvePassesOverReleasesWithDependenciesTooNew(t *testing.T) {
 		t.Errorf("on 2.138.4 want trigger 2.0 with credentials 2.6.1.1, got %+v", r.Plugins)
 	}
 }
+
+func TestPrevious(t *testing.T) {
+	p := &Plan{Steps: []Step{{Core: "2.249.3"}, {Core: "2.462.3"}, {Core: "2.541.3"}, {Core: "2.580.1"}}, Target: Resolution{Core: "2.580.1"}}
+	for step, want := range map[int]string{0: "", 1: "2.249.3", 2: "2.462.3", 3: "2.541.3", -1: "2.541.3", 4: ""} {
+		if got := p.Previous(step); got != want {
+			t.Errorf("Previous(%d) = %q, want %q", step, got, want)
+		}
+	}
+	if got := (&Plan{Steps: []Step{{Core: "2.541.3"}}}).Previous(-1); got != "" {
+		t.Errorf("no core upgrade: %q", got)
+	}
+}

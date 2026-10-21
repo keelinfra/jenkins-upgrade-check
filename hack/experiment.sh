@@ -35,7 +35,7 @@ curl -fsSL "https://raw.githubusercontent.com/jenkins-infra/infra-statistics/gh-
   --out-dir "$out/baseline" -o "$out/baseline.md" --json "$out/baseline.json" \
   2> >(tee "$out/baseline.err" >&2) || true
 
-"$bin" dry-run --core "$to" --plugins-file "$out/plugins-$from.txt" \
+"$bin" dry-run --core "$to" --from "$from" --plugins-file "$out/plugins-$from.txt" \
   --out-dir "$out/as-is" -o "$out/as-is.md" --json "$out/as-is.json" \
   2> >(tee "$out/as-is.err" >&2) || true
 
@@ -64,7 +64,7 @@ fi
 brief() {
   local json=$1.json err=$1.err
   if [ -s "$json" ]; then
-    jq -c '{core, java, javaReason, image, started, reason, plugins,
+    jq -c '{core, java, javaReason, image, started, reason, plugins, upgrading, detached,
       failed: (.failed // [] | length), broken: (.broken // [] | length),
       brokenNames: [(.broken // [])[] | .name],
       skipped: (.skipped // [] | length), skippedWhy: (.skipped // [])[:5],
@@ -96,6 +96,7 @@ causes() {
   jq -r --arg name "$1" '(.roots[] | "- \($name): **\(.name) \(.version // "")** \(.kind): \(.why)\(if .cascade > 0 then " (takes down \(.cascade) more)" else "" end)"),
     (select((.brokenNames // []) != []) | "- \($name): loaded in part (extensions failed): \(.brokenNames | join(", "))"),
     (select(.javaReason) | "- \($name): Java \(.java) because \(.javaReason)"),
+    (select((.detached // []) != []) | "- \($name): upgrading from \(.upgrading), Jenkins installed from its war: \(.detached | join(", "))"),
     ((.skippedWhy // [])[] | "- \($name): not downloaded: \(.)"),
     (select(.started | not) | "- \($name): \(.reason // "did not start")")'
 }

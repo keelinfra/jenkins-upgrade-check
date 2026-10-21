@@ -282,6 +282,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	casc := fs.String("casc", "", "Configuration as Code file or directory to load, if the controller reads it from outside JENKINS_HOME")
 	java := fs.Int("java", 0, "Java version of the image (default: the oldest the core and the plugins support)")
 	image := fs.String("image", "", "base image instead of jenkins/jenkins:<core>-jdk<N>")
+	from := fs.String("from", "", "Jenkins version the controller runs now: start as an in-place upgrade from it, so Jenkins installs the plugins split out of core since then, as it does on a real upgrade (default with --plan: the stop before; a --home copy that records its version keeps it)")
 	outDir := fs.String("out-dir", "", "keep the Jenkins log here")
 	timeout := fs.Duration("timeout", 10*time.Minute, "how long Jenkins may take to start")
 	keep := fs.Bool("keep", false, "keep the container and the work directory")
@@ -290,7 +291,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	if err := fs.Parse(args); err != nil {
 		return 0, err
 	}
-	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
+	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, Upgrading: *from, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
 	if sf.cache != "" {
 		o.CacheDir = filepath.Join(sf.cache, "plugins")
 	}
@@ -311,6 +312,9 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 		// The plan's Java is a preference: plugins that need a newer
 		// Java than the plan knows of get it, and the report says why.
 		o.Core, o.Plugins, o.PreferJava = core, picks, java
+		if o.Upgrading == "" {
+			o.Upgrading = p.Previous(*step)
+		}
 	default:
 		s, err := in.load()
 		if err != nil {
