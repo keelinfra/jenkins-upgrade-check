@@ -516,6 +516,10 @@ func (m *Matrix) Markdown() string {
 	b.WriteString("- Plugins are at the newest release each line can load. A controller whose plugins are older than that has more to change, not less.\n")
 	b.WriteString("- There is no real configuration and no network: what plugins do with jobs, credentials and outside systems is not exercised. " +
 		"`jenkins-upgrade-check dry-run --home` rehearses your own configuration.\n")
+	b.WriteString("- Core only is rehearsed as an upgrade with no update center, as on a controller in a closed network. " +
+		"Jenkins 2.574 and 2.577 stopped carrying the plugins split out of core (sshd, javax-mail-api, instance-identity and others) in the war, " +
+		"so from 2.580.1 on such a controller no longer gets them on upgrade; one that reaches the update center may fetch some of them itself. " +
+		"The planned path adds them where its plugins still expect them.\n")
 	b.WriteString("- A plugin that loads can still fail at run time, in a pipeline step or a page. The rehearsal shows what fails at startup.\n")
 	b.WriteString("- The usage statistics count controllers that send them; controllers inside closed networks usually do not.\n")
 	return b.String()
