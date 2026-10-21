@@ -1,0 +1,114 @@
+name: Split plugins check
+
+# One-off check for an upstream report, on this branch only. A controller
+# on an old LTS gets only its core replaced by 2.580.1 (no plugin updates).
+# Does Jenkins start
+#   offline: no network, as in the upgrade matrix
+#   online:  update center reachable
+#   placed:  no network, the plugins split out of core since FROM placed in
+#            plugins/ first (what the 2.580.1 upgrade guide advises)
+on:
+  push:
+    branches: [claude/project-thread-qepmti]
+    paths: [.github/workflows/split-plugins-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Split out after FROM, per core/src/main/resources/jenkins/split-plugins.txt
+          - from: "2.346.3"
+            split: instance-identity
+          - from: "2.277.4"
+            split: sshd,javax-activation-api,javax-mail-api,instance-identity
+    env:
+      FROM: ${{ matrix.from }}
+      SPLIT: ${{ matrix.split }}
+      TO: "2.580.1"
+      TOP: "300"
+      OPTS: -Djenkins.install.runSetupWizard=false -XX:+IgnoreUnrecognizedVMOptions -XX:-UseContainerSupport
+    steps:
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: go build ./cmd/jenkins-upgrade-check
+
+      - name: Plugin sets
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          month=$(go run ./hack/matrix month)
+          curl -fsSL "https://raw.githubusercontent.com/jenkins-infra/infra-statistics/gh-pages/jenkins-stats/svg/${month}-top-plugins1000.csv" -o out/top.csv
+          ./jenkins-upgrade-check resolve --core "$FROM" --top-plugins out/top.csv --top "$TOP" -o out/plugins-from.txt
+          ./jenkins-upgrade-check resolve --core "$TO" --names "$SPLIT" -o out/split-resolved.txt
+          echo "split plugins already in the starting set:"
+          grep -E "^(${SPLIT//,/|}):" out/plugins-from.txt || echo "(none)"
+          # Only the split plugins themselves, at a version 2.580.1 loads.
+          grep -E "^(${SPLIT//,/|}):" out/split-resolved.txt > out/split.txt
+          cat out/plugins-from.txt out/split.txt > out/plugins-placed.txt
+          echo "added:"; cat out/split.txt
+          wc -l out/plugins-from.txt out/plugins-placed.txt
+
+      - name: Offline, core only
+        run: |
+          ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file out/plugins-from.txt \
+            --out-dir out/offline -o out/offline.md --json out/offline.json || true
+          cat out/offline.md
+
+      - name: Offline, split plugins placed first
+        run: |
+          ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file out/plugins-placed.txt \
+            --out-dir out/placed -o out/placed.md --json out/placed.json || true
+          cat out/placed.md
+
+      - name: Online, core only
+        run: |
+          set -uo pipefail
+          home=$PWD/out/online/home
+          mkdir -p "$home/plugins"
+          while IFS=: read -r name ver; do
+            [ -n "$name" ] || continue
+            curl -fsSL --retry 3 -o "$home/plugins/$name.jpi" \
+              "https://updates.jenkins.io/download/plugins/$name/$ver/$name.hpi" || echo "download failed: $name $ver"
+          done < out/plugins-from.txt
+          ls "$home/plugins" | wc -l
+          echo -n "$FROM" > "$home/jenkins.install.InstallUtil.lastExecVersion"
+          sudo chown -R 1000:1000 "$home"
+          docker run -d --name online -e "JAVA_OPTS=$OPTS" -v "$home:/var/jenkins_home" "jenkins/jenkins:$TO-jdk21"
+          for i in $(seq 1 300); do
+            if docker logs online 2>&1 | grep -q "Jenkins is fully up and running"; then echo "STARTED after ${i}x2s"; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' online)" != true ]; then echo "EXITED: $(docker inspect -f '{{.State.ExitCode}}' online)"; break; fi
+            sleep 2
+          done
+          sleep 30
+          docker logs online > out/online/jenkins.log 2>&1
+          echo "== split plugins on disk after start:"
+          ls "$home/plugins" | grep -E "^(${SPLIT//,/|})\.[jh]pi$" || echo "(none)"
+          echo "== detached / upgrade lines:"
+          grep -E "Upgrading Jenkins|Loaded detached plugins|detached" out/online/jenkins.log | head -20
+          echo "== first errors:"
+          grep -m 6 -E "NoClassDefFoundError|BootFailure|Unable to inject|SEVERE" out/online/jenkins.log | cut -c1-300
+          docker rm -f online >/dev/null
+
+      - name: Summary
+        if: always()
+        run: |
+          for s in offline placed; do
+            echo "== $s"; jq -c '{started: .started, reason: .reason, plugins: .plugins, detached: .detached}' "out/$s.json" 2>/dev/null || echo "no result"
+            log=$(ls out/$s/dry-run-*.log 2>/dev/null | head -1)
+            [ -n "$log" ] && grep -m 3 -E "NoClassDefFoundError|BootFailure" "$log" | cut -c1-300
+          done
+          echo "== online"
+          if grep -q "Jenkins is fully up and running" out/online/jenkins.log 2>/dev/null; then echo "started"; else echo "did not start"; fi
