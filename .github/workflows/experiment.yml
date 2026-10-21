@@ -27,6 +27,7 @@ on:
       - hack/experiment.sh
       - hack/matrix/**
       - hack/publish-matrix.sh
+      - internal/dryrun/**
       - .github/workflows/experiment.yml
 
 permissions:

@@ -225,8 +225,13 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	// container rather than built into an image, it leaves no image and no
 	// build cache behind: a few hundred plugins each time otherwise.
 	name := fmt.Sprintf("juc-%s-%d", strings.ReplaceAll(sanitize(o.Core), ".", "-"), time.Now().UnixNano())
+	// Older images ship JDKs (11.0.16, 17.0.4) whose container support
+	// throws on cgroup v2 hosts (JDK-8287073), which fails any plugin that
+	// reads system metrics. The rehearsal sets no memory limit, so turning
+	// container support off changes nothing else; Java 8 before 8u191
+	// does not know the option and ignores it.
 	args := []string{"create", "--name", name, "--network", "none",
-		"-e", "JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.model.UpdateCenter.never=true"}
+		"-e", "JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.model.UpdateCenter.never=true -XX:+IgnoreUnrecognizedVMOptions -XX:-UseContainerSupport"}
 	if casc != "" {
 		args = append(args, "-e", "CASC_JENKINS_CONFIG="+casc)
 	}
