@@ -167,3 +167,26 @@ func TestJavaMajor(t *testing.T) {
 		}
 	}
 }
+
+func TestStopPicksEachStepAndTheTarget(t *testing.T) {
+	rel, center := fixtures(t)
+	s := &snapshot.Snapshot{Core: "2.346.3", Plugins: []snapshot.Plugin{{Name: "workflow-cps", Version: "2.90", Enabled: true}}}
+	p, err := Build(s, "2.580.1", rel, center)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p.Steps) != 3 {
+		t.Fatalf("2.346.3 to 2.580.1 should stop at 2.541.3: %d steps", len(p.Steps))
+	}
+	core, picks, java, err := p.Stop(1)
+	if err != nil || core != "2.541.3" || java != 17 || len(picks) == 0 {
+		t.Errorf("step 1 = %s on Java %d with %d plugins (%v), want 2.541.3 on Java 17", core, java, len(picks), err)
+	}
+	core, _, java, err = p.Stop(-1)
+	if err != nil || core != "2.580.1" || java != 21 {
+		t.Errorf("target = %s on Java %d (%v), want 2.580.1 on Java 21", core, java, err)
+	}
+	if _, _, _, err := p.Stop(3); err == nil {
+		t.Error("a step past the end should be an error")
+	}
+}

@@ -5,6 +5,16 @@ import groovy.json.JsonOutput
 import hudson.init.InitMilestone
 import jenkins.model.Jenkins
 
+// instance is the running Jenkins. Jenkins.get() arrived in 2.98; older
+// cores only have getInstance().
+def instance = { ->
+    try {
+        Jenkins.get()
+    } catch (MissingMethodException e) {
+        Jenkins.getInstance()
+    }
+}
+
 // where names a saveable thing the way an administrator would look for it.
 def where = { k ->
     if (k instanceof hudson.model.Item) return k.fullName
@@ -18,7 +28,7 @@ def collect = { boolean done ->
     def out = [completed: done]
     def errors = []
     try {
-        def j = Jenkins.get()
+        def j = instance()
         out.version = Jenkins.VERSION
         out.java = System.getProperty('java.version')
         def pm = j.pluginManager
@@ -56,7 +66,7 @@ def collect = { boolean done ->
         errors << t.toString()
     }
     out.probeErrors = errors
-    def f = new File(Jenkins.get().rootDir, 'jenkins-upgrade-check-probe.json')
+    def f = new File(instance().rootDir, 'jenkins-upgrade-check-probe.json')
     def tmp = new File(f.path + '.tmp')
     tmp.text = JsonOutput.toJson(out)
     tmp.renameTo(f)
@@ -84,7 +94,7 @@ def asSystem = { Closure body ->
 asSystem { collect(false) }
 Thread.start('jenkins-upgrade-check-probe') {
     def deadline = System.currentTimeMillis() + 30 * 60 * 1000
-    while (Jenkins.get().initLevel != InitMilestone.COMPLETED && System.currentTimeMillis() < deadline) {
+    while (instance().initLevel != InitMilestone.COMPLETED && System.currentTimeMillis() < deadline) {
         sleep(500)
     }
     sleep(3000)

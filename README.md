@@ -127,7 +127,7 @@ online agent's System Information page, which needs Overall/Administer.
 jenkins-upgrade-check collect  --url URL --user USER [-o snapshot.json]
 jenkins-upgrade-check plan     (--snapshot snapshot.json | --plugins-file FILE --core VERSION) [--to lts]
                                [--runbook runbook.md --install deb|rpm|war|docker]
-jenkins-upgrade-check dry-run  (--plan plan.json | --plugins-file FILE --core VERSION [--resolve]) [--home DIR]
+jenkins-upgrade-check dry-run  (--plan plan.json [--step N] | --plugins-file FILE --core VERSION [--resolve]) [--home DIR]
 jenkins-upgrade-check download --plan plan.json [--step N] --dir DIR
 jenkins-upgrade-check probe    [--quiet]
 jenkins-upgrade-check verify   --before before.json --url URL --user USER [--plan plan.json] [--core VERSION]
@@ -136,9 +136,11 @@ jenkins-upgrade-check resolve  --core VERSION (--plugins-file FILE | --names a,b
 ```
 
 `hack/experiment.sh` rehearses a typical controller (the most installed plugins
-from the Jenkins usage statistics) going from an older version to the current LTS,
-once with only the core swapped and once with the plan. The "Upgrade experiment"
-workflow runs it for several starting versions.
+from the Jenkins usage statistics) going from an older version to the current LTS:
+once with only the core swapped, and at every stop of the plan. The "Upgrade matrix"
+workflow runs it from the last release of every LTS line since 2.60.3 whenever a new
+LTS is out, and publishes the table to the
+[matrix branch](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix).
 
 ## Help with an upgrade
 

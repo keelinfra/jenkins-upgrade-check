@@ -757,14 +757,21 @@ func (o *Options) pickImage(ctx context.Context, minJava int) (string, int, erro
 	var tried []string
 	var last string
 	for _, j := range order {
-		c := fmt.Sprintf("jenkins/jenkins:%s-jdk%d", o.Core, j)
-		tried = append(tried, c)
-		o.logf("pulling %s", c)
-		out, err := o.run(ctx, "pull", "-q", c)
-		if err == nil {
-			return c, j, nil
+		cands := []string{fmt.Sprintf("jenkins/jenkins:%s-jdk%d", o.Core, j)}
+		if j == 8 && version.Less(o.Core, "2.303") {
+			// Images before 2.303 have no -jdk8 tag: their plain tag is
+			// Java 8, and -jdk11 the variant.
+			cands = []string{"jenkins/jenkins:" + o.Core}
 		}
-		last = strings.TrimSpace(out)
+		for _, c := range cands {
+			tried = append(tried, c)
+			o.logf("pulling %s", c)
+			out, err := o.run(ctx, "pull", "-q", c)
+			if err == nil {
+				return c, j, nil
+			}
+			last = strings.TrimSpace(out)
+		}
 	}
 	c := "jenkins/jenkins:" + o.Core
 	tried = append(tried, c)

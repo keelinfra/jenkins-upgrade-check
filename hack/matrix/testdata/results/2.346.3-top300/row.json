@@ -1,0 +1,6 @@
+{"from":"2.346.3","to":"2.580.1","top":300,"month":"202603",
+ "baseline":{"core":"2.346.3","java":8,"image":"jenkins/jenkins:2.346.3-jdk8","started":true,"plugins":349,"failed":0,"broken":0,"skipped":0,"roots":[]},
+ "asIs":{"core":"2.580.1","java":21,"image":"jenkins/jenkins:2.580.1-jdk21","started":false,"reason":"the container exited (state: false 1)","plugins":349,"failed":1,"broken":0,"skipped":0,"roots":[{"name":"instance-identity","kind":"missing class","why":"ClassNotFoundException"}]},
+ "stops":[{"core":"2.541.3","java":17,"image":"jenkins/jenkins:2.541.3-jdk17","started":true,"plugins":349,"failed":0,"broken":0,"skipped":0,"roots":[]},
+          {"core":"2.580.1","java":21,"image":"jenkins/jenkins:2.580.1-jdk21","started":true,"plugins":349,"failed":0,"broken":0,"skipped":0,"roots":[]}],
+ "planProblems":0}

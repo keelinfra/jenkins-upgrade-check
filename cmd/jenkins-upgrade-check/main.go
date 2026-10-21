@@ -37,7 +37,7 @@ Usage:
   jenkins-upgrade-check collect  --url URL --user USER [-o snapshot.json]
   jenkins-upgrade-check plan     (--snapshot snapshot.json | --plugins-file FILE --core VERSION) [--to lts]
                                  [--runbook runbook.md --install deb|rpm|war|docker]
-  jenkins-upgrade-check dry-run  (--plan plan.json | --plugins-file FILE --core VERSION [--resolve]) [--home JENKINS_HOME]
+  jenkins-upgrade-check dry-run  (--plan plan.json [--step N] | --plugins-file FILE --core VERSION [--resolve]) [--home JENKINS_HOME]
   jenkins-upgrade-check download --plan plan.json [--step N] --dir DIR
   jenkins-upgrade-check probe    [--quiet]
   jenkins-upgrade-check verify   --before before.json --url URL --user USER [--plan plan.json] [--core VERSION]
@@ -276,6 +276,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	var sf sourceFlags
 	sf.register(fs)
 	planFile := fs.String("plan", "", "plan JSON written by plan --json: rehearse its target")
+	step := fs.Int("step", -1, "with --plan: rehearse this step instead of the target (1 is the first core upgrade)")
 	resolve := fs.Bool("resolve", false, "with --plugins-file: move each plugin to the newest release --core can load first (default: use the versions as given)")
 	home := fs.String("home", "", "JENKINS_HOME (or a copy of it) whose configuration to rehearse: jobs, folders, nodes, credentials and settings, without build records")
 	casc := fs.String("casc", "", "Configuration as Code file or directory to load, if the controller reads it from outside JENKINS_HOME")
@@ -303,10 +304,13 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 		if err := json.Unmarshal(b, &p); err != nil {
 			return 0, fmt.Errorf("%s: %w", *planFile, err)
 		}
-		o.Core = p.Target.Core
-		o.Plugins = p.Target.Plugins
-		if len(p.Steps) > 0 && o.Java == 0 {
-			o.Java = p.Steps[len(p.Steps)-1].Java
+		core, picks, java, err := p.Stop(*step)
+		if err != nil {
+			return 0, err
+		}
+		o.Core, o.Plugins = core, picks
+		if o.Java == 0 {
+			o.Java = java
 		}
 	default:
 		s, err := in.load()
@@ -380,16 +384,9 @@ func cmdDownload(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	picks := p.Target.Plugins
-	core := p.Target.Core
-	if *step >= 0 {
-		if *step >= len(p.Steps) {
-			return fmt.Errorf("the plan has steps 0 to %d", len(p.Steps)-1)
-		}
-		picks, core = p.Steps[*step].Plugins, p.Steps[*step].Core
-		if len(picks) == 0 {
-			return fmt.Errorf("step %d has no plugin set; make the plan again with this version", *step)
-		}
+	core, picks, _, err := p.Stop(*step)
+	if err != nil {
+		return err
 	}
 	if err := os.MkdirAll(*dir, 0o755); err != nil {
 		return err
