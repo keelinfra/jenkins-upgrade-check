@@ -3,10 +3,12 @@ name: Split plugins check
 # One-off check for an upstream report, on this branch only. A controller
 # on an old LTS gets only its core replaced by 2.580.1 (no plugin updates).
 # Does Jenkins start
-#   offline: no network, as in the upgrade matrix
-#   online:  update center reachable
-#   placed:  no network, the plugins split out of core since FROM placed in
-#            plugins/ first (what the 2.580.1 upgrade guide advises)
+#   online:     update center reachable
+#   placed-cli: no network, the plugins split out of core since FROM placed
+#               in plugins/ first together with their dependencies, as
+#               jenkins-plugin-cli resolves them for the new core
+# (Run 1 of this file also rehearsed offline core-only, and placing only the
+# split plugins themselves: both failed to start.)
 on:
   push:
     branches: [claude/project-thread-qepmti]
@@ -61,17 +63,31 @@ jobs:
           echo "added:"; cat out/split.txt
           wc -l out/plugins-from.txt out/plugins-placed.txt
 
-      - name: Offline, core only
+      - name: The container reaches the update center
         run: |
-          ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file out/plugins-from.txt \
-            --out-dir out/offline -o out/offline.md --json out/offline.json || true
-          cat out/offline.md
+          docker run --rm --entrypoint curl "jenkins/jenkins:$TO-jdk21" -sS -o /dev/null \
+            -w "update-center.json from inside the image: HTTP %{http_code}\n" https://updates.jenkins.io/update-center.json
 
-      - name: Offline, split plugins placed first
+      - name: Offline, split plugins and their dependencies placed with jenkins-plugin-cli
         run: |
-          ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file out/plugins-placed.txt \
-            --out-dir out/placed -o out/placed.md --json out/placed.json || true
-          cat out/placed.md
+          set -euo pipefail
+          dl=$PWD/out/cli
+          mkdir -p "$dl" && sudo chown 1000:1000 "$dl"
+          docker run --rm -u 1000 -v "$dl:/out" --entrypoint jenkins-plugin-cli "jenkins/jenkins:$TO-jdk21" \
+            --jenkins-version "$TO" --plugin-download-directory /out --plugins ${SPLIT//,/ }
+          : > out/cli.txt
+          for f in "$dl"/*.jpi; do
+            m=$(unzip -p "$f" META-INF/MANIFEST.MF | tr -d '\r')
+            echo "$(echo "$m" | sed -n 's/^Short-Name: //p'):$(echo "$m" | sed -n 's/^Plugin-Version: //p')" >> out/cli.txt
+          done
+          echo "jenkins-plugin-cli downloaded:"; cat out/cli.txt
+          # Starting set, with these plugins added or replaced by the downloaded versions.
+          names=$(cut -d: -f1 out/cli.txt | paste -sd'|')
+          { grep -vE "^($names):" out/plugins-from.txt; cat out/cli.txt; } > out/plugins-cli.txt
+          wc -l out/plugins-from.txt out/plugins-cli.txt
+          ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file out/plugins-cli.txt \
+            --out-dir out/placed-cli -o out/placed-cli.md --json out/placed-cli.json || true
+          cat out/placed-cli.md
 
       - name: Online, core only
         run: |
@@ -105,7 +121,7 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          for s in offline placed; do
+          for s in placed-cli; do
             echo "== $s"; jq -c '{started: .started, reason: .reason, plugins: .plugins, detached: .detached}' "out/$s.json" 2>/dev/null || echo "no result"
             log=$(ls out/$s/dry-run-*.log 2>/dev/null | head -1)
             [ -n "$log" ] && grep -m 3 -E "NoClassDefFoundError|BootFailure" "$log" | cut -c1-300
