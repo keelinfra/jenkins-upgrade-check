@@ -6,55 +6,42 @@
   "baseline": {
     "core": "2.176.4",
     "java": 8,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.176.4",
     "started": true,
     "reason": null,
     "plugins": 304,
-    "failed": 2,
+    "failed": 0,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
-    "roots": [
-      {
-        "name": "Parameterized-Remote-Trigger",
-        "version": "3.1.6.3",
-        "kind": "other",
-        "why": "Credentials Plugin version 2.3.11 is older than required. To fix, install version 2.6.1.1 or later.",
-        "cascade": 0
-      },
-      {
-        "name": "docker-build-step",
-        "version": "2.8",
-        "kind": "other",
-        "why": "Credentials Plugin version 2.3.11 is older than required. To fix, install version 2.3.19 or later.",
-        "cascade": 0
-      }
-    ]
+    "skippedWhy": [],
+    "roots": []
   },
   "asIs": {
     "core": "2.580.1",
     "java": 21,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.580.1-jdk21",
     "started": false,
-    "reason": "the container exited (state: false 5)",
+    "reason": "the container exited (state: false 5); the log ends: hudson.util.BootFailure#publish: Failed to initialize Jenkins — java.lang.NullPointerException: Cannot invoke \"hudson.plugins.git.GitSCM$DescriptorImpl.getOldGitExe()\" because \"desc\" is null",
     "plugins": 304,
-    "failed": 3,
-    "broken": 0,
+    "failed": 1,
+    "broken": 9,
+    "brokenNames": [
+      "copyartifact",
+      "email-ext",
+      "git-server",
+      "github",
+      "ldap",
+      "mailer",
+      "scriptler",
+      "ssh-slaves",
+      "translation"
+    ],
     "skipped": 0,
+    "skippedWhy": [],
     "roots": [
-      {
-        "name": "Parameterized-Remote-Trigger",
-        "version": "3.1.6.3",
-        "kind": "old-dependency",
-        "why": "needs credentials 2.6.1.1 or newer; 2.3.11 is installed",
-        "cascade": 0
-      },
-      {
-        "name": "docker-build-step",
-        "version": "2.8",
-        "kind": "old-dependency",
-        "why": "needs credentials 2.3.19 or newer; 2.3.11 is installed",
-        "cascade": 0
-      },
       {
         "name": "ec2",
         "version": "1.50.3",
@@ -68,142 +55,53 @@
     {
       "core": "2.462.3",
       "java": 11,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.462.3-jdk11",
       "started": true,
       "reason": null,
       "plugins": 361,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 11
     },
     {
       "core": "2.541.3",
       "java": 17,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.541.3-jdk17",
-      "started": false,
-      "reason": "not up after 10m0s",
+      "started": true,
+      "reason": null,
       "plugins": 384,
-      "failed": 107,
+      "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
-      "roots": [
-        {
-          "name": "plugin-util-api",
-          "version": "6.1192.v30fe6e2837ff",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (989.va_20a_1a_57710a_ or newer), which is not installed",
-          "cascade": 49
-        },
-        {
-          "name": "workflow-cps",
-          "version": "4395.v738456a_5da_6b_",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (1015.v785e5a_b_b_8b_22 or newer), which is not installed",
-          "cascade": 26
-        },
-        {
-          "name": "workflow-job",
-          "version": "1571.1585.v21fce07cd04d",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (976.vb_d9493c2eb_09 or newer), which is not installed",
-          "cascade": 12
-        },
-        {
-          "name": "workflow-durable-task-step",
-          "version": "1479.v56e587f413a_7",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (944.v5a_859593b_98a_ or newer), which is not installed",
-          "cascade": 5
-        },
-        {
-          "name": "git-parameter",
-          "version": "462.463.v496a_59f698e5",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (968.v8f17397e87b_8 or newer), which is not installed",
-          "cascade": 0
-        },
-        {
-          "name": "github-branch-source",
-          "version": "1986.v801e40614d00",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (1010.vb_b_39488a_9841 or newer), which is not installed",
-          "cascade": 0
-        },
-        {
-          "name": "lockable-resources",
-          "version": "1576.v217259b_f9976",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (1015.v785e5a_b_b_8b_22 or newer), which is not installed",
-          "cascade": 0
-        },
-        {
-          "name": "pipeline-build-step",
-          "version": "601.v6d4c6d1a_9dc7",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (944.v5a_859593b_98a_ or newer), which is not installed",
-          "cascade": 0
-        },
-        {
-          "name": "pipeline-input-step",
-          "version": "560.v56198a_642157",
-          "kind": "missing-dependency",
-          "why": "needs the workflow-support plugin (936.v9fa_77211ca_e1 or newer), which is not installed",
-          "cascade": 0
-        },
-        {
-          "name": "workflow-support",
-          "version": "1015.v785e5a_b_b_8b_22",
-          "kind": "not-active",
-          "why": "installed but not active after startup",
-          "cascade": 0
-        },
-        {
-          "name": "workflow-support.jpi",
-          "version": null,
-          "kind": "other",
-          "why": "java.io.IOException: Failed to expand /var/jenkins_home/plugins/workflow-support.jpi",
-          "cascade": 0
-        },
-        {
-          "name": "ws-cleanup",
-          "version": "0.49",
-          "kind": "not-active",
-          "why": "installed but not active after startup",
-          "cascade": 0
-        },
-        {
-          "name": "ws-cleanup.jpi",
-          "version": null,
-          "kind": "other",
-          "why": "java.nio.file.FileSystemException: /var/jenkins_home/plugins/ws-cleanup: No space left on device",
-          "cascade": 0
-        },
-        {
-          "name": "xunit",
-          "version": "3.1.7",
-          "kind": "not-active",
-          "why": "installed but not active after startup",
-          "cascade": 0
-        },
-        {
-          "name": "xunit.jpi",
-          "version": null,
-          "kind": "other",
-          "why": "java.nio.file.FileSystemException: /var/jenkins_home/plugins/xunit: No space left on device",
-          "cascade": 0
-        }
-      ],
+      "skippedWhy": [],
+      "roots": [],
       "planJava": 17
     },
     {
       "core": "2.580.1",
-      "started": false,
-      "reason": "no result",
+      "java": 21,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.580.1-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 386,
+      "failed": 0,
+      "broken": 1,
+      "brokenNames": [
+        "translation"
+      ],
+      "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 21
     }
   ],
-  "planProblems": 2
+  "planProblems": 0
 }

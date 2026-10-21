@@ -1,8 +1,8 @@
 # Jenkins upgrade plan: 2.492.3 → 2.580.1
 
-Source: results/2.492.3-top300/plugins-2.492.3.txt · generated 2026-10-21 12:54 UTC by jenkins-upgrade-check dev
+Source: results/2.492.3-top300/plugins-2.492.3.txt · generated 2026-10-21 13:34 UTC by jenkins-upgrade-check dev
 
-**1 core upgrade(s)**, 319 plugins: 101 to upgrade, 16 new dependencies; 20 with security warnings today, 3 still with warnings after the upgrade, 1 deprecated, 1 dependency problem(s).
+**1 core upgrade(s)**, 319 plugins: 101 to upgrade, 16 new dependencies; 20 with security warnings today, 3 still with warnings after the upgrade, 1 deprecated.
 
 Jenkins 2.492.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 
@@ -19,7 +19,6 @@ Jenkins 2.492.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 ## Steps
 
 1. **On 2.492.3, update plugins** (0 change(s)). Back up `$JENKINS_HOME` first.
-   - ⚠ gitlab-plugin 1.9.10 needs jersey3-api 3.1.11-2.v4a_b_db_cf4557b_ or newer, and no such release runs on Jenkins 2.492.3
 2. **Run the controller and every agent on Java 21**, upgrade Jenkins to **2.580.1**, start it, then update plugins (117 change(s)).
 
 ## Needs a decision
@@ -34,7 +33,7 @@ Jenkins 2.492.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | git-client | 6.2.1 | 6.6.1 | [SECURITY-3614](https://www.jenkins.io/security/advisory/2025-12-10/#SECURITY-3614) fixed by the upgrade<br>[SECURITY-3723](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3723) fixed by the upgrade |
 | github | 1.43.0 | 1.47.0 | [SECURITY-3704](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3704) fixed by the upgrade |
 | github-branch-source | 1824.v046257273408 | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
-| gitlab-plugin | 1.9.10 | 1.2158.v49db_f64b_fc28 | [SECURITY-4097](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4097) fixed by the upgrade<br>[SECURITY-3851](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3851) fixed by the upgrade |
+| gitlab-plugin | 1.9.9 | 1.2158.v49db_f64b_fc28 | [SECURITY-4097](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4097) fixed by the upgrade<br>[SECURITY-3851](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3851) fixed by the upgrade |
 | gradle | 2.15 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | jobConfigHistory | 1356.ve360da_6c523a_ | 1380.v762185b_9a_793 | [SECURITY-3742](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3742) fixed by the upgrade<br>[SECURITY-4098](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4098) fixed by the upgrade |
 | ldap | 780.vcb_33c9a_e4332 | 825.v2fca_37dd5b_cb_ | [SECURITY-3654](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3654) fixed by the upgrade<br>[SECURITY-3678](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3678) fixed by the upgrade |
@@ -210,7 +209,7 @@ Jenkins 2.492.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | gitlab-api | 5.8.1-106.vef1de800710e | 6.3.0-126.vd066b_d896159 |
 | gitlab-branch-source | 724.v6e30226050b_3 | 744.vb_d0403d08ec7 |
 | gitlab-oauth | 1.23 | 1.30 |
-| gitlab-plugin | 1.9.10 | 1.2158.v49db_f64b_fc28 |
+| gitlab-plugin | 1.9.9 | 1.2158.v49db_f64b_fc28 |
 | google-oauth-plugin | 1.335.ve6de40e2db_18 | 1.346.v712b_a_e0d1e60 |
 | gradle | 2.15 | 2.20.1253.vc116f0763a_eb_ |
 | groovy | 537.v741a_5a_f1b_581 | 537.v741a_5a_f1b_581 |

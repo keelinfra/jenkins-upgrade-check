@@ -3,10 +3,10 @@
 | Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
 |---|---|---|---|---|---|---|---|
 | baseline: 2.303.3 | jenkins/jenkins:2.303.3-jdk11 | started | 302 | 98 | 98 | 0 | 0 |
-| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 302 | 98 | 29 | 0 | 0 |
+| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 302 | 98 | 29 | 1 | 0 |
 | planned: 2.462.3, plugins from plan | jenkins/jenkins:2.462.3-jdk11 | started | 328 | 0 | 0 | 0 | 0 |
 | planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 351 | 0 | 0 | 0 | 0 |
-| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | did not start | 351 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 351 | 0 | 0 | 0 | 0 |
 
 - baseline: **Parameterized-Remote-Trigger 3.1.6.3** other: Required plugin is disabled: Credentials Plugin
 - baseline: **amazon-ecr 1.73.v741d474abe74** other: Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)
@@ -106,6 +106,7 @@
 - baseline: **warnings-ng 9.11.1** other: Required plugin is disabled: Credentials Plugin
 - baseline: **workflow-aggregator 596.v8c21c963d92d** other: Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)
 - baseline: **workflow-cps-global-lib 609.vd95673f149b_b** other: Failed to load: Jenkins GIT server Plugin (1.11)
+- baseline: Java 11 because gradle needs Java 11 or newer
 - as-is: **plain-credentials 1.8** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 31 more)
 - as-is: **jsch 0.1.55.2** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials) (takes down 14 more)
 - as-is: **authentication-tokens 1.4** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 8 more)
@@ -135,4 +136,5 @@
 - as-is: **subversion 2.16.0** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
 - as-is: **trilead-api 1.0.13** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:trilead-api -> Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api
 - as-is: **warnings-ng 9.11.1** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: loaded in part (extensions failed): copyartifact
 

@@ -6,57 +6,50 @@
   "baseline": {
     "core": "2.492.3",
     "java": 17,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.492.3-jdk17",
     "started": true,
     "reason": null,
     "plugins": 303,
-    "failed": 1,
+    "failed": 0,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
-    "roots": [
-      {
-        "name": "gitlab-plugin",
-        "version": "1.9.10",
-        "kind": "missing-dependency",
-        "why": "needs the jersey3-api plugin (3.1.11-2.v4a_b_db_cf4557b_ or newer), which is not installed",
-        "cascade": 0
-      }
-    ]
+    "skippedWhy": [],
+    "roots": []
   },
   "asIs": {
     "core": "2.580.1",
     "java": 21,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.580.1-jdk21",
     "started": true,
     "reason": null,
     "plugins": 303,
-    "failed": 1,
+    "failed": 0,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
-    "roots": [
-      {
-        "name": "gitlab-plugin",
-        "version": "1.9.10",
-        "kind": "missing-dependency",
-        "why": "needs the jersey3-api plugin (3.1.11-2.v4a_b_db_cf4557b_ or newer), which is not installed",
-        "cascade": 0
-      }
-    ]
+    "skippedWhy": [],
+    "roots": []
   },
   "stops": [
     {
       "core": "2.580.1",
       "java": 21,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.580.1-jdk21",
       "started": true,
       "reason": null,
       "plugins": 319,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 21
     }
   ],
-  "planProblems": 1
+  "planProblems": 0
 }

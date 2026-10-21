@@ -3,8 +3,8 @@
 | Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
 |---|---|---|---|---|---|---|---|
 | baseline: 2.150.3 | jenkins/jenkins:2.150.3 | started | 110 | 0 | 0 | 0 | 0 |
-| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 110 | 45 | 10 | 0 | 0 |
-| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk8 | started | 127 | 1 | 1 | 0 | 0 |
+| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 110 | 45 | 10 | 3 | 0 |
+| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk11 | started | 127 | 0 | 0 | 0 | 0 |
 | planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 144 | 0 | 0 | 0 | 0 |
 | planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 144 | 0 | 0 | 0 | 0 |
 
@@ -18,5 +18,6 @@
 - as-is: **pipeline-utility-steps 2.7.1** other: Required plugin is disabled: Script Security Plugin (script-security)
 - as-is: **script-security 1.71** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jaxb -> Plugin:command-launcher
 - as-is: **trilead-api 1.0.3** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jaxb -> Plugin:command-launcher
-- planned 2.346.3: **gradle 2.12.0.1** java-too-old: this release needs Java 11 or newer
+- as-is: loaded in part (extensions failed): ldap, mailer, ssh-slaves
+- planned 2.346.3: Java 11 because gradle needs Java 11 or newer
 

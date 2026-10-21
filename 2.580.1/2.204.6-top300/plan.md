@@ -1,8 +1,8 @@
 # Jenkins upgrade plan: 2.204.6 → 2.580.1
 
-Source: results/2.204.6-top300/plugins-2.204.6.txt · generated 2026-10-21 12:43 UTC by jenkins-upgrade-check dev
+Source: results/2.204.6-top300/plugins-2.204.6.txt · generated 2026-10-21 13:36 UTC by jenkins-upgrade-check dev
 
-**3 core upgrade(s)**, 385 plugins: 287 to upgrade, 81 new dependencies; 111 with security warnings today, 4 still with warnings after the upgrade, 3 deprecated, 3 not from the update center, 2 dependency problem(s).
+**3 core upgrade(s)**, 385 plugins: 287 to upgrade, 81 new dependencies; 111 with security warnings today, 4 still with warnings after the upgrade, 3 deprecated, 3 not from the update center.
 
 Jenkins 2.204.6 runs on Java 8, 11; Jenkins 2.580.1 runs on Java 21, 25.
 
@@ -44,8 +44,6 @@ Jenkins 2.204.6 runs on Java 8, 11; Jenkins 2.580.1 runs on Java 21, 25.
 ## Steps
 
 1. **On 2.204.6, update plugins** (0 change(s)). Back up `$JENKINS_HOME` first.
-   - ⚠ Parameterized-Remote-Trigger 3.1.6.3 needs credentials 2.6.1.1 or newer, but the newest credentials that runs on Jenkins 2.204.6 is 2.3.11
-   - ⚠ docker-build-step 2.8 needs credentials 2.3.19 or newer, but the newest credentials that runs on Jenkins 2.204.6 is 2.3.11
 2. **Run the controller and every agent on Java 11**, upgrade Jenkins to **2.462.3**, start it, then update plugins (338 change(s)).
 3. **Run the controller and every agent on Java 17**, upgrade Jenkins to **2.541.3**, start it, then update plugins (347 change(s)).
 4. **Run the controller and every agent on Java 21**, upgrade Jenkins to **2.580.1**, start it, then update plugins (33 change(s)).
@@ -56,7 +54,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 
 | Plugin | Now | After | Why |
 |---|---|---|---|
-| Parameterized-Remote-Trigger | 3.1.6.3 | 3.2.2 | [SECURITY-3768](https://www.jenkins.io/security/advisory/2026-08-05/#SECURITY-3768) **no fix yet**<br>[SECURITY-3800](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3800) **no fix yet** |
+| Parameterized-Remote-Trigger | 3.1.6.1 | 3.2.2 | [SECURITY-3768](https://www.jenkins.io/security/advisory/2026-08-05/#SECURITY-3768) **no fix yet**<br>[SECURITY-3800](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3800) **no fix yet** |
 | ace-editor | 1.1 | 1.1 | not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself |
 | active-directory | 2.16.1 | 2.971.v653d8b_6e5548 | [SECURITY-1389](https://www.jenkins.io/security/advisory/2022-01-12/#SECURITY-1389) fixed by the upgrade<br>[SECURITY-3059](https://www.jenkins.io/security/advisory/2023-07-12/#SECURITY-3059) fixed by the upgrade<br>[SECURITY-3659](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3659) fixed by the upgrade<br>[SECURITY-3651](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3651) fixed by the upgrade |
 | allure-jenkins-plugin | 2.30.3 | 3.0.0 | [SECURITY-3645](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3645) fixed by the upgrade |
@@ -83,7 +81,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | cvs | 2.17 | 502.v02d5a_0c6b_9a_3 | [SECURITY-2617-cvs](https://www.jenkins.io/security/advisory/2022-04-12/#SECURITY-2617) fixed by the upgrade |
 | dependency-check-jenkins-plugin | 5.1.2 | 5.6.5 | [SECURITY-3344](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3344) fixed by the upgrade<br>[SECURITY-3992](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3992) fixed by the upgrade |
 | dingding-notifications | 2.3.2 | 2.9.1 | [SECURITY-3353](https://www.jenkins.io/security/advisory/2025-05-14/#SECURITY-3353) fixed by the upgrade |
-| docker-build-step | 2.8 | 2.14 | [SECURITY-3200](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3200) fixed by the upgrade |
+| docker-build-step | 2.7 | 2.14 | [SECURITY-3200](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3200) fixed by the upgrade |
 | docker-commons | 1.16 | 477.v289085a_b_6896 | [SECURITY-1878](https://www.jenkins.io/security/advisory/2022-01-12/#SECURITY-1878) fixed by the upgrade |
 | email-ext | 2.80 | 2038.v7b_8817a_499d9 | [SECURITY-2931](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-2931) fixed by the upgrade<br>[SECURITY-2934](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-2934) fixed by the upgrade<br>[SECURITY-2939](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-2939) fixed by the upgrade<br>[SECURITY-3088-1](https://www.jenkins.io/security/advisory/2023-05-16/#SECURITY-3088%20(1)) fixed by the upgrade<br>[SECURITY-3088-2](https://www.jenkins.io/security/advisory/2023-05-16/#SECURITY-3088%20(2)) fixed by the upgrade<br>[SECURITY-3705](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3705) fixed by the upgrade |
 | extended-choice-parameter | 346.vd87693c5a_86c | 388.ve7b_d0b_920e10 | [SECURITY-1350](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-1350) **no fix yet**<br>[SECURITY-1351](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-1351) **no fix yet**<br>[SECURITY-2232](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-2232) **no fix yet**<br>[SECURITY-2617-extended-choice-parameter](https://www.jenkins.io/security/advisory/2022-04-12/#SECURITY-2617) **no fix yet**<br>[deprecated](https://github.com/jenkinsci/extended-choice-parameter-plugin?tab=readme-ov-file#end-of-life) |
@@ -178,7 +176,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | Plugin | Now | After |
 |---|---|---|
 | Office-365-Connector | 4.13.2 | 5.3.1 |
-| Parameterized-Remote-Trigger | 3.1.6.3 | 3.2.2 |
+| Parameterized-Remote-Trigger | 3.1.6.1 | 3.2.2 |
 | ace-editor | 1.1 | 1.1 |
 | active-directory | 2.16.1 | 2.971.v653d8b_6e5548 |
 | allure-jenkins-plugin | 2.30.3 | 3.0.0 |
@@ -315,7 +313,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | disk-usage | 0.28 | 573.v5269a_8d16a_db_ |
 | display-url-api | 2.3.5 | 2.217.va_6b_de84cc74b_ |
 | docker-build-publish | 1.3.2 | 1.4.0 |
-| docker-build-step | 2.8 | 2.14 |
+| docker-build-step | 2.7 | 2.14 |
 | docker-commons | 1.16 | 477.v289085a_b_6896 |
 | docker-java-api | 3.2.13-37.vf3411c9828b9 | 3.7.1-136.v5d70f77a_c3d6 |
 | docker-plugin | 1.2.9 | 1336.v3711dec712de |

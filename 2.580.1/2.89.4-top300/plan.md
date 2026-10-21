@@ -1,8 +1,8 @@
 # Jenkins upgrade plan: 2.89.4 → 2.580.1
 
-Source: results/2.89.4-top300/plugins-2.89.4.txt · generated 2026-10-21 12:53 UTC by jenkins-upgrade-check dev
+Source: results/2.89.4-top300/plugins-2.89.4.txt · generated 2026-10-21 13:39 UTC by jenkins-upgrade-check dev
 
-**3 core upgrade(s)**, 399 plugins: 290 to upgrade, 94 new dependencies; 133 with security warnings today, 5 still with warnings after the upgrade, 3 deprecated, 4 not from the update center, 7 dependency problem(s).
+**3 core upgrade(s)**, 399 plugins: 290 to upgrade, 94 new dependencies; 133 with security warnings today, 5 still with warnings after the upgrade, 3 deprecated, 4 not from the update center.
 
 Jenkins 2.89.4 runs on Java 8; Jenkins 2.580.1 runs on Java 21, 25.
 
@@ -57,14 +57,7 @@ Jenkins 2.89.4 runs on Java 8; Jenkins 2.580.1 runs on Java 21, 25.
 ## Steps
 
 1. **On 2.89.4, update plugins** (0 change(s)). Back up `$JENKINS_HOME` first.
-   - ⚠ Parameterized-Remote-Trigger 3.1.6.3 needs credentials 2.6.1.1 or newer, but the newest credentials that runs on Jenkins 2.89.4 is 2.1.19
-   - ⚠ Parameterized-Remote-Trigger 3.1.6.3 needs script-security 1.75 or newer, but the newest script-security that runs on Jenkins 2.89.4 is 1.71
-   - ⚠ artifactory 3.5.0 needs credentials 2.2.1 or newer, but the newest credentials that runs on Jenkins 2.89.4 is 2.1.19
-   - ⚠ cucumber-reports 4.11.0 needs token-macro 2.8 or newer, but the newest token-macro that runs on Jenkins 2.89.4 is 2.6
-   - ⚠ docker-build-step 2.8 needs credentials 2.3.19 or newer, but the newest credentials that runs on Jenkins 2.89.4 is 2.1.19
-   - ⚠ docker-build-step 2.8 needs docker-commons 1.15 or newer, but the newest docker-commons that runs on Jenkins 2.89.4 is 1.14
-   - ⚠ docker-java-api 3.2.13-37.vf3411c9828b9 needs jackson2-api 2.10.3 or newer, but the newest jackson2-api that runs on Jenkins 2.89.4 is 2.9.9.1
-2. **Run the controller and every agent on Java 8**, upgrade Jenkins to **2.346.3**, start it, then update plugins (306 change(s)).
+2. **Run the controller and every agent on Java 8**, upgrade Jenkins to **2.346.3**, start it, then update plugins (307 change(s)).
 3. **Run the controller and every agent on Java 17**, upgrade Jenkins to **2.541.3**, start it, then update plugins (365 change(s)).
 4. **Run the controller and every agent on Java 21**, upgrade Jenkins to **2.580.1**, start it, then update plugins (34 change(s)).
 
@@ -75,7 +68,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | Plugin | Now | After | Why |
 |---|---|---|---|
 | JDK_Parameter_Plugin | 1.0 | 1.4 | [SECURITY-2717-JDK_Parameter_Plugin](https://www.jenkins.io/security/advisory/2022-05-17/#SECURITY-2717) fixed by the upgrade |
-| Parameterized-Remote-Trigger | 3.1.6.3 | 3.2.2 | [SECURITY-3768](https://www.jenkins.io/security/advisory/2026-08-05/#SECURITY-3768) **no fix yet**<br>[SECURITY-3800](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3800) **no fix yet** |
+| Parameterized-Remote-Trigger | 3.1.6.1 | 3.2.2 | [SECURITY-3768](https://www.jenkins.io/security/advisory/2026-08-05/#SECURITY-3768) **no fix yet**<br>[SECURITY-3800](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3800) **no fix yet** |
 | PrioritySorter | 3.6.0 | 936.937.v5581d0b_2ccb_a_ | [SECURITY-3769](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3769) fixed by the upgrade |
 | ace-editor | 1.0.1 | 1.1 | not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself |
 | active-directory | 2.16.1 | 2.971.v653d8b_6e5548 | [SECURITY-1389](https://www.jenkins.io/security/advisory/2022-01-12/#SECURITY-1389) fixed by the upgrade<br>[SECURITY-3059](https://www.jenkins.io/security/advisory/2023-07-12/#SECURITY-3059) fixed by the upgrade<br>[SECURITY-3659](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3659) fixed by the upgrade<br>[SECURITY-3651](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3651) fixed by the upgrade |
@@ -83,7 +76,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | analysis-core | 1.94 | 1.94 | not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself |
 | analysis-model-api | 4.0.0 | 14.18.0-1028.v9c938eeda_ef2 | [SECURITY-3327](https://www.jenkins.io/security/advisory/2023-12-13/#SECURITY-3327) fixed by the upgrade |
 | ansible | 1.1 | 635.v34b_48e979c86 | [SECURITY-3017](https://www.jenkins.io/security/advisory/2023-05-16/#SECURITY-3017) fixed by the upgrade |
-| artifactory | 3.5.0 | 4.0.8 | [SECURITY-1542-1](https://jenkins.io/security/advisory/2020-03-25/#SECURITY-1542%20(1)) fixed by the upgrade<br>[SECURITY-1542-2](https://jenkins.io/security/advisory/2020-03-25/#SECURITY-1542%20(2)) fixed by the upgrade |
+| artifactory | 3.4.1 | 4.0.8 | [SECURITY-1542-1](https://jenkins.io/security/advisory/2020-03-25/#SECURITY-1542%20(1)) fixed by the upgrade<br>[SECURITY-1542-2](https://jenkins.io/security/advisory/2020-03-25/#SECURITY-1542%20(2)) fixed by the upgrade |
 | audit-trail | 2.6 | 464.v78b_845ffc5d8 | [SECURITY-1722](https://jenkins.io/security/advisory/2020-03-09/#SECURITY-1722) fixed by the upgrade<br>[SECURITY-1815](https://www.jenkins.io/security/advisory/2020-10-08/#SECURITY-1815) fixed by the upgrade<br>[SECURITY-1846](https://www.jenkins.io/security/advisory/2020-10-08/#SECURITY-1846) fixed by the upgrade |
 | authorize-project | 1.3.0 | 534.v2f208c45e11c | [SECURITY-3010](https://www.jenkins.io/security/advisory/2024-11-13/#SECURITY-3010) fixed by the upgrade |
 | azure-ad | 0.3.4 | 720.v2a_e3d48ffeb_7 | [SECURITY-1717](https://jenkins.io/security/advisory/2020-02-12/#SECURITY-1717) fixed by the upgrade<br>[SECURITY-2470](https://www.jenkins.io/security/advisory/2021-08-31/#SECURITY-2470) fixed by the upgrade<br>[SECURITY-2980](https://www.jenkins.io/security/advisory/2023-01-24/#SECURITY-2980) fixed by the upgrade<br>[SECURITY-3227](https://www.jenkins.io/security/advisory/2023-09-06/#SECURITY-3227) fixed by the upgrade<br>[SECURITY-3760](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3760) fixed by the upgrade<br>[SECURITY-3935](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3935) fixed by the upgrade |
@@ -110,7 +103,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | dependency-check-jenkins-plugin | 4.0.2 | 5.6.5 | [SECURITY-2488](https://www.jenkins.io/security/advisory/2021-11-12/#SECURITY-2488) fixed by the upgrade<br>[SECURITY-3344](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3344) fixed by the upgrade<br>[SECURITY-3992](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3992) fixed by the upgrade |
 | dependency-track | 2.2.1 | 7.2.0 | [SECURITY-2250](https://www.jenkins.io/security/advisory/2021-03-30/#SECURITY-2250) fixed by the upgrade |
 | dingding-notifications | 1.9 | 2.9.1 | [SECURITY-1423](https://jenkins.io/security/advisory/2019-10-01/#SECURITY-1423) fixed by the upgrade<br>[SECURITY-3353](https://www.jenkins.io/security/advisory/2025-05-14/#SECURITY-3353) fixed by the upgrade |
-| docker-build-step | 2.8 | 2.14 | [SECURITY-3200](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3200) fixed by the upgrade |
+| docker-build-step | 2.3 | 2.14 | [SECURITY-3200](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3200) fixed by the upgrade |
 | docker-commons | 1.14 | 477.v289085a_b_6896 | [SECURITY-1878](https://www.jenkins.io/security/advisory/2022-01-12/#SECURITY-1878) fixed by the upgrade |
 | ec2 | 1.43 | 2064.v79de4fd2d03b_ | [SECURITY-673](https://jenkins.io/security/advisory/2019-07-31/#SECURITY-673) fixed by the upgrade<br>[SECURITY-1004](https://jenkins.io/security/advisory/2020-01-15/#SECURITY-1004) fixed by the upgrade<br>[SECURITY-1408](https://jenkins.io/security/advisory/2020-05-06/#SECURITY-1408) fixed by the upgrade<br>[SECURITY-1528](https://jenkins.io/security/advisory/2020-05-06/#SECURITY-1528) fixed by the upgrade<br>[SECURITY-1844](https://jenkins.io/security/advisory/2020-05-06/#SECURITY-1844) fixed by the upgrade<br>[SECURITY-381](https://jenkins.io/security/advisory/2020-05-06/#SECURITY-381) fixed by the upgrade |
 | email-ext | 2.65 | 2038.v7b_8817a_499d9 | [SECURITY-1851](https://www.jenkins.io/security/advisory/2020-09-16/#SECURITY-1851) fixed by the upgrade<br>[SECURITY-2931](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-2931) fixed by the upgrade<br>[SECURITY-2934](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-2934) fixed by the upgrade<br>[SECURITY-2939](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-2939) fixed by the upgrade<br>[SECURITY-3088-1](https://www.jenkins.io/security/advisory/2023-05-16/#SECURITY-3088%20(1)) fixed by the upgrade<br>[SECURITY-3088-2](https://www.jenkins.io/security/advisory/2023-05-16/#SECURITY-3088%20(2)) fixed by the upgrade<br>[SECURITY-3705](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3705) fixed by the upgrade |
@@ -220,7 +213,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 |---|---|---|
 | JDK_Parameter_Plugin | 1.0 | 1.4 |
 | Office-365-Connector | 4.13.0 | 5.3.1 |
-| Parameterized-Remote-Trigger | 3.1.6.3 | 3.2.2 |
+| Parameterized-Remote-Trigger | 3.1.6.1 | 3.2.2 |
 | PrioritySorter | 3.6.0 | 936.937.v5581d0b_2ccb_a_ |
 | ace-editor | 1.0.1 | 1.1 |
 | active-directory | 2.16.1 | 2.971.v653d8b_6e5548 |
@@ -234,7 +227,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | antisamy-markup-formatter | 1.8 | 173.v680e3a_b_69ff3 |
 | apache-httpcomponents-client-4-api | 4.5.13-1.0 | 4.5.14-269.vfa_2321039a_83 |
 | apache-httpcomponents-client-5-api | – | 5.6.4-207.vd5b_a_c15e4de5 (new, for Office-365-Connector, analysis-model-api, audit-trail, cloudbees-bitbucket-branch-source, docker-java-api, file-operations, http_request, saml, slack, sonar-quality-gates) |
-| artifactory | 3.5.0 | 4.0.8 |
+| artifactory | 3.4.1 | 4.0.8 |
 | asm-api | – | 9.11.1-226.vff833a_e4c58e (new, for analysis-model-api, cvs, jacoco, jnr-posix-api, json-path-api, oic-auth, scm-api) |
 | audit-trail | 2.6 | 464.v78b_845ffc5d8 |
 | authentication-tokens | 1.3 | 1.144.v5ff4a_5ec5c33 |
@@ -347,7 +340,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | coverage | – | 3.3497.v3fee733ca_b_35 (new, for code-coverage-api, pipeline-maven, prometheus) |
 | credentials | 2.1.19 | 1514.vb_01eb_014e7d4 |
 | credentials-binding | 1.18 | 728.v902a_273b_8947 |
-| cucumber-reports | 4.11.0 | 5.11.0 |
+| cucumber-reports | 4.5.0 | 5.11.0 |
 | cvs | 2.17 | 502.v02d5a_0c6b_9a_3 |
 | dashboard-view | 2.12.1 | 2.569.v5ddb_c9b_a_7264 |
 | data-tables-api | – | 2.3.8-1570.v1cb_1cd2a_0fb_c (new, for code-coverage-api, coverage, dependency-check-jenkins-plugin, forensics-api, warnings-ng) |
@@ -362,10 +355,10 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | disk-usage | 0.28 | 573.v5269a_8d16a_db_ |
 | display-url-api | 2.3.2 | 2.217.va_6b_de84cc74b_ |
 | docker-build-publish | 1.3.2 | 1.4.0 |
-| docker-build-step | 2.8 | 2.14 |
+| docker-build-step | 2.3 | 2.14 |
 | docker-commons | 1.14 | 477.v289085a_b_6896 |
 | docker-compose-build-step | 1.0 | 1.0 |
-| docker-java-api | 3.2.13-37.vf3411c9828b9 | 3.7.1-136.v5d70f77a_c3d6 |
+| docker-java-api | 3.2.13-35.vb82bff5c8bd0 | 3.7.1-136.v5d70f77a_c3d6 |
 | docker-plugin | 1.2.2 | 1336.v3711dec712de |
 | docker-workflow | 1.21 | 653.v2f2c08eff0ec |
 | dtkit-api | – | 3.0.3 (new, for xunit) |

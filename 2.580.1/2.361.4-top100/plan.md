@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.361.4 → 2.580.1
 
-Source: results/2.361.4-top100/plugins-2.361.4.txt · generated 2026-10-21 12:48 UTC by jenkins-upgrade-check dev
+Source: results/2.361.4-top100/plugins-2.361.4.txt · generated 2026-10-21 13:40 UTC by jenkins-upgrade-check dev
 
 **2 core upgrade(s)**, 113 plugins: 101 to upgrade, 12 new dependencies; 21 with security warnings today.
 

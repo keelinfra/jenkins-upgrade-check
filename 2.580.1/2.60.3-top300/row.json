@@ -6,148 +6,94 @@
   "baseline": {
     "core": "2.60.3",
     "java": 8,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.60.3",
     "started": true,
     "reason": null,
     "plugins": 305,
-    "failed": 6,
+    "failed": 0,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
-    "roots": [
-      {
-        "name": "Parameterized-Remote-Trigger",
-        "version": "3.1.6.3",
-        "kind": "other",
-        "why": "Credentials Plugin v2.1.19 is older than required. To fix, install v2.6.1.1 or later.",
-        "cascade": 0
-      },
-      {
-        "name": "artifactory",
-        "version": "3.5.0",
-        "kind": "other",
-        "why": "Credentials Plugin v2.1.19 is older than required. To fix, install v2.2.1 or later.",
-        "cascade": 0
-      },
-      {
-        "name": "cucumber-reports",
-        "version": "4.11.0",
-        "kind": "other",
-        "why": "Token Macro Plugin v2.6 is older than required. To fix, install v2.8 or later.",
-        "cascade": 0
-      },
-      {
-        "name": "docker-build-step",
-        "version": "2.8",
-        "kind": "other",
-        "why": "Docker Commons Plugin v1.14 is older than required. To fix, install v1.15 or later.",
-        "cascade": 0
-      },
-      {
-        "name": "docker-java-api",
-        "version": "3.2.13-37.vf3411c9828b9",
-        "kind": "other",
-        "why": "Jackson 2 API Plugin v2.9.9.1 is older than required. To fix, install v2.10.3 or later.",
-        "cascade": 0
-      },
-      {
-        "name": "docker-plugin",
-        "version": "1.2.1",
-        "kind": "other",
-        "why": "Docker API Plugin v3.2.13-37.vf3411c9828b9 failed to load. Fix this plugin first.",
-        "cascade": 0
-      }
-    ]
+    "skippedWhy": [],
+    "roots": []
   },
   "asIs": {
     "core": "2.580.1",
     "java": 21,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.580.1-jdk21",
     "started": true,
     "reason": null,
     "plugins": 305,
-    "failed": 6,
-    "broken": 0,
+    "failed": 0,
+    "broken": 9,
+    "brokenNames": [
+      "copyartifact",
+      "email-ext",
+      "git-server",
+      "github",
+      "ldap",
+      "mailer",
+      "ssh-slaves",
+      "swarm",
+      "translation"
+    ],
     "skipped": 0,
-    "roots": [
-      {
-        "name": "docker-java-api",
-        "version": "3.2.13-37.vf3411c9828b9",
-        "kind": "old-dependency",
-        "why": "needs jackson2-api 2.10.3 or newer; 2.9.9.1 is installed",
-        "cascade": 1
-      },
-      {
-        "name": "Parameterized-Remote-Trigger",
-        "version": "3.1.6.3",
-        "kind": "old-dependency",
-        "why": "needs credentials 2.6.1.1 or newer; 2.1.19 is installed",
-        "cascade": 0
-      },
-      {
-        "name": "artifactory",
-        "version": "3.5.0",
-        "kind": "old-dependency",
-        "why": "needs credentials 2.2.1 or newer; 2.1.19 is installed",
-        "cascade": 0
-      },
-      {
-        "name": "cucumber-reports",
-        "version": "4.11.0",
-        "kind": "old-dependency",
-        "why": "needs token-macro 2.8 or newer; 2.6 is installed",
-        "cascade": 0
-      },
-      {
-        "name": "docker-build-step",
-        "version": "2.8",
-        "kind": "old-dependency",
-        "why": "needs docker-commons 1.15 or newer; 1.14 is installed",
-        "cascade": 0
-      }
-    ]
+    "skippedWhy": [],
+    "roots": []
   },
   "stops": [
     {
       "core": "2.346.3",
-      "java": 8,
-      "image": "jenkins/jenkins:2.346.3-jdk8",
+      "java": 11,
+      "javaReason": "gradle needs Java 11 or newer",
+      "image": "jenkins/jenkins:2.346.3-jdk11",
       "started": true,
       "reason": null,
       "plugins": 353,
-      "failed": 2,
+      "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
-      "roots": [
-        {
-          "name": "gradle",
-          "version": "2.12.0.1",
-          "kind": "java-too-old",
-          "why": "this release needs Java 11 or newer",
-          "cascade": 1
-        }
-      ],
+      "skippedWhy": [],
+      "roots": [],
       "planJava": 8
     },
     {
       "core": "2.541.3",
       "java": 17,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.541.3-jdk17",
-      "started": false,
-      "reason": "the container exited (state: false 5)",
+      "started": true,
+      "reason": null,
       "plugins": 404,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 17
     },
     {
       "core": "2.580.1",
-      "started": false,
-      "reason": "no result",
+      "java": 21,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.580.1-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 405,
+      "failed": 0,
+      "broken": 1,
+      "brokenNames": [
+        "translation"
+      ],
+      "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 21
     }
   ],
-  "planProblems": 7
+  "planProblems": 0
 }

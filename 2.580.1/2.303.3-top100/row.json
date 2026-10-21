@@ -6,13 +6,16 @@
   "baseline": {
     "core": "2.303.3",
     "java": 11,
+    "javaReason": "gradle needs Java 11 or newer",
     "image": "jenkins/jenkins:2.303.3-jdk11",
     "started": true,
     "reason": null,
     "plugins": 104,
     "failed": 31,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
+    "skippedWhy": [],
     "roots": [
       {
         "name": "authentication-tokens",
@@ -236,13 +239,16 @@
   "asIs": {
     "core": "2.580.1",
     "java": 21,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.580.1-jdk21",
     "started": true,
     "reason": null,
     "plugins": 104,
     "failed": 31,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
+    "skippedWhy": [],
     "roots": [
       {
         "name": "plain-credentials",
@@ -327,39 +333,48 @@
     {
       "core": "2.462.3",
       "java": 11,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.462.3-jdk11",
       "started": true,
       "reason": null,
       "plugins": 113,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 11
     },
     {
       "core": "2.541.3",
       "java": 17,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.541.3-jdk17",
       "started": true,
       "reason": null,
       "plugins": 119,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 17
     },
     {
       "core": "2.580.1",
       "java": 21,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.580.1-jdk21",
       "started": true,
       "reason": null,
       "plugins": 119,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 21
     }

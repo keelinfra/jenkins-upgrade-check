@@ -39,6 +39,7 @@
 - baseline: **trilead-api 1.0.13** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api -> Plugin:sshd
 - baseline: **workflow-aggregator 596.v8c21c963d92d** other: Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)
 - baseline: **workflow-cps-global-lib 609.vd95673f149b_b** other: Failed to load: Jenkins GIT server Plugin (1.11)
+- baseline: Java 11 because gradle needs Java 11 or newer
 - as-is: **plain-credentials 1.8** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 8 more)
 - as-is: **jsch 0.1.55.2** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials) (takes down 5 more)
 - as-is: **pipeline-input-step 466.v6d0a_5df34f81** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 5 more)

@@ -6,38 +6,47 @@
   "baseline": {
     "core": "2.555.3",
     "java": 21,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.555.3-jdk21",
     "started": true,
     "reason": null,
     "plugins": 317,
     "failed": 0,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
+    "skippedWhy": [],
     "roots": []
   },
   "asIs": {
     "core": "2.580.1",
     "java": 21,
+    "javaReason": null,
     "image": "jenkins/jenkins:2.580.1-jdk21",
     "started": true,
     "reason": null,
     "plugins": 317,
     "failed": 0,
     "broken": 0,
+    "brokenNames": [],
     "skipped": 0,
+    "skippedWhy": [],
     "roots": []
   },
   "stops": [
     {
       "core": "2.580.1",
       "java": 21,
+      "javaReason": null,
       "image": "jenkins/jenkins:2.580.1-jdk21",
       "started": true,
       "reason": null,
       "plugins": 317,
       "failed": 0,
       "broken": 0,
+      "brokenNames": [],
       "skipped": 0,
+      "skippedWhy": [],
       "roots": [],
       "planJava": 21
     }

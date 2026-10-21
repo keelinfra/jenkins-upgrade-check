@@ -3,10 +3,10 @@
 | Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
 |---|---|---|---|---|---|---|---|
 | baseline: 2.289.3 | jenkins/jenkins:2.289.3 | started | 302 | 97 | 97 | 0 | 0 |
-| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 302 | 97 | 29 | 0 | 0 |
+| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 302 | 97 | 29 | 1 | 0 |
 | planned: 2.462.3, plugins from plan | jenkins/jenkins:2.462.3-jdk11 | started | 328 | 0 | 0 | 0 | 0 |
 | planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 351 | 0 | 0 | 0 | 0 |
-| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | did not start | 351 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 351 | 0 | 0 | 0 | 0 |
 
 - baseline: **Parameterized-Remote-Trigger 3.1.6.3** other: Required plugin is disabled: Credentials Plugin
 - baseline: **amazon-ecr 1.73.v741d474abe74** other: Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)
@@ -134,4 +134,5 @@
 - as-is: **subversion 2.16.0** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
 - as-is: **trilead-api 1.0.13** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:trilead-api -> Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api
 - as-is: **warnings-ng 9.11.1** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: loaded in part (extensions failed): copyartifact
 
