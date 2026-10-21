@@ -1,0 +1,368 @@
+{
+  "from": "2.303.3",
+  "to": "2.580.1",
+  "top": 100,
+  "month": "202603",
+  "baseline": {
+    "core": "2.303.3",
+    "java": 11,
+    "image": "jenkins/jenkins:2.303.3-jdk11",
+    "started": true,
+    "reason": null,
+    "plugins": 104,
+    "failed": 31,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "authentication-tokens",
+        "version": "1.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "config-file-provider",
+        "version": "3.10.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "credentials",
+        "version": "2.6.1.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "credentials-binding",
+        "version": "1.27.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "docker-commons",
+        "version": "1.21",
+        "kind": "other",
+        "why": "Failed to load: Authentication Tokens API Plugin (1.4)",
+        "cascade": 0
+      },
+      {
+        "name": "docker-workflow",
+        "version": "1.28",
+        "kind": "other",
+        "why": "Failed to load: Docker Commons Plugin (1.21)",
+        "cascade": 0
+      },
+      {
+        "name": "email-ext",
+        "version": "2.89",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "git",
+        "version": "4.11.5",
+        "kind": "other",
+        "why": "Failed to load: Credentials Binding Plugin (1.27.1)",
+        "cascade": 0
+      },
+      {
+        "name": "git-client",
+        "version": "3.11.2",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "git-server",
+        "version": "1.11",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH server",
+        "cascade": 0
+      },
+      {
+        "name": "github",
+        "version": "1.34.3.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "github-branch-source",
+        "version": "2.11.4",
+        "kind": "other",
+        "why": "Failed to load: GitHub plugin (1.34.3.1)",
+        "cascade": 0
+      },
+      {
+        "name": "gradle",
+        "version": "2.12.0.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "jsch",
+        "version": "0.1.55.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: Trilead API Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "maven-plugin",
+        "version": "3.16",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "mina-sshd-api-core",
+        "version": "2.8.0-30.vf9df64641cb_d",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-github-lib",
+        "version": "38.v445716ea_edda_",
+        "kind": "other",
+        "why": "Failed to load: Git plugin (4.11.5)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-graph-analysis",
+        "version": "202.va_d268e64deb_3",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-graph-view",
+        "version": "61.v5f35529d13b7",
+        "kind": "other",
+        "why": "Failed to load: Pipeline Graph Analysis Plugin (202.va_d268e64deb_3)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-input-step",
+        "version": "466.v6d0a_5df34f81",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-model-definition",
+        "version": "1.9.3",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Deprecated Groovy Libraries (609.vd95673f149b_b)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-model-extensions",
+        "version": "1.9.3",
+        "kind": "other",
+        "why": "Failed to load: Credentials Binding Plugin (1.27.1)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-rest-api",
+        "version": "2.28",
+        "kind": "other",
+        "why": "Failed to load: Pipeline Graph Analysis Plugin (202.va_d268e64deb_3)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-stage-view",
+        "version": "2.28",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: REST API Plugin (2.28)",
+        "cascade": 0
+      },
+      {
+        "name": "plain-credentials",
+        "version": "1.8",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-credentials",
+        "version": "277.v95c2fec1c047",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-slaves",
+        "version": "1.806.v2253cedd3295",
+        "kind": "other",
+        "why": "Required plugin is disabled: Trilead API Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "sshd",
+        "version": "3.242.va_db_9da_b_26a_c3",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.13",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "workflow-aggregator",
+        "version": "596.v8c21c963d92d",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)",
+        "cascade": 0
+      },
+      {
+        "name": "workflow-cps-global-lib",
+        "version": "609.vd95673f149b_b",
+        "kind": "other",
+        "why": "Failed to load: Jenkins GIT server Plugin (1.11)",
+        "cascade": 0
+      }
+    ]
+  },
+  "asIs": {
+    "core": "2.580.1",
+    "java": 21,
+    "image": "jenkins/jenkins:2.580.1-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 104,
+    "failed": 31,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "plain-credentials",
+        "version": "1.8",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 8
+      },
+      {
+        "name": "jsch",
+        "version": "0.1.55.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 5
+      },
+      {
+        "name": "pipeline-input-step",
+        "version": "466.v6d0a_5df34f81",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 5
+      },
+      {
+        "name": "authentication-tokens",
+        "version": "1.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 2
+      },
+      {
+        "name": "credentials",
+        "version": "2.6.1.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "email-ext",
+        "version": "2.89",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "mina-sshd-api-core",
+        "version": "2.8.0-30.vf9df64641cb_d",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-credentials",
+        "version": "277.v95c2fec1c047",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-slaves",
+        "version": "1.806.v2253cedd3295",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "sshd",
+        "version": "3.242.va_db_9da_b_26a_c3",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.13",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api -> Plugin:sshd",
+        "cascade": 0
+      }
+    ]
+  },
+  "stops": [
+    {
+      "core": "2.462.3",
+      "java": 11,
+      "image": "jenkins/jenkins:2.462.3-jdk11",
+      "started": true,
+      "reason": null,
+      "plugins": 113,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 11
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": true,
+      "reason": null,
+      "plugins": 119,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.1",
+      "java": 21,
+      "image": "jenkins/jenkins:2.580.1-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 119,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}

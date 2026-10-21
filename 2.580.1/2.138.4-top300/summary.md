@@ -1,0 +1,333 @@
+### 2.138.4 → 2.580.1, 300 most installed plugins
+
+| Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
+|---|---|---|---|---|---|---|---|
+| baseline: 2.138.4 | jenkins/jenkins:2.138.4 | started | 304 | 2 | 2 | 0 | 0 |
+| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 304 | 127 | 24 | 0 | 0 |
+| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk8 | started | 340 | 2 | 1 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | did not start | 389 | 409 | 295 | 0 | 0 |
+| planned: 2.580.1, plugins from plan |  | did not start | 0 | 0 | 0 | 0 | 0 |
+
+- baseline: **Parameterized-Remote-Trigger 3.1.6.3** other: Script Security Plugin v1.71 is older than required. To fix, install v1.75 or later.
+- baseline: **docker-build-step 2.8** other: Credentials Plugin v2.3.11 is older than required. To fix, install v2.3.19 or later.
+- as-is: **workflow-support 3.4** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 47 more)
+- as-is: **junit 1.28** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 34 more)
+- as-is: **git-client 3.2.1** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 15 more)
+- as-is: **aws-credentials 1.28.2** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 3 more)
+- as-is: **config-file-provider 3.7.2** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 3 more)
+- as-is: **badge 1.8** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 1 more)
+- as-is: **Parameterized-Remote-Trigger 3.1.6.3** old-dependency: needs credentials 2.6.1.1 or newer; 2.3.11 is installed
+- as-is: **command-launcher 1.4** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool -> Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool
+- as-is: **docker-build-step 2.8** old-dependency: needs docker-commons 1.15 or newer; 1.14 is installed
+- as-is: **embeddable-build-status 2.0.4** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **extended-choice-parameter 346.vd87693c5a_86c** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **extensible-choice-parameter 1.8.0** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **folder-properties 1.2.1** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **gerrit-trigger 2.34.0** not-active: installed but not active after startup
+- as-is: **groovy 2.4** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **http_request 1.8.26** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **jaxb 2.3.0** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool -> Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool
+- as-is: **jdk-tool 1.4** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool
+- as-is: **job-dsl 1.76** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **permissive-script-security 0.7** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **pipeline-utility-steps 2.7.1** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **script-security 1.71** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool -> Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool
+- as-is: **trilead-api 1.0.1** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool
+- as-is: **uno-choice 2.2.2** other: Required plugin is disabled: Script Security Plugin (script-security)
+- planned 2.346.3: **gradle 2.12.0.1** java-too-old: this release needs Java 11 or newer (takes down 1 more)
+- planned 2.541.3: **jackson2-api 2.22.3-447.v6a_93ce7d2c82** missing-dependency: needs the woodstox-core-api plugin (7.2.1-6.v3718a_a_11f5c4 or newer), which is not installed (takes down 58 more)
+- planned 2.541.3: **credentials 1511.v2e3cb_0008ef0** missing-dependency: needs the structs plugin (362.va_b_695ef4fdf9 or newer), which is not installed (takes down 20 more)
+- planned 2.541.3: **font-awesome-api 7.2.0-965.ve3840b_696418** missing-dependency: needs the plugin-util-api plugin (6.1192.v30fe6e2837ff or newer), which is not installed (takes down 19 more)
+- planned 2.541.3: **branch-api 2.1303.v9f3b_95dc329d** missing-dependency: needs the scm-api plugin (724.v7d839074eb_5c or newer), which is not installed (takes down 4 more)
+- planned 2.541.3: **maven-plugin 3.28** missing-dependency: needs the oss-symbols-api plugin (356.v2da_d59a_3742b_ or newer), which is not installed (takes down 4 more)
+- planned 2.541.3: **github 1.47.0** missing-dependency: needs the okhttp-api plugin (4.12.0-195.vc02552c04ffd or newer), which is not installed (takes down 3 more)
+- planned 2.541.3: **ant 520.vd082ecfb_16a_9** missing-dependency: needs the structs plugin (350.v3b_30f09f2363 or newer), which is not installed (takes down 1 more)
+- planned 2.541.3: **badge 3.615.vb_ed967ca_b_e93** missing-dependency: needs the workflow-step-api plugin (724.v538c2362b_dfb_ or newer), which is not installed (takes down 1 more)
+- planned 2.541.3: **configuration-as-code 2136.veb_3a_554550b_f** missing-dependency: needs the prism-api plugin (1.30.0-717.vb_f8360844b_53 or newer), which is not installed (takes down 1 more)
+- planned 2.541.3: **credentials-binding 728.v902a_273b_8947** missing-dependency: needs the workflow-step-api plugin (704.ve4f0967e98fa_ or newer), which is not installed (takes down 1 more)
+- planned 2.541.3: **jackson3-api 3.2.4-103.vf5a_b_3f4ea_cec** missing-dependency: needs the snakeyaml-engine-api plugin (3.0.1-5.vd98ea_ff3b_92e or newer), which is not installed (takes down 1 more)
+- planned 2.541.3: **jsch 0.2.16-95.v3eecb_55fa_b_78** missing-dependency: needs the ssh-credentials plugin (349.vb_8b_6b_9709f5b_ or newer), which is not installed (takes down 1 more)
+- planned 2.541.3: **Office-365-Connector 5.3.1** missing-dependency: needs the workflow-step-api plugin (704.ve4f0967e98fa_ or newer), which is not installed
+- planned 2.541.3: **analysis-model-api 13.21.0-945.va_f5a_0b_c1404b_** missing-dependency: needs the plugin-util-api plugin (6.1167.v022176c7e0ca_ or newer), which is not installed
+- planned 2.541.3: **azure-commons 1.1.3** missing-dependency: needs the workflow-step-api plugin (2.23 or newer), which is not installed
+- planned 2.541.3: **bitbucket 322.v882c6a_b_82c52** missing-dependency: needs the workflow-multibranch plugin (806.vb_b_688f609ee9 or newer), which is not installed
+- planned 2.541.3: **bitbucket-push-and-pull-request 3.4.0** missing-dependency: needs the workflow-api plugin (1373.v7b_813f10efa_b_ or newer), which is not installed
+- planned 2.541.3: **blueocean-autofavorite 1.2.5** missing-dependency: needs the workflow-job plugin (2.38 or newer), which is not installed
+- planned 2.541.3: **build-pipeline-plugin 2.2.0** missing-dependency: needs the parameterized-trigger plugin (873.v8b_e37dd8418f or newer), which is not installed
+- planned 2.541.3: **build-timeout 1.41** missing-dependency: needs the token-macro plugin (477.vd4f0dc3cb_cf1 or newer), which is not installed
+- planned 2.541.3: **build-user-vars-plugin 214.va_eed2ed849ca_** missing-dependency: needs the workflow-api plugin (1363.v03f731255494 or newer), which is not installed
+- planned 2.541.3: **checks-api 422.vc7e8b_51488c6** missing-dependency: needs the workflow-step-api plugin (710.v3e456cc85233 or newer), which is not installed
+- planned 2.541.3: **command-launcher 141.v9578cf36b_311** missing-dependency: needs the script-security plugin (1373.vb_b_4a_a_c26fa_00 or newer), which is not installed
+- planned 2.541.3: **conditional-buildstep 1.5.0** missing-dependency: needs the run-condition plugin (1.7 or newer), which is not installed
+- planned 2.541.3: **copyartifact 805.v9d1393350780** missing-dependency: needs the structs plugin (362.va_b_695ef4fdf9 or newer), which is not installed
+- planned 2.541.3: **delivery-pipeline-plugin 1116.v779f62511800** missing-dependency: needs the workflow-multibranch plugin (821.vc3b_4ea_780798 or newer), which is not installed
+- planned 2.541.3: **docker-workflow 653.v2f2c08eff0ec** missing-dependency: needs the workflow-durable-task-step plugin (1479.v56e587f413a_7 or newer), which is not installed
+- planned 2.541.3: **ec2 2064.v79de4fd2d03b_** missing-dependency: needs the workflow-step-api plugin (704.ve4f0967e98fa_ or newer), which is not installed
+- planned 2.541.3: **embeddable-build-status 666.vcb_0de9eb_43d8** missing-dependency: needs the workflow-step-api plugin (710.v3e456cc85233 or newer), which is not installed
+- planned 2.541.3: **extended-choice-parameter 388.ve7b_d0b_920e10** missing-dependency: needs the script-security plugin (1369.v9b_98a_4e95b_2d or newer), which is not installed
+- planned 2.541.3: **extensible-choice-parameter 255.vfa_41f46828ef** missing-dependency: needs the script-security plugin (1373.vb_b_4a_a_c26fa_00 or newer), which is not installed
+- planned 2.541.3: **favorite 2.263.v941d21defef7** missing-dependency: needs the token-macro plugin (477.vd4f0dc3cb_cf1 or newer), which is not installed
+- planned 2.541.3: **folder-properties 88.v0d4f3398e60e** missing-dependency: needs the workflow-step-api plugin (704.ve4f0967e98fa_ or newer), which is not installed
+- planned 2.541.3: **git 5.11.0** missing-dependency: needs the workflow-step-api plugin (710.v3e456cc85233 or newer), which is not installed
+- planned 2.541.3: **git-changelog 3.45** missing-dependency: needs the okhttp-api plugin (4.11.0-183.va_87fc7a_89810 or newer), which is not installed
+- planned 2.541.3: **git-parameter 462.463.v496a_59f698e5** missing-dependency: needs the workflow-support plugin (968.v8f17397e87b_8 or newer), which is not installed
+- planned 2.541.3: **git-server 137.ve0060b_432302** missing-dependency: needs the sshd plugin (3.330.vc866a_8389b_58 or newer), which is not installed
+- planned 2.541.3: **github-api 1.330-492.v3941a_032db_2a_** missing-dependency: needs the okhttp-api plugin (4.11.0-189.v976fa_d3379d6 or newer), which is not installed
+- planned 2.541.3: **github-oauth 685.v53b_070455063** missing-dependency: needs the workflow-multibranch plugin (806.vb_b_688f609ee9 or newer), which is not installed
+- planned 2.541.3: **github-organization-folder 1.6** missing-dependency: needs the workflow-cps-global-lib plugin (2.3 or newer), which is not installed
+- planned 2.541.3: **gitlab-plugin 1.2158.v49db_f64b_fc28** missing-dependency: needs the workflow-job plugin (1571.1580.v18e46842c125 or newer), which is not installed
+- planned 2.541.3: **global-slack-notifier 1.5** missing-dependency: needs the slack plugin (2.10 or newer), which is not installed
+- planned 2.541.3: **gradle 2.20.1253.vc116f0763a_eb_** missing-dependency: needs the workflow-step-api plugin (710.v3e456cc85233 or newer), which is not installed
+- planned 2.541.3: **groovy 537.v741a_5a_f1b_581** missing-dependency: needs the structs plugin (350.v3b_30f09f2363 or newer), which is not installed
+- planned 2.541.3: **hashicorp-vault-plugin 384.vda_86ec66c537** missing-dependency: needs the workflow-step-api plugin (700.v6e45cb_a_5a_a_21 or newer), which is not installed
+- planned 2.541.3: **htmlpublisher 429** missing-dependency: needs the workflow-step-api plugin (686.v603d058a_e148 or newer), which is not installed
+- planned 2.541.3: **http_request 1.659.v1b_9d9e942a_e6** missing-dependency: needs the workflow-durable-task-step plugin (1434.v1b_595c29ddd7 or newer), which is not installed
+- planned 2.541.3: **javadoc 354.vee1a_660b_4990** missing-dependency: needs the oss-symbols-api plugin (392.v27a_482d90083 or newer), which is not installed
+- planned 2.541.3: **jira 3.21** missing-dependency: needs the workflow-job plugin (1549.vc8d7f497b_22f or newer), which is not installed
+- planned 2.541.3: **jira-steps 2.1.197.vdd1b_3987e040** missing-dependency: needs the workflow-step-api plugin (704.ve4f0967e98fa_ or newer), which is not installed
+- planned 2.541.3: **kubernetes 4560.vc25b_83890c34** missing-dependency: needs the workflow-step-api plugin (710.v3e456cc85233 or newer), which is not installed
+- planned 2.541.3: **kubernetes-cli 1.375.v8001982544ba** missing-dependency: needs the workflow-step-api plugin (704.ve4f0967e98fa_ or newer), which is not installed
+- planned 2.541.3: **kubernetes-client-api 7.3.1-256.v788a_0b_787114** missing-dependency: needs the okhttp-api plugin (4.11.0-189.v976fa_d3379d6 or newer), which is not installed
+- planned 2.541.3: **lockable-resources 1576.v217259b_f9976** missing-dependency: needs the workflow-support plugin (1015.v785e5a_b_b_8b_22 or newer), which is not installed
+- planned 2.541.3: **log-parser 3.0.7** missing-dependency: needs the timestamper plugin (1.30 or newer), which is not installed
+- planned 2.541.3: **mask-passwords 220.v95819055b_265** missing-dependency: needs the structs plugin (350.v3b_30f09f2363 or newer), which is not installed
+- planned 2.541.3: **msbuild 1.44** missing-dependency: needs the structs plugin (350.v3b_30f09f2363 or newer), which is not installed
+- planned 2.541.3: **nexus-artifact-uploader 2.16** not-active: installed but not active after startup
+- planned 2.541.3: **nexus-artifact-uploader.jpi ** other: java.io.IOException: Failed to expand /var/jenkins_home/plugins/nexus-artifact-uploader.jpi
+- planned 2.541.3: **nimbus-jose-jwt-api 10.10-12.vd4e6d651b_7f7** not-active: installed but not active after startup
+- planned 2.541.3: **nimbus-jose-jwt-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/nimbus-jose-jwt-api: No space left on device
+- planned 2.541.3: **node-iterator-api 72.vc90e81737df1** not-active: installed but not active after startup
+- planned 2.541.3: **node-iterator-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/node-iterator-api: No space left on device
+- planned 2.541.3: **nodejs 1.6.6** not-active: installed but not active after startup
+- planned 2.541.3: **nodejs.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/nodejs: No space left on device
+- planned 2.541.3: **nodelabelparameter 851.vd94e5048d321** not-active: installed but not active after startup
+- planned 2.541.3: **nodelabelparameter.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/nodelabelparameter: No space left on device
+- planned 2.541.3: **oauth-credentials 0.668.vb_431feb_d8a_4e** not-active: installed but not active after startup
+- planned 2.541.3: **oauth-credentials.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/oauth-credentials: No space left on device
+- planned 2.541.3: **oic-auth 4.731.v4932b_506e767** not-active: installed but not active after startup
+- planned 2.541.3: **oic-auth.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/oic-auth: No space left on device
+- planned 2.541.3: **okhttp-api 5.5.0-242.v1482d48d3ea_3** not-active: installed but not active after startup
+- planned 2.541.3: **okhttp-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/okhttp-api: No space left on device
+- planned 2.541.3: **oss-symbols-api 477.v7197b_eb_3d8b_8** not-active: installed but not active after startup
+- planned 2.541.3: **oss-symbols-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/oss-symbols-api: No space left on device
+- planned 2.541.3: **p4 1.18.1** not-active: installed but not active after startup
+- planned 2.541.3: **p4.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/p4: No space left on device
+- planned 2.541.3: **pam-auth 1.12** not-active: installed but not active after startup
+- planned 2.541.3: **pam-auth.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pam-auth: No space left on device
+- planned 2.541.3: **parameter-separator 334.v1fc0e534c71d** not-active: installed but not active after startup
+- planned 2.541.3: **parameter-separator.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/parameter-separator: No space left on device
+- planned 2.541.3: **parameterized-scheduler 379.v95c73f233a_df** not-active: installed but not active after startup
+- planned 2.541.3: **parameterized-scheduler.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/parameterized-scheduler: No space left on device
+- planned 2.541.3: **parameterized-trigger 893.va_383a_9b_a_4c11** not-active: installed but not active after startup
+- planned 2.541.3: **parameterized-trigger.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/parameterized-trigger: No space left on device
+- planned 2.541.3: **performance 1022.v48fce959f0c3** not-active: installed but not active after startup
+- planned 2.541.3: **performance.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/performance: No space left on device
+- planned 2.541.3: **permissive-script-security 0.7** not-active: installed but not active after startup
+- planned 2.541.3: **permissive-script-security.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/permissive-script-security: No space left on device
+- planned 2.541.3: **pipeline-aws 767.v48d5c10b_1899** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-aws.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-aws: No space left on device
+- planned 2.541.3: **pipeline-build-step 601.v6d4c6d1a_9dc7** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-build-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-build-step: No space left on device
+- planned 2.541.3: **pipeline-github 2.8-191.cb_1a_07f10b_a_f** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-github-lib 65.v203688e7727e** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-github-lib.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-github-lib: No space left on device
+- planned 2.541.3: **pipeline-github.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-github: No space left on device
+- planned 2.541.3: **pipeline-githubnotify-step 49.vf37bf92d2bc8** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-githubnotify-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-githubnotify-step: No space left on device
+- planned 2.541.3: **pipeline-graph-analysis 254.v0f63a_a_447dca_** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-graph-analysis.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-graph-analysis: No space left on device
+- planned 2.541.3: **pipeline-groovy-lib 798.v5cc688825312** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-groovy-lib.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-groovy-lib: No space left on device
+- planned 2.541.3: **pipeline-input-step 560.v56198a_642157** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-input-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-input-step: No space left on device
+- planned 2.541.3: **pipeline-maven 1760.v9a_a_e6dcb_0444** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-maven-api 1760.v9a_a_e6dcb_0444** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-maven-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-maven-api: No space left on device
+- planned 2.541.3: **pipeline-maven.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-maven: No space left on device
+- planned 2.541.3: **pipeline-milestone-step 152.v6e22b_8cfc66c** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-milestone-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-milestone-step: No space left on device
+- planned 2.541.3: **pipeline-model-api 2.2293.v6e7193cec599** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-model-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-model-api: No space left on device
+- planned 2.541.3: **pipeline-model-declarative-agent 1.1.1** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-model-declarative-agent.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-model-declarative-agent: No space left on device
+- planned 2.541.3: **pipeline-model-definition 2.2293.v6e7193cec599** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-model-definition.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-model-definition: No space left on device
+- planned 2.541.3: **pipeline-model-extensions 2.2293.v6e7193cec599** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-model-extensions.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-model-extensions: No space left on device
+- planned 2.541.3: **pipeline-multibranch-defaults 2.1** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-multibranch-defaults.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-multibranch-defaults: No space left on device
+- planned 2.541.3: **pipeline-npm 503.vf29ef1b_913ce** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-npm.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-npm: No space left on device
+- planned 2.541.3: **pipeline-rest-api 2.41** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-rest-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-rest-api: No space left on device
+- planned 2.541.3: **pipeline-stage-step 345.va_96187909426** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-stage-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-stage-step: No space left on device
+- planned 2.541.3: **pipeline-stage-tags-metadata 2.2293.v6e7193cec599** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-stage-tags-metadata.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-stage-tags-metadata: No space left on device
+- planned 2.541.3: **pipeline-stage-view 2.41** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-stage-view.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-stage-view: No space left on device
+- planned 2.541.3: **pipeline-utility-steps 3.810.va_7672d206740** not-active: installed but not active after startup
+- planned 2.541.3: **pipeline-utility-steps.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pipeline-utility-steps: No space left on device
+- planned 2.541.3: **plain-credentials 199.v9f8e1f741799** not-active: installed but not active after startup
+- planned 2.541.3: **plain-credentials.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/plain-credentials: No space left on device
+- planned 2.541.3: **plot 698.v42408994b_b_b_a_** not-active: installed but not active after startup
+- planned 2.541.3: **plot.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/plot: No space left on device
+- planned 2.541.3: **plugin-usage-plugin 418.v308c3c863d25** not-active: installed but not active after startup
+- planned 2.541.3: **plugin-usage-plugin.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/plugin-usage-plugin: No space left on device
+- planned 2.541.3: **plugin-util-api 6.1192.v30fe6e2837ff** not-active: installed but not active after startup
+- planned 2.541.3: **plugin-util-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/plugin-util-api: No space left on device
+- planned 2.541.3: **popper-api 1.16.1-3** not-active: installed but not active after startup
+- planned 2.541.3: **popper-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/popper-api: No space left on device
+- planned 2.541.3: **popper2-api 2.11.6-5** not-active: installed but not active after startup
+- planned 2.541.3: **popper2-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/popper2-api: No space left on device
+- planned 2.541.3: **postbuild-task 78.v24529f1f5cdb_** not-active: installed but not active after startup
+- planned 2.541.3: **postbuild-task.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/postbuild-task: No space left on device
+- planned 2.541.3: **postbuildscript 3.4.1.821.v08352159216f** not-active: installed but not active after startup
+- planned 2.541.3: **postbuildscript.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/postbuildscript: No space left on device
+- planned 2.541.3: **powershell 185.v7a_026da_c54ee** not-active: installed but not active after startup
+- planned 2.541.3: **powershell.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/powershell: No space left on device
+- planned 2.541.3: **preSCMbuildstep 115.vf9808414429d** not-active: installed but not active after startup
+- planned 2.541.3: **preSCMbuildstep.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/preSCMbuildstep: No space left on device
+- planned 2.541.3: **prism-api 1.30.0-717.vb_f8360844b_53** not-active: installed but not active after startup
+- planned 2.541.3: **prism-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/prism-api: No space left on device
+- planned 2.541.3: **prometheus 860.v532442b_44e9a_** not-active: installed but not active after startup
+- planned 2.541.3: **prometheus.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/prometheus: No space left on device
+- planned 2.541.3: **promoted-builds 1029.v979cc7835e39** not-active: installed but not active after startup
+- planned 2.541.3: **promoted-builds.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/promoted-builds: No space left on device
+- planned 2.541.3: **publish-over 242.vf56f6892cb_b_a_** not-active: installed but not active after startup
+- planned 2.541.3: **publish-over-ftp 248.v1487ff759c7a_** not-active: installed but not active after startup
+- planned 2.541.3: **publish-over-ftp.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/publish-over-ftp: No space left on device
+- planned 2.541.3: **publish-over-ssh 409.v73ca_23a_5b_48e** not-active: installed but not active after startup
+- planned 2.541.3: **publish-over-ssh.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/publish-over-ssh: No space left on device
+- planned 2.541.3: **publish-over.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/publish-over: No space left on device
+- planned 2.541.3: **pubsub-light 1.19** not-active: installed but not active after startup
+- planned 2.541.3: **pubsub-light.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/pubsub-light: No space left on device
+- planned 2.541.3: **python 1.3** not-active: installed but not active after startup
+- planned 2.541.3: **python.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/python: No space left on device
+- planned 2.541.3: **rebuild 344.v805899551b_13** not-active: installed but not active after startup
+- planned 2.541.3: **rebuild.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/rebuild: No space left on device
+- planned 2.541.3: **resource-disposer 0.25** not-active: installed but not active after startup
+- planned 2.541.3: **resource-disposer.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/resource-disposer: No space left on device
+- planned 2.541.3: **robot 6.3.0** not-active: installed but not active after startup
+- planned 2.541.3: **robot.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/robot: No space left on device
+- planned 2.541.3: **role-strategy 867.vd09254229f9b_** not-active: installed but not active after startup
+- planned 2.541.3: **role-strategy.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/role-strategy: No space left on device
+- planned 2.541.3: **run-condition 276.v97298f3a_cd51** not-active: installed but not active after startup
+- planned 2.541.3: **run-condition.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/run-condition: No space left on device
+- planned 2.541.3: **s3 522.vc73d01440c29** not-active: installed but not active after startup
+- planned 2.541.3: **s3.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/s3: No space left on device
+- planned 2.541.3: **saferestart 125.vdb_73765c38a_e** not-active: installed but not active after startup
+- planned 2.541.3: **saferestart.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/saferestart: No space left on device
+- planned 2.541.3: **saml 4.623.v7875d61cd9f5** not-active: installed but not active after startup
+- planned 2.541.3: **saml.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/saml: No space left on device
+- planned 2.541.3: **schedule-build 696.v0a_b_ec7334c89** not-active: installed but not active after startup
+- planned 2.541.3: **schedule-build.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/schedule-build: No space left on device
+- planned 2.541.3: **scm-api 728.vc30dcf7a_0df5** not-active: installed but not active after startup
+- planned 2.541.3: **scm-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/scm-api: No space left on device
+- planned 2.541.3: **script-security 1436.v1082791135e4** not-active: installed but not active after startup
+- planned 2.541.3: **script-security.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/script-security: No space left on device
+- planned 2.541.3: **scriptler 463.v0a_1f378da_06f** not-active: installed but not active after startup
+- planned 2.541.3: **scriptler.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/scriptler: No space left on device
+- planned 2.541.3: **sidebar-link 2.5.0** not-active: installed but not active after startup
+- planned 2.541.3: **sidebar-link.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/sidebar-link: No space left on device
+- planned 2.541.3: **simple-theme-plugin 230.v8b_fd91b_b_800c** not-active: installed but not active after startup
+- planned 2.541.3: **simple-theme-plugin.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/simple-theme-plugin: No space left on device
+- planned 2.541.3: **skip-certificate-check 50.vcfa_cdb_b_27312** not-active: installed but not active after startup
+- planned 2.541.3: **skip-certificate-check.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/skip-certificate-check: No space left on device
+- planned 2.541.3: **slack 795.v4b_9705b_e6d47** not-active: installed but not active after startup
+- planned 2.541.3: **slack.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/slack: No space left on device
+- planned 2.541.3: **snakeyaml-api 2.7-152.vc672728cf536** not-active: installed but not active after startup
+- planned 2.541.3: **snakeyaml-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/snakeyaml-api: No space left on device
+- planned 2.541.3: **snakeyaml-engine-api 3.2-18.v885ed7ff698f** not-active: installed but not active after startup
+- planned 2.541.3: **snakeyaml-engine-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/snakeyaml-engine-api: No space left on device
+- planned 2.541.3: **sonar 2.19.0** not-active: installed but not active after startup
+- planned 2.541.3: **sonar-quality-gates 365.v76b_3ef6cf9b_e** not-active: installed but not active after startup
+- planned 2.541.3: **sonar-quality-gates.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/sonar-quality-gates: No space left on device
+- planned 2.541.3: **sonar.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/sonar: No space left on device
+- planned 2.541.3: **sse-gateway 1.29** not-active: installed but not active after startup
+- planned 2.541.3: **sse-gateway.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/sse-gateway: No space left on device
+- planned 2.541.3: **ssh 159.v496ca_25e5e82** not-active: installed but not active after startup
+- planned 2.541.3: **ssh-agent 433.v9e73d67c3f74** not-active: installed but not active after startup
+- planned 2.541.3: **ssh-agent.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ssh-agent: No space left on device
+- planned 2.541.3: **ssh-credentials 372.va_250881b_08cd** not-active: installed but not active after startup
+- planned 2.541.3: **ssh-credentials.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ssh-credentials: No space left on device
+- planned 2.541.3: **ssh-slaves 3.1097.v868116049892** not-active: installed but not active after startup
+- planned 2.541.3: **ssh-slaves.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ssh-slaves: No space left on device
+- planned 2.541.3: **ssh-steps 2.0.92.vb_a_0583935f9b_** not-active: installed but not active after startup
+- planned 2.541.3: **ssh-steps.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ssh-steps: No space left on device
+- planned 2.541.3: **ssh.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ssh: No space left on device
+- planned 2.541.3: **ssh2easy 1.6** not-active: installed but not active after startup
+- planned 2.541.3: **ssh2easy.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ssh2easy: No space left on device
+- planned 2.541.3: **sshd 3.384.vc89b_5e138cf9** not-active: installed but not active after startup
+- planned 2.541.3: **sshd.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/sshd: No space left on device
+- planned 2.541.3: **startup-trigger-plugin 2.9.4** not-active: installed but not active after startup
+- planned 2.541.3: **startup-trigger-plugin.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/startup-trigger-plugin: No space left on device
+- planned 2.541.3: **stashNotifier 1.557.vb_d02a_d29f87f** not-active: installed but not active after startup
+- planned 2.541.3: **stashNotifier.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/stashNotifier: No space left on device
+- planned 2.541.3: **strict-crumb-issuer 2.58.va_0da_723a_dc84** not-active: installed but not active after startup
+- planned 2.541.3: **strict-crumb-issuer.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/strict-crumb-issuer: No space left on device
+- planned 2.541.3: **structs 362.va_b_695ef4fdf9** not-active: installed but not active after startup
+- planned 2.541.3: **structs.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/structs: No space left on device
+- planned 2.541.3: **subversion 1327.vc36e0019a_653** not-active: installed but not active after startup
+- planned 2.541.3: **subversion.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/subversion: No space left on device
+- planned 2.541.3: **swarm 1258.vda_14ddda_0613** not-active: installed but not active after startup
+- planned 2.541.3: **swarm.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/swarm: No space left on device
+- planned 2.541.3: **test-results-analyzer 338.v892711910ea_6** not-active: installed but not active after startup
+- planned 2.541.3: **test-results-analyzer.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/test-results-analyzer: No space left on device
+- planned 2.541.3: **testng-plugin 981.v1dc64d227855** not-active: installed but not active after startup
+- planned 2.541.3: **testng-plugin.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/testng-plugin: No space left on device
+- planned 2.541.3: **text-finder 1.34** not-active: installed but not active after startup
+- planned 2.541.3: **text-finder.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/text-finder: No space left on device
+- planned 2.541.3: **thinBackup 2.1.5** not-active: installed but not active after startup
+- planned 2.541.3: **thinBackup.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/thinBackup: No space left on device
+- planned 2.541.3: **throttle-concurrents 625.vc8b_e469e9a_b_c** not-active: installed but not active after startup
+- planned 2.541.3: **throttle-concurrents.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/throttle-concurrents: No space left on device
+- planned 2.541.3: **timestamper 1.30** not-active: installed but not active after startup
+- planned 2.541.3: **timestamper.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/timestamper: No space left on device
+- planned 2.541.3: **token-macro 477.vd4f0dc3cb_cf1** not-active: installed but not active after startup
+- planned 2.541.3: **token-macro.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/token-macro: No space left on device
+- planned 2.541.3: **translation 1.16** not-active: installed but not active after startup
+- planned 2.541.3: **translation.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/translation: No space left on device
+- planned 2.541.3: **trilead-api 2.284.v1974ea_324382** not-active: installed but not active after startup
+- planned 2.541.3: **trilead-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/trilead-api: No space left on device
+- planned 2.541.3: **uno-choice 2.8.11** not-active: installed but not active after startup
+- planned 2.541.3: **uno-choice.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/uno-choice: No space left on device
+- planned 2.541.3: **validating-string-parameter 345.v0f4330488a_f6** not-active: installed but not active after startup
+- planned 2.541.3: **validating-string-parameter.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/validating-string-parameter: No space left on device
+- planned 2.541.3: **variant 70.va_d9f17f859e0** not-active: installed but not active after startup
+- planned 2.541.3: **variant.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/variant: No space left on device
+- planned 2.541.3: **versionnumber 234.v315d3b_3cb_fb_5** not-active: installed but not active after startup
+- planned 2.541.3: **versionnumber.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/versionnumber: No space left on device
+- planned 2.541.3: **view-job-filters 408.vb_ca_5e798e5b_5** not-active: installed but not active after startup
+- planned 2.541.3: **view-job-filters.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/view-job-filters: No space left on device
+- planned 2.541.3: **warnings-ng 13.10085.v94a_d6ca_82b_f6** not-active: installed but not active after startup
+- planned 2.541.3: **warnings-ng.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/warnings-ng: No space left on device
+- planned 2.541.3: **woodstox-core-api 7.3.0-16.v017f30ed004c** not-active: installed but not active after startup
+- planned 2.541.3: **woodstox-core-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/woodstox-core-api: No space left on device
+- planned 2.541.3: **workflow-aggregator 608.v67378e9d3db_1** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-aggregator.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-aggregator: No space left on device
+- planned 2.541.3: **workflow-api 1413.v2ff1a_5e720fa_** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-api: No space left on device
+- planned 2.541.3: **workflow-basic-steps 1098.v808b_fd7f8cf4** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-basic-steps.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-basic-steps: No space left on device
+- planned 2.541.3: **workflow-cps 4395.v738456a_5da_6b_** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-cps-global-lib 636.v3d2c06d018a_6** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-cps-global-lib.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-cps-global-lib: No space left on device
+- planned 2.541.3: **workflow-cps.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-cps: No space left on device
+- planned 2.541.3: **workflow-durable-task-step 1479.v56e587f413a_7** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-durable-task-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-durable-task-step: No space left on device
+- planned 2.541.3: **workflow-job 1571.1585.v21fce07cd04d** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-job.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-job: No space left on device
+- planned 2.541.3: **workflow-multibranch 841.vec5b_9e1806ec** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-multibranch.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-multibranch: No space left on device
+- planned 2.541.3: **workflow-scm-step 487.v41313a_96b_65d** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-scm-step.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-scm-step: No space left on device
+- planned 2.541.3: **workflow-step-api 724.v538c2362b_dfb_** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-step-api.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-step-api: No space left on device
+- planned 2.541.3: **workflow-support 1015.v785e5a_b_b_8b_22** not-active: installed but not active after startup
+- planned 2.541.3: **workflow-support.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/workflow-support: No space left on device
+- planned 2.541.3: **ws-cleanup 0.49** not-active: installed but not active after startup
+- planned 2.541.3: **ws-cleanup.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/ws-cleanup: No space left on device
+- planned 2.541.3: **xunit 3.1.7** not-active: installed but not active after startup
+- planned 2.541.3: **xunit.jpi ** other: java.nio.file.FileSystemException: /var/jenkins_home/plugins/xunit: No space left on device
+

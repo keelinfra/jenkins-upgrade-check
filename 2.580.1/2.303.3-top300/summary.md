@@ -1,0 +1,138 @@
+### 2.303.3 → 2.580.1, 300 most installed plugins
+
+| Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
+|---|---|---|---|---|---|---|---|
+| baseline: 2.303.3 | jenkins/jenkins:2.303.3-jdk11 | started | 302 | 98 | 98 | 0 | 0 |
+| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 302 | 98 | 29 | 0 | 0 |
+| planned: 2.462.3, plugins from plan | jenkins/jenkins:2.462.3-jdk11 | started | 328 | 0 | 0 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 351 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | did not start | 351 | 0 | 0 | 0 | 0 |
+
+- baseline: **Parameterized-Remote-Trigger 3.1.6.3** other: Required plugin is disabled: Credentials Plugin
+- baseline: **amazon-ecr 1.73.v741d474abe74** other: Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)
+- baseline: **ansible 1.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **artifactory 4.0.8** other: Failed to load: Maven Integration plugin (3.16)
+- baseline: **atlassian-bitbucket-server-integration 3.3.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **audit-trail 3.10** other: Required plugin is disabled: Credentials Plugin
+- baseline: **authentication-tokens 1.4** other: Required plugin is disabled: Credentials Plugin
+- baseline: **aws-credentials 191.vcb_f183ce58b_9** other: Failed to load: Credentials Binding Plugin (1.27.1)
+- baseline: **bitbucket 223.vd12f2bca5430** other: Failed to load: Git plugin (4.11.5)
+- baseline: **blueocean 1.26.0** other: Failed to load: Bitbucket Pipeline for Blue Ocean (1.26.0)
+- baseline: **blueocean-autofavorite 1.2.5** other: Failed to load: Jenkins Git client plugin (3.11.2)
+- baseline: **blueocean-bitbucket-pipeline 1.26.0** other: Failed to load: Pipeline implementation for Blue Ocean (1.26.0)
+- baseline: **blueocean-events 1.26.0** other: Failed to load: Pipeline implementation for Blue Ocean (1.26.0)
+- baseline: **blueocean-git-pipeline 1.26.0** other: Failed to load: Pipeline implementation for Blue Ocean (1.26.0)
+- baseline: **blueocean-github-pipeline 1.26.0** other: Failed to load: Pipeline implementation for Blue Ocean (1.26.0)
+- baseline: **blueocean-jira 1.26.0** other: Failed to load: Jenkins Jira plugin (3.7.1)
+- baseline: **blueocean-pipeline-api-impl 1.26.0** other: Failed to load: Pipeline SCM API for Blue Ocean (1.26.0)
+- baseline: **blueocean-pipeline-editor 1.26.0** other: Failed to load: Pipeline implementation for Blue Ocean (1.26.0)
+- baseline: **blueocean-pipeline-scm-api 1.26.0** other: Required plugin is disabled: Credentials Plugin
+- baseline: **blueocean-rest-impl 1.26.0** other: Required plugin is disabled: Credentials Plugin
+- baseline: **cloudbees-bitbucket-branch-source 784.v7fcdc7c670f6** other: Failed to load: Authentication Tokens API Plugin (1.4)
+- baseline: **config-file-provider 3.10.0** other: Required plugin is disabled: Credentials Plugin
+- baseline: **configurationslicing 430.v966357576543** other: Required plugin is disabled: SSH Credentials Plugin
+- baseline: **credentials 2.6.1.1** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- baseline: **credentials-binding 1.27.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **cvs 2.19.1** other: Failed to load: Jenkins JSch dependency plugin (0.1.55.2)
+- baseline: **deploy 1.16** other: Required plugin is disabled: Credentials Plugin
+- baseline: **docker-build-step 2.8** other: Failed to load: Docker Commons Plugin (1.21)
+- baseline: **docker-commons 1.21** other: Failed to load: Authentication Tokens API Plugin (1.4)
+- baseline: **docker-plugin 1.2.10** other: Failed to load: Docker Commons Plugin (1.21)
+- baseline: **docker-workflow 1.28** other: Failed to load: Docker Commons Plugin (1.21)
+- baseline: **ec2 2.0.4** other: Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)
+- baseline: **email-ext 2.89** other: Required plugin is disabled: Credentials Plugin
+- baseline: **emailext-template 1.4** other: Failed to load: Email Extension Plugin (2.89)
+- baseline: **generic-webhook-trigger 1.86.4** other: Required plugin is disabled: Credentials Plugin
+- baseline: **git 4.11.5** other: Failed to load: Credentials Binding Plugin (1.27.1)
+- baseline: **git-client 3.11.2** other: Failed to load: Jenkins JSch dependency plugin (0.1.55.2)
+- baseline: **git-parameter 0.9.14** other: Failed to load: Git plugin (4.11.5)
+- baseline: **git-server 1.11** other: Required plugin is disabled: SSH server
+- baseline: **github 1.34.3.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **github-branch-source 2.11.4** other: Failed to load: GitHub plugin (1.34.3.1)
+- baseline: **github-oauth 0.39** other: Failed to load: Git plugin (4.11.5)
+- baseline: **github-pullrequest 0.4.0** other: Failed to load: GitHub plugin (1.34.3.1)
+- baseline: **gitlab-branch-source 650.va_d1ce6d01959** other: Required plugin is disabled: Credentials Plugin
+- baseline: **gitlab-oauth 1.16** other: Failed to load: Git plugin (4.11.5)
+- baseline: **gitlab-plugin 1.5.36** other: Failed to load: Jenkins Git client plugin (3.11.2)
+- baseline: **google-oauth-plugin 1.0.6** other: Failed to load: OAuth Credentials plugin (0.5)
+- baseline: **gradle 2.12.0.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **hashicorp-vault-plugin 371.v884a_4dd60fb_6** other: Failed to load: Credentials Binding Plugin (1.27.1)
+- baseline: **http_request 1.16** other: Required plugin is disabled: Credentials Plugin
+- baseline: **ivy 2.2** other: Failed to load: Config File Provider Plugin (3.10.0)
+- baseline: **jenkins-multijob-plugin 1.36** other: Failed to load: Maven Integration plugin (3.16)
+- baseline: **jira 3.7.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **job-import-plugin 3.6** other: Required plugin is disabled: Credentials Plugin
+- baseline: **jsch 0.1.55.2** other: Required plugin is disabled: Trilead API Plugin
+- baseline: **kubernetes 3651.v908e7db_10d06** other: Failed to load: Authentication Tokens API Plugin (1.4)
+- baseline: **kubernetes-cli 1.10.3** other: Failed to load: Authentication Tokens API Plugin (1.4)
+- baseline: **kubernetes-credentials 0.9.0** other: Failed to load: Authentication Tokens API Plugin (1.4)
+- baseline: **kubernetes-credentials-provider 1.211.vc236a_f5a_2f3c** other: Required plugin is disabled: Credentials Plugin
+- baseline: **m2release 0.16.3** other: Failed to load: Maven Integration plugin (3.16)
+- baseline: **maven-plugin 3.16** other: Failed to load: Jenkins JSch dependency plugin (0.1.55.2)
+- baseline: **mercurial 1260.vdfb_723cdcc81** other: Failed to load: Jenkins JSch dependency plugin (0.1.55.2)
+- baseline: **mina-sshd-api-core 2.8.0-30.vf9df64641cb_d** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- baseline: **mina-sshd-api-scp 2.8.0-30.vf9df64641cb_d** other: Required plugin is disabled: Mina SSHD API :: Core
+- baseline: **nexus-artifact-uploader 2.13** other: Required plugin is disabled: Credentials Plugin
+- baseline: **nodejs 1.5.1** other: Failed to load: Config File Provider Plugin (3.10.0)
+- baseline: **oauth-credentials 0.5** other: Required plugin is disabled: Credentials Plugin
+- baseline: **pipeline-aws 1.43** other: Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)
+- baseline: **pipeline-github 2.8-141.7e985db66f30** other: Failed to load: GitHub Branch Source Plugin (2.11.4)
+- baseline: **pipeline-github-lib 38.v445716ea_edda_** other: Failed to load: Git plugin (4.11.5)
+- baseline: **pipeline-graph-analysis 202.va_d268e64deb_3** other: Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)
+- baseline: **pipeline-graph-view 61.v5f35529d13b7** other: Failed to load: Pipeline Graph Analysis Plugin (202.va_d268e64deb_3)
+- baseline: **pipeline-input-step 466.v6d0a_5df34f81** other: Required plugin is disabled: Credentials Plugin
+- baseline: **pipeline-maven 1161.v89a_7dcec5d31** other: Failed to load: Config File Provider Plugin (3.10.0)
+- baseline: **pipeline-model-declarative-agent 1.1.1** other: Failed to load: Pipeline: Declarative Extension Points API (1.9.3)
+- baseline: **pipeline-model-definition 1.9.3** other: Failed to load: Pipeline: Deprecated Groovy Libraries (609.vd95673f149b_b)
+- baseline: **pipeline-model-extensions 1.9.3** other: Failed to load: Credentials Binding Plugin (1.27.1)
+- baseline: **pipeline-multibranch-defaults 2.1** other: Failed to load: Config File Provider Plugin (3.10.0)
+- baseline: **pipeline-rest-api 2.28** other: Failed to load: Pipeline Graph Analysis Plugin (202.va_d268e64deb_3)
+- baseline: **pipeline-stage-view 2.28** other: Failed to load: Pipeline: REST API Plugin (2.28)
+- baseline: **plain-credentials 1.8** other: Required plugin is disabled: Credentials Plugin
+- baseline: **prometheus 2.0.10** other: Failed to load: Pipeline: REST API Plugin (2.28)
+- baseline: **promoted-builds 881.vb_72da_69ffca_1** other: Required plugin is disabled: SSH Credentials Plugin
+- baseline: **publish-over-ssh 1.24** other: Failed to load: Jenkins JSch dependency plugin (0.1.55.2)
+- baseline: **robot 3.3.0** other: Required plugin is disabled: Credentials Plugin
+- baseline: **slack 631.v40deea_40323b** other: Required plugin is disabled: Credentials Plugin
+- baseline: **sonar 2.14** other: Required plugin is disabled: Credentials Plugin
+- baseline: **ssh 2.6.1** other: Failed to load: Jenkins JSch dependency plugin (0.1.55.2)
+- baseline: **ssh-agent 295.v9ca_a_1c7cc3a_a_** other: Required plugin is disabled: SSH Credentials Plugin
+- baseline: **ssh-credentials 277.v95c2fec1c047** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- baseline: **ssh-slaves 1.806.v2253cedd3295** other: Required plugin is disabled: Trilead API Plugin
+- baseline: **sshd 3.242.va_db_9da_b_26a_c3** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- baseline: **stashNotifier 1.28** other: Required plugin is disabled: Credentials Plugin
+- baseline: **subversion 2.16.0** other: Required plugin is disabled: SSH Credentials Plugin
+- baseline: **trilead-api 1.0.13** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api -> Plugin:sshd
+- baseline: **warnings-ng 9.11.1** other: Required plugin is disabled: Credentials Plugin
+- baseline: **workflow-aggregator 596.v8c21c963d92d** other: Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)
+- baseline: **workflow-cps-global-lib 609.vd95673f149b_b** other: Failed to load: Jenkins GIT server Plugin (1.11)
+- as-is: **plain-credentials 1.8** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 31 more)
+- as-is: **jsch 0.1.55.2** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials) (takes down 14 more)
+- as-is: **authentication-tokens 1.4** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 8 more)
+- as-is: **blueocean-pipeline-scm-api 1.26.0** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 7 more)
+- as-is: **pipeline-input-step 466.v6d0a_5df34f81** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 6 more)
+- as-is: **email-ext 2.89** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 1 more)
+- as-is: **jira 3.7.1** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 1 more)
+- as-is: **oauth-credentials 0.5** other: Required plugin is disabled: Credentials Plugin (credentials) (takes down 1 more)
+- as-is: **Parameterized-Remote-Trigger 3.1.6.3** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **audit-trail 3.10** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **blueocean-rest-impl 1.26.0** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **configurationslicing 430.v966357576543** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
+- as-is: **credentials 2.6.1.1** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- as-is: **deploy 1.16** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **http_request 1.16** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **job-import-plugin 3.6** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **kubernetes-credentials-provider 1.211.vc236a_f5a_2f3c** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **mina-sshd-api-core 2.8.0-30.vf9df64641cb_d** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- as-is: **mina-sshd-api-scp 2.8.0-30.vf9df64641cb_d** other: Required plugin is disabled: Mina SSHD API :: Core (mina-sshd-api-core)
+- as-is: **nexus-artifact-uploader 2.13** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **promoted-builds 881.vb_72da_69ffca_1** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
+- as-is: **robot 3.3.0** other: Required plugin is disabled: Credentials Plugin (credentials)
+- as-is: **ssh-agent 295.v9ca_a_1c7cc3a_a_** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
+- as-is: **ssh-credentials 277.v95c2fec1c047** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- as-is: **ssh-slaves 1.806.v2253cedd3295** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
+- as-is: **sshd 3.242.va_db_9da_b_26a_c3** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd
+- as-is: **subversion 2.16.0** other: Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)
+- as-is: **trilead-api 1.0.13** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:trilead-api -> Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api
+- as-is: **warnings-ng 9.11.1** other: Required plugin is disabled: Credentials Plugin (credentials)
+

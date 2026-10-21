@@ -1,0 +1,151 @@
+{
+  "from": "2.138.4",
+  "to": "2.580.1",
+  "top": 100,
+  "month": "202603",
+  "baseline": {
+    "core": "2.138.4",
+    "java": 8,
+    "image": "jenkins/jenkins:2.138.4",
+    "started": true,
+    "reason": null,
+    "plugins": 110,
+    "failed": 0,
+    "broken": 0,
+    "skipped": 0,
+    "roots": []
+  },
+  "asIs": {
+    "core": "2.580.1",
+    "java": 21,
+    "image": "jenkins/jenkins:2.580.1-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 110,
+    "failed": 44,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "workflow-support",
+        "version": "3.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 20
+      },
+      {
+        "name": "junit",
+        "version": "1.28",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 8
+      },
+      {
+        "name": "git-client",
+        "version": "3.2.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 5
+      },
+      {
+        "name": "config-file-provider",
+        "version": "3.7.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 1
+      },
+      {
+        "name": "command-launcher",
+        "version": "1.4",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool -> Plugin:jaxb -> Plugin:command-launcher",
+        "cascade": 0
+      },
+      {
+        "name": "jaxb",
+        "version": "2.3.0",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool -> Plugin:jaxb -> Plugin:command-launcher",
+        "cascade": 0
+      },
+      {
+        "name": "jdk-tool",
+        "version": "1.4",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-utility-steps",
+        "version": "2.7.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "script-security",
+        "version": "1.71",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool -> Plugin:jaxb -> Plugin:command-launcher",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jdk-tool -> Plugin:trilead-api -> Plugin:jdk-tool",
+        "cascade": 0
+      }
+    ]
+  },
+  "stops": [
+    {
+      "core": "2.346.3",
+      "java": 8,
+      "image": "jenkins/jenkins:2.346.3-jdk8",
+      "started": true,
+      "reason": null,
+      "plugins": 127,
+      "failed": 1,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [
+        {
+          "name": "gradle",
+          "version": "2.12.0.1",
+          "kind": "java-too-old",
+          "why": "this release needs Java 11 or newer",
+          "cascade": 0
+        }
+      ],
+      "planJava": 8
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": true,
+      "reason": null,
+      "plugins": 144,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.1",
+      "java": 21,
+      "image": "jenkins/jenkins:2.580.1-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 144,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}

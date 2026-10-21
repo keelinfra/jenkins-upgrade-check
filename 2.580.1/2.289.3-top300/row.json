@@ -1,0 +1,956 @@
+{
+  "from": "2.289.3",
+  "to": "2.580.1",
+  "top": 300,
+  "month": "202603",
+  "baseline": {
+    "core": "2.289.3",
+    "java": 8,
+    "image": "jenkins/jenkins:2.289.3",
+    "started": true,
+    "reason": null,
+    "plugins": 302,
+    "failed": 97,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "Parameterized-Remote-Trigger",
+        "version": "3.1.6.3",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "amazon-ecr",
+        "version": "1.73.v741d474abe74",
+        "kind": "other",
+        "why": "Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)",
+        "cascade": 0
+      },
+      {
+        "name": "ansible",
+        "version": "1.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "artifactory",
+        "version": "4.0.8",
+        "kind": "other",
+        "why": "Failed to load: Maven Integration plugin (3.16)",
+        "cascade": 0
+      },
+      {
+        "name": "atlassian-bitbucket-server-integration",
+        "version": "3.3.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "audit-trail",
+        "version": "3.10",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "authentication-tokens",
+        "version": "1.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "aws-credentials",
+        "version": "191.vcb_f183ce58b_9",
+        "kind": "other",
+        "why": "Failed to load: Credentials Binding Plugin (1.27.1)",
+        "cascade": 0
+      },
+      {
+        "name": "bitbucket",
+        "version": "214.v2fd4234d0554",
+        "kind": "other",
+        "why": "Failed to load: Git plugin (4.11.5)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Bitbucket Pipeline for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-autofavorite",
+        "version": "1.2.5",
+        "kind": "other",
+        "why": "Failed to load: Jenkins Git client plugin (3.11.2)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-bitbucket-pipeline",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Pipeline implementation for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-events",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Pipeline implementation for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-git-pipeline",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Pipeline implementation for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-github-pipeline",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Pipeline implementation for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-jira",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Jenkins Jira plugin (3.7.1)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-pipeline-api-impl",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Pipeline SCM API for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-pipeline-editor",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Failed to load: Pipeline implementation for Blue Ocean (1.26.0)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-pipeline-scm-api",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-rest-impl",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "cloudbees-bitbucket-branch-source",
+        "version": "762.v969cfe087fc0",
+        "kind": "other",
+        "why": "Failed to load: Authentication Tokens API Plugin (1.4)",
+        "cascade": 0
+      },
+      {
+        "name": "config-file-provider",
+        "version": "3.8.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "configurationslicing",
+        "version": "430.v966357576543",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "credentials",
+        "version": "2.6.1.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "credentials-binding",
+        "version": "1.27.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "cvs",
+        "version": "2.19.1",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "deploy",
+        "version": "1.16",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "docker-build-step",
+        "version": "2.8",
+        "kind": "other",
+        "why": "Failed to load: Docker Commons Plugin (1.21)",
+        "cascade": 0
+      },
+      {
+        "name": "docker-commons",
+        "version": "1.21",
+        "kind": "other",
+        "why": "Failed to load: Authentication Tokens API Plugin (1.4)",
+        "cascade": 0
+      },
+      {
+        "name": "docker-plugin",
+        "version": "1.2.9",
+        "kind": "other",
+        "why": "Failed to load: Docker Commons Plugin (1.21)",
+        "cascade": 0
+      },
+      {
+        "name": "docker-workflow",
+        "version": "1.28",
+        "kind": "other",
+        "why": "Failed to load: Docker Commons Plugin (1.21)",
+        "cascade": 0
+      },
+      {
+        "name": "ec2",
+        "version": "2.0.4",
+        "kind": "other",
+        "why": "Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)",
+        "cascade": 0
+      },
+      {
+        "name": "email-ext",
+        "version": "2.87",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "emailext-template",
+        "version": "1.4",
+        "kind": "other",
+        "why": "Failed to load: Email Extension Plugin (2.87)",
+        "cascade": 0
+      },
+      {
+        "name": "generic-webhook-trigger",
+        "version": "1.86.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "git",
+        "version": "4.11.5",
+        "kind": "other",
+        "why": "Failed to load: Credentials Binding Plugin (1.27.1)",
+        "cascade": 0
+      },
+      {
+        "name": "git-client",
+        "version": "3.11.2",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "git-parameter",
+        "version": "0.9.14",
+        "kind": "other",
+        "why": "Failed to load: Git plugin (4.11.5)",
+        "cascade": 0
+      },
+      {
+        "name": "git-server",
+        "version": "1.11",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH server",
+        "cascade": 0
+      },
+      {
+        "name": "github",
+        "version": "1.34.3.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "github-branch-source",
+        "version": "2.11.4",
+        "kind": "other",
+        "why": "Failed to load: GitHub plugin (1.34.3.1)",
+        "cascade": 0
+      },
+      {
+        "name": "github-oauth",
+        "version": "0.39",
+        "kind": "other",
+        "why": "Failed to load: Git plugin (4.11.5)",
+        "cascade": 0
+      },
+      {
+        "name": "github-pullrequest",
+        "version": "0.4.0",
+        "kind": "other",
+        "why": "Failed to load: GitHub plugin (1.34.3.1)",
+        "cascade": 0
+      },
+      {
+        "name": "gitlab-branch-source",
+        "version": "650.va_d1ce6d01959",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "gitlab-oauth",
+        "version": "1.16",
+        "kind": "other",
+        "why": "Failed to load: Git plugin (4.11.5)",
+        "cascade": 0
+      },
+      {
+        "name": "gitlab-plugin",
+        "version": "1.5.36",
+        "kind": "other",
+        "why": "Failed to load: Jenkins Git client plugin (3.11.2)",
+        "cascade": 0
+      },
+      {
+        "name": "google-oauth-plugin",
+        "version": "1.0.6",
+        "kind": "other",
+        "why": "Failed to load: OAuth Credentials plugin (0.5)",
+        "cascade": 0
+      },
+      {
+        "name": "hashicorp-vault-plugin",
+        "version": "336.v182c0fbaaeb7",
+        "kind": "other",
+        "why": "Failed to load: Credentials Binding Plugin (1.27.1)",
+        "cascade": 0
+      },
+      {
+        "name": "http_request",
+        "version": "1.16",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "ivy",
+        "version": "2.2",
+        "kind": "other",
+        "why": "Failed to load: Config File Provider Plugin (3.8.1)",
+        "cascade": 0
+      },
+      {
+        "name": "jenkins-multijob-plugin",
+        "version": "1.36",
+        "kind": "other",
+        "why": "Failed to load: Maven Integration plugin (3.16)",
+        "cascade": 0
+      },
+      {
+        "name": "jira",
+        "version": "3.7.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "job-import-plugin",
+        "version": "3.6",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "jsch",
+        "version": "0.1.55.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: Trilead API Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "kubernetes",
+        "version": "1.30.11",
+        "kind": "other",
+        "why": "Failed to load: Authentication Tokens API Plugin (1.4)",
+        "cascade": 0
+      },
+      {
+        "name": "kubernetes-cli",
+        "version": "1.10.3",
+        "kind": "other",
+        "why": "Failed to load: Authentication Tokens API Plugin (1.4)",
+        "cascade": 0
+      },
+      {
+        "name": "kubernetes-credentials",
+        "version": "0.9.0",
+        "kind": "other",
+        "why": "Failed to load: Authentication Tokens API Plugin (1.4)",
+        "cascade": 0
+      },
+      {
+        "name": "kubernetes-credentials-provider",
+        "version": "0.20",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "m2release",
+        "version": "0.16.3",
+        "kind": "other",
+        "why": "Failed to load: Maven Integration plugin (3.16)",
+        "cascade": 0
+      },
+      {
+        "name": "maven-plugin",
+        "version": "3.16",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "mercurial",
+        "version": "1260.vdfb_723cdcc81",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "mina-sshd-api-core",
+        "version": "2.8.0-30.vf9df64641cb_d",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "mina-sshd-api-scp",
+        "version": "2.8.0-30.vf9df64641cb_d",
+        "kind": "other",
+        "why": "Required plugin is disabled: Mina SSHD API :: Core",
+        "cascade": 0
+      },
+      {
+        "name": "nexus-artifact-uploader",
+        "version": "2.13",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "nodejs",
+        "version": "1.5.1",
+        "kind": "other",
+        "why": "Failed to load: Config File Provider Plugin (3.8.1)",
+        "cascade": 0
+      },
+      {
+        "name": "oauth-credentials",
+        "version": "0.5",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-aws",
+        "version": "1.43",
+        "kind": "other",
+        "why": "Failed to load: CloudBees AWS Credentials Plugin (191.vcb_f183ce58b_9)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-github",
+        "version": "2.8-141.7e985db66f30",
+        "kind": "other",
+        "why": "Failed to load: GitHub Branch Source Plugin (2.11.4)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-github-lib",
+        "version": "36.v4c01db_ca_ed16",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Shared Groovy Libraries (2.21.3)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-graph-analysis",
+        "version": "1.11",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Input Step (466.v6d0a_5df34f81)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-graph-view",
+        "version": "61.v5f35529d13b7",
+        "kind": "other",
+        "why": "Failed to load: Pipeline Graph Analysis Plugin (1.11)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-input-step",
+        "version": "466.v6d0a_5df34f81",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-maven",
+        "version": "3.10.0",
+        "kind": "other",
+        "why": "Failed to load: Config File Provider Plugin (3.8.1)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-model-declarative-agent",
+        "version": "1.1.1",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Declarative Extension Points API (1.9.3)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-model-definition",
+        "version": "1.9.3",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Shared Groovy Libraries (2.21.3)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-model-extensions",
+        "version": "1.9.3",
+        "kind": "other",
+        "why": "Failed to load: Credentials Binding Plugin (1.27.1)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-multibranch-defaults",
+        "version": "2.1",
+        "kind": "other",
+        "why": "Failed to load: Config File Provider Plugin (3.8.1)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-rest-api",
+        "version": "2.28",
+        "kind": "other",
+        "why": "Failed to load: Pipeline Graph Analysis Plugin (1.11)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-stage-view",
+        "version": "2.28",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: REST API Plugin (2.28)",
+        "cascade": 0
+      },
+      {
+        "name": "plain-credentials",
+        "version": "1.8",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "prometheus",
+        "version": "2.0.10",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: REST API Plugin (2.28)",
+        "cascade": 0
+      },
+      {
+        "name": "promoted-builds",
+        "version": "881.vb_72da_69ffca_1",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "publish-over-ssh",
+        "version": "1.24",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "robot",
+        "version": "3.3.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "slack",
+        "version": "631.v40deea_40323b",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "sonar",
+        "version": "2.14",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "ssh",
+        "version": "2.6.1",
+        "kind": "other",
+        "why": "Failed to load: Jenkins JSch dependency plugin (0.1.55.2)",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-agent",
+        "version": "295.v9ca_a_1c7cc3a_a_",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-credentials",
+        "version": "277.v95c2fec1c047",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-slaves",
+        "version": "1.806.v2253cedd3295",
+        "kind": "other",
+        "why": "Required plugin is disabled: Trilead API Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "sshd",
+        "version": "3.242.va_db_9da_b_26a_c3",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "stashNotifier",
+        "version": "1.24",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "subversion",
+        "version": "2.16.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.13",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "warnings-ng",
+        "version": "9.11.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin",
+        "cascade": 0
+      },
+      {
+        "name": "workflow-aggregator",
+        "version": "578.vf9a_f99755f4a_",
+        "kind": "other",
+        "why": "Failed to load: Pipeline: Shared Groovy Libraries (2.21.3)",
+        "cascade": 0
+      },
+      {
+        "name": "workflow-cps-global-lib",
+        "version": "2.21.3",
+        "kind": "other",
+        "why": "Failed to load: Jenkins GIT server Plugin (1.11)",
+        "cascade": 0
+      }
+    ]
+  },
+  "asIs": {
+    "core": "2.580.1",
+    "java": 21,
+    "image": "jenkins/jenkins:2.580.1-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 302,
+    "failed": 97,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "plain-credentials",
+        "version": "1.8",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 29
+      },
+      {
+        "name": "jsch",
+        "version": "0.1.55.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 16
+      },
+      {
+        "name": "authentication-tokens",
+        "version": "1.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 8
+      },
+      {
+        "name": "blueocean-pipeline-scm-api",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 7
+      },
+      {
+        "name": "pipeline-input-step",
+        "version": "466.v6d0a_5df34f81",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 5
+      },
+      {
+        "name": "email-ext",
+        "version": "2.87",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 1
+      },
+      {
+        "name": "jira",
+        "version": "3.7.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 1
+      },
+      {
+        "name": "oauth-credentials",
+        "version": "0.5",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 1
+      },
+      {
+        "name": "Parameterized-Remote-Trigger",
+        "version": "3.1.6.3",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "audit-trail",
+        "version": "3.10",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "blueocean-rest-impl",
+        "version": "1.26.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "configurationslicing",
+        "version": "430.v966357576543",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "credentials",
+        "version": "2.6.1.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "deploy",
+        "version": "1.16",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "http_request",
+        "version": "1.16",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "job-import-plugin",
+        "version": "3.6",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "kubernetes-credentials-provider",
+        "version": "0.20",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "mina-sshd-api-core",
+        "version": "2.8.0-30.vf9df64641cb_d",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "mina-sshd-api-scp",
+        "version": "2.8.0-30.vf9df64641cb_d",
+        "kind": "other",
+        "why": "Required plugin is disabled: Mina SSHD API :: Core (mina-sshd-api-core)",
+        "cascade": 0
+      },
+      {
+        "name": "nexus-artifact-uploader",
+        "version": "2.13",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "promoted-builds",
+        "version": "881.vb_72da_69ffca_1",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "robot",
+        "version": "3.3.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-agent",
+        "version": "295.v9ca_a_1c7cc3a_a_",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-credentials",
+        "version": "277.v95c2fec1c047",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "ssh-slaves",
+        "version": "1.806.v2253cedd3295",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "sshd",
+        "version": "3.242.va_db_9da_b_26a_c3",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:sshd",
+        "cascade": 0
+      },
+      {
+        "name": "subversion",
+        "version": "2.16.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: SSH Credentials Plugin (ssh-credentials)",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.13",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:trilead-api -> Plugin:sshd -> Plugin:mina-sshd-api-core -> Plugin:ssh-credentials -> Plugin:credentials -> Plugin:trilead-api",
+        "cascade": 0
+      },
+      {
+        "name": "warnings-ng",
+        "version": "9.11.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Credentials Plugin (credentials)",
+        "cascade": 0
+      }
+    ]
+  },
+  "stops": [
+    {
+      "core": "2.462.3",
+      "java": 11,
+      "image": "jenkins/jenkins:2.462.3-jdk11",
+      "started": true,
+      "reason": null,
+      "plugins": 328,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 11
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": true,
+      "reason": null,
+      "plugins": 351,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.1",
+      "java": 21,
+      "image": "jenkins/jenkins:2.580.1-jdk21",
+      "started": false,
+      "reason": "the container exited (state: false 1)",
+      "plugins": 351,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}

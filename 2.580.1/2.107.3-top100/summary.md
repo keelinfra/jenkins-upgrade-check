@@ -1,0 +1,19 @@
+### 2.107.3 → 2.580.1, 100 most installed plugins
+
+| Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
+|---|---|---|---|---|---|---|---|
+| baseline: 2.107.3 | jenkins/jenkins:2.107.3 | started | 108 | 0 | 0 | 0 | 0 |
+| as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 108 | 42 | 7 | 0 | 0 |
+| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk8 | started | 130 | 1 | 1 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 147 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 147 | 0 | 0 | 0 | 0 |
+
+- as-is: **workflow-support 2.20** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 22 more)
+- as-is: **junit 1.27** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 13 more)
+- as-is: **command-launcher 1.4** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb -> Plugin:command-launcher
+- as-is: **jaxb 2.3.0** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb -> Plugin:command-launcher
+- as-is: **pipeline-utility-steps 2.1.0** other: Required plugin is disabled: Script Security Plugin (script-security)
+- as-is: **script-security 1.71** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb -> Plugin:command-launcher
+- as-is: **trilead-api 1.0.1** other: hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb -> Plugin:command-launcher
+- planned 2.346.3: **gradle 2.12.0.1** java-too-old: this release needs Java 11 or newer
+

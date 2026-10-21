@@ -1,0 +1,96 @@
+{
+  "from": "2.190.3",
+  "to": "2.580.1",
+  "top": 300,
+  "month": "202603",
+  "baseline": {
+    "core": "2.190.3",
+    "java": 8,
+    "image": "jenkins/jenkins:2.190.3",
+    "started": true,
+    "reason": null,
+    "plugins": 304,
+    "failed": 2,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "Parameterized-Remote-Trigger",
+        "version": "3.1.6.3",
+        "kind": "other",
+        "why": "Credentials Plugin version 2.3.11 is older than required. To fix, install version 2.6.1.1 or later.",
+        "cascade": 0
+      },
+      {
+        "name": "docker-build-step",
+        "version": "2.8",
+        "kind": "other",
+        "why": "Credentials Plugin version 2.3.11 is older than required. To fix, install version 2.3.19 or later.",
+        "cascade": 0
+      }
+    ]
+  },
+  "asIs": {
+    "core": "2.580.1",
+    "java": 21,
+    "image": "jenkins/jenkins:2.580.1-jdk21",
+    "started": false,
+    "reason": "the container exited (state: false 5)",
+    "plugins": 304,
+    "failed": 2,
+    "broken": 0,
+    "skipped": 0,
+    "roots": [
+      {
+        "name": "Parameterized-Remote-Trigger",
+        "version": "3.1.6.3",
+        "kind": "old-dependency",
+        "why": "needs credentials 2.6.1.1 or newer; 2.3.11 is installed",
+        "cascade": 0
+      },
+      {
+        "name": "docker-build-step",
+        "version": "2.8",
+        "kind": "old-dependency",
+        "why": "needs credentials 2.3.19 or newer; 2.3.11 is installed",
+        "cascade": 0
+      }
+    ]
+  },
+  "stops": [
+    {
+      "core": "2.462.3",
+      "java": 11,
+      "image": "jenkins/jenkins:2.462.3-jdk11",
+      "started": true,
+      "reason": null,
+      "plugins": 361,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 11
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": false,
+      "reason": "the container exited (state: false 5)",
+      "plugins": 384,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.1",
+      "started": false,
+      "reason": "no result",
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 2
+}

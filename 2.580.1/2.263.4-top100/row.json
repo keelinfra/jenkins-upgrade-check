@@ -1,0 +1,72 @@
+{
+  "from": "2.263.4",
+  "to": "2.580.1",
+  "top": 100,
+  "month": "202603",
+  "baseline": {
+    "core": "2.263.4",
+    "java": 8,
+    "image": "jenkins/jenkins:2.263.4",
+    "started": true,
+    "reason": null,
+    "plugins": 107,
+    "failed": 0,
+    "broken": 0,
+    "skipped": 0,
+    "roots": []
+  },
+  "asIs": {
+    "core": "2.580.1",
+    "java": 21,
+    "image": "jenkins/jenkins:2.580.1-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 107,
+    "failed": 0,
+    "broken": 0,
+    "skipped": 0,
+    "roots": []
+  },
+  "stops": [
+    {
+      "core": "2.462.3",
+      "java": 11,
+      "image": "jenkins/jenkins:2.462.3-jdk11",
+      "started": true,
+      "reason": null,
+      "plugins": 121,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 11
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": true,
+      "reason": null,
+      "plugins": 130,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.1",
+      "java": 21,
+      "image": "jenkins/jenkins:2.580.1-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 130,
+      "failed": 0,
+      "broken": 0,
+      "skipped": 0,
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}
