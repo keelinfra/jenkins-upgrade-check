@@ -77,23 +77,41 @@ func (s *Source) Open(ctx context.Context, name string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
+// retryWait is how long get waits before its second and third tries.
+var retryWait = 2 * time.Second
+
+// get tries up to three times. The files it reads always exist, so even a
+// 404 is usually a mirror that is out of sync for a moment.
 func (s *Source) get(ctx context.Context, url string) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
+	var lastErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(time.Duration(attempt) * retryWait):
+			}
+		}
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		if s.UserAgent != "" {
+			req.Header.Set("User-Agent", s.UserAgent)
+		}
+		resp, err := s.client().Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("GET %s: %w", url, err)
+			continue
+		}
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("GET %s: %s", url, resp.Status)
+			continue
+		}
+		return resp, nil
 	}
-	if s.UserAgent != "" {
-		req.Header.Set("User-Agent", s.UserAgent)
-	}
-	resp, err := s.client().Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("GET %s: %w", url, err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
-		return nil, fmt.Errorf("GET %s: %s", url, resp.Status)
-	}
-	return resp, nil
+	return nil, lastErr
 }
 
 func (s *Source) download(ctx context.Context, url, dest string) error {
