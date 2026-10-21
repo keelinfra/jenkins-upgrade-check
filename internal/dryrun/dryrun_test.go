@@ -290,7 +290,7 @@ func TestUpgradeFrom(t *testing.T) {
 		t.Errorf("home with a version: %v, %v", ok, err)
 	}
 
-	log := "2026-10-21 13:36:01.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded Jenkins from version 2.249.3 to version 2.580.1. Loaded detached plugins (and dependencies): [sshd, javax-mail-api, instance-identity]\n" +
+	log := "2026-10-21 13:36:01.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded Jenkins from version 2.249.3 to version 2.580.1. Loaded detached plugins (and dependencies): [sshd.hpi, javax-mail-api.hpi, instance-identity]\n" +
 		"2026-10-21 13:36:02.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded detached plugins (and dependencies): [sshd]\n"
 	if got := detachedPlugins(log); !slices.Equal(got, []string{"sshd", "javax-mail-api", "instance-identity"}) {
 		t.Errorf("detached = %q", got)

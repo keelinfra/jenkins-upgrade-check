@@ -141,6 +141,26 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 			have.Version = cand.Version
 			queue = append(queue, d.Name)
 		}
+		// Plugins built for an older core still expect what was split out
+		// of core since; Jenkins treats that as a dependency.
+		for _, d := range implied(r, core) {
+			if !rel.Known(d.Name) {
+				continue
+			}
+			if have, installed := picks[d.Name]; installed {
+				if have.Added && !contains(have.RequiredBy, name) {
+					have.RequiredBy = append(have.RequiredBy, name)
+				}
+				continue
+			}
+			cand := l.newest(d.Name, d.Version)
+			if cand == nil {
+				res.Problems = append(res.Problems, fmt.Sprintf("%s %s was built for Jenkins %s and expects %s, which was split out of core, but no %s release runs on Jenkins %s", name, p.Version, r.RequiredCore, d.Name, d.Name, core))
+				continue
+			}
+			set(Pick{Name: d.Name, Version: cand.Version, Added: true, RequiredBy: []string{name}})
+			queue = append(queue, d.Name)
+		}
 	}
 
 	for _, name := range anyVersion {

@@ -242,3 +242,43 @@ func TestPrevious(t *testing.T) {
 		t.Errorf("no core upgrade: %q", got)
 	}
 }
+
+// A plugin built for an older core expects what core split out since; the
+// war no longer carries those plugins, so the plan adds them.
+func TestResolveAddsPluginsSplitOutOfCore(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "translation":{"1.16":{"requiredCore":"1.466"}},
+ "script-security":{"1.0":{"requiredCore":"2.60.3"}},
+ "modern":{"1.0":{"requiredCore":"2.479.3"}},
+ "javax-mail-api":{"1.6.2-11":{"requiredCore":"2.361.4","dependencies":[{"name":"javax-activation-api","version":"1.2.0-2","optional":false}]}},
+ "javax-activation-api":{"1.2.0-8":{"requiredCore":"2.361.4"}},
+ "trilead-api":{"2.1.0":{"requiredCore":"2.184"}},
+ "command-launcher":{"1.0":{"requiredCore":"2.86"}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{{Name: "translation", Version: "1.16"}, {Name: "script-security", Version: "1.0"}, {Name: "modern", Version: "1.0"}}, "2.580.1")
+	got := r.ByName()
+	for _, name := range []string{"javax-mail-api", "javax-activation-api", "trilead-api", "command-launcher"} {
+		if p, ok := got[name]; !ok || !p.Added || !contains(p.RequiredBy, "translation") {
+			t.Errorf("%s: want added for translation, got %+v", name, p)
+		}
+	}
+	if contains(got["command-launcher"].RequiredBy, "script-security") {
+		t.Errorf("script-security is exempt from command-launcher (split-plugin-cycles.txt): %+v", got["command-launcher"])
+	}
+	if len(r.Problems) != 0 {
+		t.Errorf("problems: %v", r.Problems)
+	}
+
+	// Before the split, core still has it: nothing to add.
+	r = Resolve(rel, []Pick{{Name: "translation", Version: "1.16"}}, "2.249.3")
+	got = r.ByName()
+	if _, ok := got["javax-mail-api"]; ok {
+		t.Errorf("2.249.3 still ships JavaMail; got %+v", r.Plugins)
+	}
+	if _, ok := got["trilead-api"]; !ok {
+		t.Errorf("trilead-api was split out in 2.184; got %+v", r.Plugins)
+	}
+}

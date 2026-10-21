@@ -1190,7 +1190,8 @@ func detachedPlugins(log string) []string {
 	var out []string
 	for _, m := range loadedDetached.FindAllStringSubmatch(log, -1) {
 		for _, n := range strings.Split(m[1], ",") {
-			if n = strings.TrimSpace(n); n != "" && !slices.Contains(out, n) {
+			n = strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(n), ".hpi"), ".jpi")
+			if n != "" && !slices.Contains(out, n) {
 				out = append(out, n)
 			}
 		}
