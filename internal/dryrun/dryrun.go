@@ -995,21 +995,45 @@ var (
 	logHeader        = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}[ T][\d:.]+\S*\s+\[id=\d+\]\s+(SEVERE|WARNING)\s+(.*)$`)
 )
 
-// lastWords is the last line of the log that is not part of a stack trace,
-// which is usually why Jenkins stopped.
+// lastWords says why Jenkins stopped: the last SEVERE message before it
+// began to shut down, or else the last line that is not part of a stack trace.
 func lastWords(log string) string {
 	lines := strings.Split(log, "\n")
+	end := len(lines)
+	for i, l := range lines {
+		if strings.Contains(l, "Started termination") || strings.Contains(l, "JVM is terminating") {
+			end = i
+			break
+		}
+	}
+	for i := end - 1; i >= 0; i-- {
+		m := logHeader.FindStringSubmatch(lines[i])
+		if m == nil || m[1] != "SEVERE" {
+			continue
+		}
+		msg := m[2]
+		if i+1 < len(lines) && !logHeader.MatchString(lines[i+1]) {
+			if t := logLine(lines[i+1]); t != "" && !strings.HasPrefix(t, "at ") {
+				msg += " — " + t
+			}
+		}
+		return clip(msg)
+	}
 	for i := len(lines) - 1; i >= 0; i-- {
 		t := logLine(lines[i])
 		if t == "" || strings.HasPrefix(t, "at ") || strings.HasPrefix(t, "...") {
 			continue
 		}
-		if len(t) > 300 {
-			t = t[:300] + "…"
-		}
-		return t
+		return clip(t)
 	}
 	return ""
+}
+
+func clip(s string) string {
+	if r := []rune(s); len(r) > 300 {
+		return string(r[:300]) + "…"
+	}
+	return s
 }
 
 // logLine trims a log line and the "[LF]>" marker newer Jenkins puts in

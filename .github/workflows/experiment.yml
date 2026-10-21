@@ -141,8 +141,9 @@ jobs:
             echo "===== $log: first errors"
             grep -m 4 -A 12 -E "SEVERE|Exception in thread|Error: " "$log" | head -n 80 || true
             if ! grep -q "Jenkins is fully up and running" "$log"; then
-              echo "===== $log: did not start; last lines"
-              grep -vE "^\s+at |^\s+\.\.\. [0-9]+ more" "$log" | tail -n 25
+              echo "===== $log: did not start; the lines before it stopped"
+              grep -vE "^\s+at |^\s+\.\.\. [0-9]+ more" "$log" |
+                sed -n '/Started termination\|JVM is terminating/q;p' | tail -n 40
             fi
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

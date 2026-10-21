@@ -258,4 +258,12 @@ func TestLastWords(t *testing.T) {
 	if got := lastWords(log); got != "java.lang.IllegalStateException: boom" {
 		t.Errorf("lastWords = %q", got)
 	}
+	log = "2026-10-21 13:19:20.000+0000 [id=26]\tSEVERE\tjenkins.InitReactorRunner$1#onTaskFailed: Failed to load the plugins\n" +
+		"java.lang.LinkageError: boom\n\tat a.b(C.java:1)\n" +
+		"2026-10-21 13:19:25.276+0000 [id=30]\tINFO\tjenkins.model.Jenkins$13#onAttained: Started termination\n" +
+		"2026-10-21 13:19:25.279+0000 [id=30]\tSEVERE\tjenkins.model.Jenkins$13#onTaskFailed: Failed IOHubProvider.cleanUp\n" +
+		"2026-10-21 13:19:25.491+0000 [id=31]\tINFO\twinstone.Logger#logInternal: Control thread shutdown successfully\n"
+	if got, want := lastWords(log), "jenkins.InitReactorRunner$1#onTaskFailed: Failed to load the plugins — java.lang.LinkageError: boom"; got != want {
+		t.Errorf("lastWords = %q, want %q", got, want)
+	}
 }
