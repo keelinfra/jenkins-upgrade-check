@@ -1,0 +1,5 @@
+{"from":"2.541.3","to":"2.580.1","top":300,"month":"202603",
+ "baseline":{"core":"2.541.3","java":17,"image":"jenkins/jenkins:2.541.3-jdk17","started":true,"plugins":330,"failed":2,"broken":0,"skipped":0,"roots":[{"name":"gitlab-plugin","kind":"old dependency","why":"needs jersey3-api"}]},
+ "asIs":{"core":"2.580.1","java":21,"image":"jenkins/jenkins:2.580.1-jdk21","started":true,"plugins":330,"failed":2,"broken":0,"skipped":0,"roots":[{"name":"gitlab-plugin","kind":"old dependency","why":"needs jersey3-api"}]},
+ "stops":[{"core":"2.580.1","java":21,"image":"jenkins/jenkins:2.580.1-jdk21","started":true,"plugins":331,"failed":0,"broken":0,"skipped":0,"roots":[]}],
+ "planProblems":0}

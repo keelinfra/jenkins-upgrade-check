@@ -37,7 +37,7 @@ Usage:
   jenkins-upgrade-check collect  --url URL --user USER [-o snapshot.json]
   jenkins-upgrade-check plan     (--snapshot snapshot.json | --plugins-file FILE --core VERSION) [--to lts]
                                  [--runbook runbook.md --install deb|rpm|war|docker]
-  jenkins-upgrade-check dry-run  (--plan plan.json | --plugins-file FILE --core VERSION [--resolve]) [--home JENKINS_HOME]
+  jenkins-upgrade-check dry-run  (--plan plan.json [--step N] | --plugins-file FILE --core VERSION [--resolve]) [--home JENKINS_HOME]
   jenkins-upgrade-check download --plan plan.json [--step N] --dir DIR
   jenkins-upgrade-check probe    [--quiet]
   jenkins-upgrade-check verify   --before before.json --url URL --user USER [--plan plan.json] [--core VERSION]
@@ -276,11 +276,13 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	var sf sourceFlags
 	sf.register(fs)
 	planFile := fs.String("plan", "", "plan JSON written by plan --json: rehearse its target")
+	step := fs.Int("step", -1, "with --plan: rehearse this step instead of the target (1 is the first core upgrade)")
 	resolve := fs.Bool("resolve", false, "with --plugins-file: move each plugin to the newest release --core can load first (default: use the versions as given)")
 	home := fs.String("home", "", "JENKINS_HOME (or a copy of it) whose configuration to rehearse: jobs, folders, nodes, credentials and settings, without build records")
 	casc := fs.String("casc", "", "Configuration as Code file or directory to load, if the controller reads it from outside JENKINS_HOME")
 	java := fs.Int("java", 0, "Java version of the image (default: the oldest the core and the plugins support)")
 	image := fs.String("image", "", "base image instead of jenkins/jenkins:<core>-jdk<N>")
+	from := fs.String("from", "", "Jenkins version the controller runs now: start as an in-place upgrade from it, so Jenkins installs the plugins split out of core since then, as it does on a real upgrade (default with --plan: the stop before; a --home copy that records its version keeps it)")
 	outDir := fs.String("out-dir", "", "keep the Jenkins log here")
 	timeout := fs.Duration("timeout", 10*time.Minute, "how long Jenkins may take to start")
 	keep := fs.Bool("keep", false, "keep the container and the work directory")
@@ -289,7 +291,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	if err := fs.Parse(args); err != nil {
 		return 0, err
 	}
-	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
+	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, Upgrading: *from, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
 	if sf.cache != "" {
 		o.CacheDir = filepath.Join(sf.cache, "plugins")
 	}
@@ -303,10 +305,15 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 		if err := json.Unmarshal(b, &p); err != nil {
 			return 0, fmt.Errorf("%s: %w", *planFile, err)
 		}
-		o.Core = p.Target.Core
-		o.Plugins = p.Target.Plugins
-		if len(p.Steps) > 0 && o.Java == 0 {
-			o.Java = p.Steps[len(p.Steps)-1].Java
+		core, picks, java, err := p.Stop(*step)
+		if err != nil {
+			return 0, err
+		}
+		// The plan's Java is a preference: plugins that need a newer
+		// Java than the plan knows of get it, and the report says why.
+		o.Core, o.Plugins, o.PreferJava = core, picks, java
+		if o.Upgrading == "" {
+			o.Upgrading = p.Previous(*step)
 		}
 	default:
 		s, err := in.load()
@@ -380,16 +387,9 @@ func cmdDownload(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	picks := p.Target.Plugins
-	core := p.Target.Core
-	if *step >= 0 {
-		if *step >= len(p.Steps) {
-			return fmt.Errorf("the plan has steps 0 to %d", len(p.Steps)-1)
-		}
-		picks, core = p.Steps[*step].Plugins, p.Steps[*step].Core
-		if len(picks) == 0 {
-			return fmt.Errorf("step %d has no plugin set; make the plan again with this version", *step)
-		}
+	core, picks, _, err := p.Stop(*step)
+	if err != nil {
+		return err
 	}
 	if err := os.MkdirAll(*dir, 0o755); err != nil {
 		return err

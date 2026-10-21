@@ -27,6 +27,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -44,9 +45,17 @@ const ProbeFile = "jenkins-upgrade-check-probe.json"
 
 // Options configure one rehearsal.
 type Options struct {
-	Core    string
-	Java    int // Java for the image; 0 picks the oldest the core and plugins allow
-	Plugins []plan.Pick
+	Core string
+	Java int // Java for the image; 0 picks the oldest the core and plugins allow
+	// PreferJava is the Java to use when Java is 0 and the plugins run on
+	// it: the plan's Java for a stop. Plugins that need more win.
+	PreferJava int
+	Plugins    []plan.Pick
+	// Upgrading is the Jenkins version the controller ran before Core.
+	// Jenkins then starts as an in-place upgrade from it and, as on a
+	// real upgrade, installs the plugins split out of core since that
+	// version from its own war. A copied Home brings its own.
+	Upgrading string
 	// Home is a JENKINS_HOME whose configuration (not its build records)
 	// is copied into the rehearsal.
 	Home string
@@ -81,8 +90,12 @@ type Result struct {
 	Broken []Failure `json:"broken,omitempty"`
 	// Skipped are plugins that could not be downloaded, with why.
 	Skipped []string `json:"skipped,omitempty"`
-	Errors  []string `json:"errors,omitempty"`
-	LogFile string   `json:"logFile,omitempty"`
+	// Upgrading is the version Jenkins was told it upgraded from;
+	// Detached are the plugins split out of core it installed for that.
+	Upgrading string   `json:"upgrading,omitempty"`
+	Detached  []string `json:"detached,omitempty"`
+	Errors    []string `json:"errors,omitempty"`
+	LogFile   string   `json:"logFile,omitempty"`
 	// Home is set when a real configuration was rehearsed.
 	Home *HomeResult `json:"home,omitempty"`
 }
@@ -177,6 +190,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 		casc = "/var/jenkins_home/casc_configs"
 	}
+	if ok, err := markUpgrade(ref, o.Upgrading, o.Core); err != nil {
+		return nil, err
+	} else if ok {
+		res.Upgrading = o.Upgrading
+	}
 	if err := os.MkdirAll(filepath.Join(ref, "init.groovy.d"), 0o755); err != nil {
 		return nil, err
 	}
@@ -207,7 +225,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	}
 	res.Image, res.Java = base, java
 	if minJava > 0 && o.Java == 0 && o.Image == "" && java >= minJava {
-		if oldest := version.SupportedJava(o.Core); len(oldest) > 0 && oldest[0] < minJava {
+		if o.PreferJava > 0 {
+			if java != o.PreferJava {
+				res.JavaReason = fmt.Sprintf("%s needs Java %d or newer", who, minJava)
+			}
+		} else if oldest := version.SupportedJava(o.Core); len(oldest) > 0 && oldest[0] < minJava {
 			res.JavaReason = fmt.Sprintf("%s needs Java %d or newer", who, minJava)
 		}
 	}
@@ -217,8 +239,13 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	// container rather than built into an image, it leaves no image and no
 	// build cache behind: a few hundred plugins each time otherwise.
 	name := fmt.Sprintf("juc-%s-%d", strings.ReplaceAll(sanitize(o.Core), ".", "-"), time.Now().UnixNano())
+	// Older images ship JDKs (11.0.16, 17.0.4) whose container support
+	// throws on cgroup v2 hosts (JDK-8287073), which fails any plugin that
+	// reads system metrics. The rehearsal sets no memory limit, so turning
+	// container support off changes nothing else; Java 8 before 8u191
+	// does not know the option and ignores it.
 	args := []string{"create", "--name", name, "--network", "none",
-		"-e", "JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.model.UpdateCenter.never=true"}
+		"-e", "JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.model.UpdateCenter.never=true -XX:+IgnoreUnrecognizedVMOptions -XX:-UseContainerSupport"}
 	if casc != "" {
 		args = append(args, "-e", "CASC_JENKINS_CONFIG="+casc)
 	}
@@ -248,7 +275,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 		running, _ := o.run(ctx, "inspect", "-f", "{{.State.Running}} {{.State.ExitCode}}", name)
 		if strings.HasPrefix(strings.TrimSpace(running), "false") {
+			logs, _ = o.run(ctx, "logs", name)
 			res.Reason = "the container exited (state: " + strings.TrimSpace(running) + ")"
+			if w := lastWords(logs); w != "" {
+				res.Reason += "; the log ends: " + w
+			}
 			break
 		}
 		if time.Now().After(deadline) {
@@ -288,6 +319,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	for _, p := range o.Plugins {
 		versions[p.Name] = p.Version
 	}
+	res.Detached = detachedPlugins(logs)
 	failed, errs := ParseLog(logs)
 	if probe != nil {
 		failed = mergeProbe(failed, probe, got)
@@ -338,6 +370,10 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 	}
 
+	if n := len(res.Errors); n > maxErrors {
+		res.Errors = append(res.Errors[:maxErrors:maxErrors], fmt.Sprintf("and %d more errors in the log", n-maxErrors))
+	}
+
 	logDir := o.OutDir
 	if logDir == "" {
 		logDir = work
@@ -350,6 +386,9 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	}
 	return res, nil
 }
+
+// maxErrors is how many errors that name no plugin a report lists.
+const maxErrors = 40
 
 // rehearsalNoise are administrator warnings a rehearsal shows because it has
 // no network, no URL, no executors and a fresh Java, or that the report
@@ -580,7 +619,7 @@ func probeReasons(causes []string) []string {
 	return out
 }
 
-var failedToLoadClass = regexp.MustCompile(`(?:Failed to load|Failed to instantiate|Failed to resolve class|Failed to inject)\s+(?:class\s+)?([A-Za-z_$][\w$]*(?:\.[\w$]+)+)`)
+var failedToLoadClass = regexp.MustCompile(`(?:Failed to load|Failed to scout|Failed to instantiate|Failed to resolve class|Failed to inject)\s+(?:class\s+)?([A-Za-z_$][\w$]*(?:\.[\w$]+)+)`)
 
 // attribute moves log errors that name a class to the plugin that ships the
 // class; the rest stay general errors.
@@ -737,34 +776,46 @@ func (o *Options) pickImage(ctx context.Context, minJava int) (string, int, erro
 	}
 	javas := version.SupportedJava(o.Core)
 	var order []int
-	if o.Java > 0 {
-		order = append(order, o.Java)
+	add := func(j int) {
+		if j > 0 && !slices.Contains(order, j) {
+			order = append(order, j)
+		}
+	}
+	add(o.Java)
+	if o.Java == 0 && o.PreferJava >= minJava {
+		add(o.PreferJava) // the plan's Java, when the plugins run on it
 	}
 	for _, j := range javas {
-		if j != o.Java && j >= minJava {
-			order = append(order, j)
+		if j >= minJava {
+			add(j)
 		}
 	}
 	if len(order) == 0 || (o.Java > 0 && len(order) == 1) {
 		// No Java the core supports satisfies every plugin, so the ones
 		// that need more fail whatever runs; rehearse what runs today.
+		add(o.PreferJava)
 		for _, j := range javas {
-			if j != o.Java {
-				order = append(order, j)
-			}
+			add(j)
 		}
 	}
 	var tried []string
 	var last string
 	for _, j := range order {
-		c := fmt.Sprintf("jenkins/jenkins:%s-jdk%d", o.Core, j)
-		tried = append(tried, c)
-		o.logf("pulling %s", c)
-		out, err := o.run(ctx, "pull", "-q", c)
-		if err == nil {
-			return c, j, nil
+		cands := []string{fmt.Sprintf("jenkins/jenkins:%s-jdk%d", o.Core, j)}
+		if j == 8 && version.Less(o.Core, "2.303") {
+			// Images before 2.303 have no -jdk8 tag: their plain tag is
+			// Java 8, and -jdk11 the variant.
+			cands = []string{"jenkins/jenkins:" + o.Core}
 		}
-		last = strings.TrimSpace(out)
+		for _, c := range cands {
+			tried = append(tried, c)
+			o.logf("pulling %s", c)
+			out, err := o.run(ctx, "pull", "-q", c)
+			if err == nil {
+				return c, j, nil
+			}
+			last = strings.TrimSpace(out)
+		}
 	}
 	c := "jenkins/jenkins:" + o.Core
 	tried = append(tried, c)
@@ -951,9 +1002,55 @@ func copyTree(src, dst string) error {
 }
 
 var (
-	failedLoading = regexp.MustCompile(`Failed Loading plugin (.*?) v(\S+) \(([^)\s]+)\)`)
-	logHeader     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}[ T][\d:.]+\S*\s+\[id=\d+\]\s+(SEVERE|WARNING)\s+(.*)$`)
+	loadedDetached = regexp.MustCompile(`[Dd]etached plugins \(and dependencies\): \[([^\]]*)\]`)
+	failedLoading  = regexp.MustCompile(`Failed Loading plugin (.*?) v(\S+) \(([^)\s]+)\)`)
+	// Jenkins logs an extension it cannot load as a warning
+	// ("ExtensionFinder$Sezpoz#scout: Failed to scout <class>"); optional
+	// ones, which are allowed to fail, only at a finer level.
+	extensionFailure = regexp.MustCompile(`ExtensionFinder\S*: Failed to (?:scout|load|instantiate) [A-Za-z_$]`)
+	logHeader        = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}[ T][\d:.]+\S*\s+\[id=\d+\]\s+(SEVERE|WARNING)\s+(.*)$`)
 )
+
+// lastWords says why Jenkins stopped: the last SEVERE message before it
+// began to shut down, or else the last line that is not part of a stack trace.
+func lastWords(log string) string {
+	lines := strings.Split(log, "\n")
+	end := len(lines)
+	for i, l := range lines {
+		if strings.Contains(l, "Started termination") || strings.Contains(l, "JVM is terminating") {
+			end = i
+			break
+		}
+	}
+	for i := end - 1; i >= 0; i-- {
+		m := logHeader.FindStringSubmatch(lines[i])
+		if m == nil || m[1] != "SEVERE" {
+			continue
+		}
+		msg := m[2]
+		if i+1 < len(lines) && !logHeader.MatchString(lines[i+1]) {
+			if t := logLine(lines[i+1]); t != "" && !strings.HasPrefix(t, "at ") {
+				msg += " — " + t
+			}
+		}
+		return clip(msg)
+	}
+	for i := len(lines) - 1; i >= 0; i-- {
+		t := logLine(lines[i])
+		if t == "" || strings.HasPrefix(t, "at ") || strings.HasPrefix(t, "...") {
+			continue
+		}
+		return clip(t)
+	}
+	return ""
+}
+
+func clip(s string) string {
+	if r := []rune(s); len(r) > 300 {
+		return string(r[:300]) + "…"
+	}
+	return s
+}
 
 // logLine trims a log line and the "[LF]>" marker newer Jenkins puts in
 // front of each continuation line of a multi-line message.
@@ -1014,6 +1111,9 @@ func ParseLog(log string) ([]Failure, []string) {
 				pendingErr = m[2]
 			} else if strings.Contains(m[2], "NoClassDefFoundError") || strings.Contains(m[2], "ClassNotFoundException") || strings.Contains(m[2], "LinkageError") {
 				pendingErr = m[2]
+			} else if extensionFailure.MatchString(m[2]) {
+				// An extension that did not load: its plugin works in part.
+				pendingErr = m[2]
 			}
 			if strings.Contains(m[2], "optional component") {
 				pendingErr = ""
@@ -1025,7 +1125,7 @@ func ParseLog(log string) ([]Failure, []string) {
 			if t := logLine(line); t != "" && !strings.HasPrefix(t, "at ") {
 				msg += " — " + t
 			}
-			if !seenErr[msg] && len(errs) < 40 {
+			if !seenErr[msg] && len(errs) < 1000 {
 				seenErr[msg] = true
 				errs = append(errs, msg)
 			}
@@ -1064,4 +1164,37 @@ func Download(ctx context.Context, picks []plan.Pick, dir, cacheDir string) ([]p
 	}
 	got, more := o.download(ctx, fetch, dir)
 	return got, append(skipped, more...)
+}
+
+// lastExecVersion is the file in JENKINS_HOME where Jenkins records the
+// version it last ran; a newer core reads it to decide it is an upgrade.
+const lastExecVersion = "jenkins.install.InstallUtil.lastExecVersion"
+
+// markUpgrade records in the home that Jenkins last ran version from, so
+// that core starts as an in-place upgrade. A home that already records its
+// version keeps it.
+func markUpgrade(home, from, core string) (bool, error) {
+	if from == "" || from == core {
+		return false, nil
+	}
+	last := filepath.Join(home, lastExecVersion)
+	if _, err := os.Stat(last); !os.IsNotExist(err) {
+		return false, err
+	}
+	return true, os.WriteFile(last, []byte(from), 0o644)
+}
+
+// detachedPlugins returns the plugins split out of core that Jenkins
+// installed from its war because it was upgraded from an older version.
+func detachedPlugins(log string) []string {
+	var out []string
+	for _, m := range loadedDetached.FindAllStringSubmatch(log, -1) {
+		for _, n := range strings.Split(m[1], ",") {
+			n = strings.TrimSuffix(strings.TrimSuffix(strings.TrimSpace(n), ".hpi"), ".jpi")
+			if n != "" && !slices.Contains(out, n) {
+				out = append(out, n)
+			}
+		}
+	}
+	return out
 }

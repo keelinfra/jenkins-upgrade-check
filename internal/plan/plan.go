@@ -190,6 +190,39 @@ func Build(s *snapshot.Snapshot, to string, rel *uc.Releases, center *uc.UpdateC
 	return p, nil
 }
 
+// Stop is one step's core, its whole plugin set and the Java it runs on;
+// step -1 is the target. Java is 0 for the first step, which stays on the
+// controller's current core and Java.
+func (p *Plan) Stop(step int) (core string, picks []Pick, java int, err error) {
+	if step < 0 {
+		java := 0
+		if len(p.Steps) > 0 {
+			java = p.Steps[len(p.Steps)-1].Java
+		}
+		return p.Target.Core, p.Target.Plugins, java, nil
+	}
+	if step >= len(p.Steps) {
+		return "", nil, 0, fmt.Errorf("the plan has steps 0 to %d", len(p.Steps)-1)
+	}
+	st := p.Steps[step]
+	if len(st.Plugins) == 0 {
+		return "", nil, 0, fmt.Errorf("step %d has no plugin set; make the plan again with this version", step)
+	}
+	return st.Core, st.Plugins, st.Java, nil
+}
+
+// Previous is the core the controller runs before a stop (see Stop): the
+// core of the step before it, or "" for the first step.
+func (p *Plan) Previous(step int) string {
+	if step < 0 {
+		step = len(p.Steps) - 1
+	}
+	if step <= 0 || step >= len(p.Steps) {
+		return ""
+	}
+	return p.Steps[step-1].Core
+}
+
 func diff(before, after []Pick) []Change {
 	old := map[string]string{}
 	for _, b := range before {

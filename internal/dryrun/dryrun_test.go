@@ -1,9 +1,12 @@
 package dryrun
 
 import (
+	"archive/zip"
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -190,5 +193,109 @@ func TestPluginOf(t *testing.T) {
 func TestItemName(t *testing.T) {
 	if got := itemName("jobs/f/jobs/b"); got != "f/b" {
 		t.Errorf("itemName = %q", got)
+	}
+}
+
+// An extension Jenkins could not load (old email-ext on a core without
+// javax.mail) leaves its plugin working in part.
+func TestScoutFailureBreaksItsPlugin(t *testing.T) {
+	log := "2026-10-21 12:41:50.000+0000 [id=30]\tWARNING\thudson.ExtensionFinder$Sezpoz#scout: Failed to scout hudson.plugins.emailext.ExtendedEmailPublisher$DescriptorImpl\n" +
+		"java.lang.ClassNotFoundException: javax.mail.internet.AddressException\n" +
+		"\tat java.base/java.lang.Class.forName0(Native Method)\n" +
+		"Caused: java.lang.NoClassDefFoundError: javax/mail/internet/AddressException\n" +
+		"2026-10-21 12:41:51.000+0000 [id=30]\tINFO\tjenkins.InitReactorRunner$1#onAttained: Completed initialization\n"
+	failed, errs := ParseLog(log)
+	if len(failed) != 0 || len(errs) != 1 || !strings.Contains(errs[0], "Failed to scout hudson.plugins.emailext.ExtendedEmailPublisher$DescriptorImpl — java.lang.ClassNotFoundException: javax.mail.internet.AddressException") {
+		t.Fatalf("failed = %v, errors = %q", failed, errs)
+	}
+
+	dir := t.TempDir()
+	f, err := os.Create(filepath.Join(dir, "email-ext.jpi"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	z := zip.NewWriter(f)
+	if _, err := z.Create("WEB-INF/classes/hudson/plugins/emailext/ExtendedEmailPublisher$DescriptorImpl.class"); err != nil {
+		t.Fatal(err)
+	}
+	if err := z.Close(); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	broken, rest := attribute(errs, dir, nil, map[string]string{"email-ext": "2.40"})
+	if len(broken) != 1 || broken[0].Name != "email-ext" || broken[0].Version != "2.40" || len(rest) != 0 {
+		t.Errorf("broken = %+v, rest = %q", broken, rest)
+	}
+}
+
+// The plan's Java comes first unless a plugin needs more; an explicit Java
+// always does.
+func TestPickImageJava(t *testing.T) {
+	docker := filepath.Join(t.TempDir(), "docker")
+	if err := os.WriteFile(docker, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		java, prefer, min int
+		want              string
+	}{
+		{0, 8, 0, "jenkins/jenkins:2.346.3-jdk8"},
+		{0, 8, 11, "jenkins/jenkins:2.346.3-jdk11"},
+		{0, 17, 11, "jenkins/jenkins:2.346.3-jdk17"},
+		{8, 0, 11, "jenkins/jenkins:2.346.3-jdk8"},
+		{0, 0, 0, "jenkins/jenkins:2.346.3-jdk8"},
+		{0, 0, 21, "jenkins/jenkins:2.346.3-jdk8"},
+	} {
+		o := Options{Core: "2.346.3", Java: c.java, PreferJava: c.prefer, Docker: docker}
+		got, _, err := o.pickImage(context.Background(), c.min)
+		if err != nil || got != c.want {
+			t.Errorf("java %d, prefer %d, plugins need %d: %s, %v; want %s", c.java, c.prefer, c.min, got, err, c.want)
+		}
+	}
+}
+
+func TestLastWords(t *testing.T) {
+	log := "Running from: /usr/share/jenkins/jenkins.war\njava.lang.IllegalStateException: boom\n\tat a.b(C.java:1)\n\t... 3 more\n\n"
+	if got := lastWords(log); got != "java.lang.IllegalStateException: boom" {
+		t.Errorf("lastWords = %q", got)
+	}
+	log = "2026-10-21 13:19:20.000+0000 [id=26]\tSEVERE\tjenkins.InitReactorRunner$1#onTaskFailed: Failed to load the plugins\n" +
+		"java.lang.LinkageError: boom\n\tat a.b(C.java:1)\n" +
+		"2026-10-21 13:19:25.276+0000 [id=30]\tINFO\tjenkins.model.Jenkins$13#onAttained: Started termination\n" +
+		"2026-10-21 13:19:25.279+0000 [id=30]\tSEVERE\tjenkins.model.Jenkins$13#onTaskFailed: Failed IOHubProvider.cleanUp\n" +
+		"2026-10-21 13:19:25.491+0000 [id=31]\tINFO\twinstone.Logger#logInternal: Control thread shutdown successfully\n"
+	if got, want := lastWords(log), "jenkins.InitReactorRunner$1#onTaskFailed: Failed to load the plugins — java.lang.LinkageError: boom"; got != want {
+		t.Errorf("lastWords = %q, want %q", got, want)
+	}
+}
+
+// A rehearsal of an upgrade tells Jenkins the version it came from, unless
+// the copied home already says so; Jenkins then logs the plugins split out
+// of core that it installs.
+func TestUpgradeFrom(t *testing.T) {
+	home := t.TempDir()
+	if ok, err := markUpgrade(home, "", "2.580.1"); ok || err != nil {
+		t.Errorf("no version: %v, %v", ok, err)
+	}
+	if ok, err := markUpgrade(home, "2.580.1", "2.580.1"); ok || err != nil {
+		t.Errorf("same version: %v, %v", ok, err)
+	}
+	if ok, err := markUpgrade(home, "2.249.3", "2.580.1"); !ok || err != nil {
+		t.Fatalf("upgrade: %v, %v", ok, err)
+	}
+	if b, _ := os.ReadFile(filepath.Join(home, lastExecVersion)); string(b) != "2.249.3" {
+		t.Errorf("recorded %q", b)
+	}
+	if ok, err := markUpgrade(home, "2.346.3", "2.580.1"); ok || err != nil {
+		t.Errorf("home with a version: %v, %v", ok, err)
+	}
+
+	log := "2026-10-21 13:36:01.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded Jenkins from version 2.249.3 to version 2.580.1. Loaded detached plugins (and dependencies): [sshd.hpi, javax-mail-api.hpi, instance-identity]\n" +
+		"2026-10-21 13:36:02.000+0000 [id=30]\tINFO\thudson.PluginManager#loadDetachedPlugins: Upgraded detached plugins (and dependencies): [sshd]\n"
+	if got := detachedPlugins(log); !slices.Equal(got, []string{"sshd", "javax-mail-api", "instance-identity"}) {
+		t.Errorf("detached = %q", got)
+	}
+	if got := detachedPlugins("Jenkins is fully up and running"); got != nil {
+		t.Errorf("no upgrade: %q", got)
 	}
 }

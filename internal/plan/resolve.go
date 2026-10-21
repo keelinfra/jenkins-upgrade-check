@@ -48,10 +48,12 @@ func (r Resolution) ByName() map[string]Pick {
 
 // Resolve picks, for each plugin, the newest release the core can load, then
 // adds whatever those releases newly depend on and raises any dependency that
-// is now too old. A plugin already newer than anything the core supports is
-// left alone.
+// is now too old. A release whose dependencies need a newer core is passed
+// over for an older one, as the update center for that core does. A plugin
+// already newer than anything the core supports is left alone.
 func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 	res := Resolution{Core: core}
+	l := &loadable{rel: rel, core: core, memo: map[string]*uc.Release{}, busy: map[string]bool{}}
 	picks := map[string]*Pick{}
 	order := []string{}
 	set := func(p Pick) {
@@ -76,7 +78,7 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 			set(p)
 			continue
 		}
-		latest := rel.LatestFor(cur.Name, core)
+		latest := l.newest(cur.Name, "")
 		switch {
 		case latest == nil:
 			res.Problems = append(res.Problems, fmt.Sprintf("%s: no release runs on Jenkins %s; kept at %s", cur.Name, core, cur.Version))
@@ -110,7 +112,7 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 					res.Problems = append(res.Problems, fmt.Sprintf("%s %s needs %s %s, which the update center no longer distributes", name, p.Version, d.Name, d.Version))
 					continue
 				}
-				cand := rel.LatestFor(d.Name, core)
+				cand := l.newest(d.Name, d.Version)
 				if cand == nil || version.Less(cand.Version, d.Version) {
 					res.Problems = append(res.Problems, fmt.Sprintf("%s %s needs %s %s or newer, and no such release runs on Jenkins %s", name, p.Version, d.Name, d.Version, core))
 					continue
@@ -131,12 +133,32 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 				have.Version, have.URL = d.Version, uc.ArchiveURL(d.Name, d.Version)
 				continue
 			}
-			cand := rel.LatestFor(d.Name, core)
+			cand := l.newest(d.Name, d.Version)
 			if cand == nil || version.Less(cand.Version, d.Version) {
 				res.Problems = append(res.Problems, fmt.Sprintf("%s %s needs %s %s or newer, but the newest %s that runs on Jenkins %s is %s", name, p.Version, d.Name, d.Version, d.Name, core, have.Version))
 				continue
 			}
 			have.Version = cand.Version
+			queue = append(queue, d.Name)
+		}
+		// Plugins built for an older core still expect what was split out
+		// of core since; Jenkins treats that as a dependency.
+		for _, d := range implied(r, core) {
+			if !rel.Known(d.Name) {
+				continue
+			}
+			if have, installed := picks[d.Name]; installed {
+				if have.Added && !contains(have.RequiredBy, name) {
+					have.RequiredBy = append(have.RequiredBy, name)
+				}
+				continue
+			}
+			cand := l.newest(d.Name, d.Version)
+			if cand == nil {
+				res.Problems = append(res.Problems, fmt.Sprintf("%s %s was built for Jenkins %s and expects %s, which was split out of core, but no %s release runs on Jenkins %s", name, p.Version, r.RequiredCore, d.Name, d.Name, core))
+				continue
+			}
+			set(Pick{Name: d.Name, Version: cand.Version, Added: true, RequiredBy: []string{name}})
 			queue = append(queue, d.Name)
 		}
 	}
@@ -158,6 +180,59 @@ func Resolve(rel *uc.Releases, current []Pick, core string) Resolution {
 	sort.Strings(res.Problems)
 	res.Problems = dedupe(res.Problems)
 	return res
+}
+
+// loadable finds, for each plugin, the newest release the core can load
+// together with everything it requires.
+type loadable struct {
+	rel  *uc.Releases
+	core string
+	memo map[string]*uc.Release
+	busy map[string]bool
+}
+
+// newest is the newest release of the plugin, at least atLeast, whose
+// required dependencies all run on the core; failing that, the newest release
+// the core can load, so that the missing dependency shows up as a problem.
+func (l *loadable) newest(name, atLeast string) *uc.Release {
+	if b := l.best(name); b != nil && (atLeast == "" || !version.Less(b.Version, atLeast)) {
+		return b
+	}
+	return l.rel.LatestFor(name, l.core)
+}
+
+func (l *loadable) best(name string) *uc.Release {
+	if r, ok := l.memo[name]; ok {
+		return r
+	}
+	if l.busy[name] {
+		// A dependency cycle: take the newest and let the rest decide.
+		return l.rel.LatestFor(name, l.core)
+	}
+	l.busy[name] = true
+	defer delete(l.busy, name)
+	var found *uc.Release
+	for _, r := range l.rel.LoadableFor(name, l.core) {
+		if l.requirementsMet(r) {
+			found = r
+			break
+		}
+	}
+	l.memo[name] = found
+	return found
+}
+
+func (l *loadable) requirementsMet(r *uc.Release) bool {
+	for _, d := range r.Dependencies {
+		if d.Optional || !l.rel.Known(d.Name) {
+			continue
+		}
+		b := l.best(d.Name)
+		if b == nil || version.Less(b.Version, d.Version) {
+			return false
+		}
+	}
+	return true
 }
 
 func contains(list []string, s string) bool {

@@ -246,6 +246,23 @@ func (db *Releases) LatestFor(name, core string) *Release {
 	return nil
 }
 
+// LoadableFor lists the releases of the plugin that the given core can load,
+// newest first, skipping pre-releases.
+func (db *Releases) LoadableFor(name, core string) []*Release {
+	list := db.byName[name]
+	var out []*Release
+	for i := len(list) - 1; i >= 0; i-- {
+		r := list[i]
+		if version.IsPrerelease(r.Version) {
+			continue
+		}
+		if r.RequiredCore == "" || version.AtLeast(core, r.RequiredCore) {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
 // Latest returns the newest non-pre-release of the plugin, whatever core it
 // needs.
 func (db *Releases) Latest(name string) *Release {

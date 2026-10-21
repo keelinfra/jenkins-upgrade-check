@@ -167,3 +167,118 @@ func TestJavaMajor(t *testing.T) {
 		}
 	}
 }
+
+func TestStopPicksEachStepAndTheTarget(t *testing.T) {
+	rel, center := fixtures(t)
+	s := &snapshot.Snapshot{Core: "2.346.3", Plugins: []snapshot.Plugin{{Name: "workflow-cps", Version: "2.90", Enabled: true}}}
+	p, err := Build(s, "2.580.1", rel, center)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p.Steps) != 3 {
+		t.Fatalf("2.346.3 to 2.580.1 should stop at 2.541.3: %d steps", len(p.Steps))
+	}
+	core, picks, java, err := p.Stop(1)
+	if err != nil || core != "2.541.3" || java != 17 || len(picks) == 0 {
+		t.Errorf("step 1 = %s on Java %d with %d plugins (%v), want 2.541.3 on Java 17", core, java, len(picks), err)
+	}
+	core, _, java, err = p.Stop(-1)
+	if err != nil || core != "2.580.1" || java != 21 {
+		t.Errorf("target = %s on Java %d (%v), want 2.580.1 on Java 21", core, java, err)
+	}
+	if _, _, _, err := p.Stop(3); err == nil {
+		t.Error("a step past the end should be an error")
+	}
+}
+
+// The newest trigger release that 2.60.3 can load needs a credentials release
+// that 2.60.3 cannot, so the older trigger is the one that works; a removed
+// dependency does not count against a release.
+func TestResolvePassesOverReleasesWithDependenciesTooNew(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "trigger":{
+  "2.0":{"requiredCore":"2.60.3","dependencies":[{"name":"credentials","version":"2.6.1.1","optional":false}]},
+  "1.0":{"requiredCore":"2.60.3","dependencies":[{"name":"credentials","version":"2.1.0","optional":false},{"name":"gone","version":"1.0","optional":false}]}
+ },
+ "credentials":{
+  "2.6.1.1":{"requiredCore":"2.138.4"},
+  "2.1.19":{"requiredCore":"2.60.3"}
+ },
+ "report":{
+  "3.0":{"requiredCore":"2.60.3","dependencies":[{"name":"token-macro","version":"2.8","optional":true}]}
+ },
+ "token-macro":{"2.6":{"requiredCore":"2.60.3"}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{{Name: "trigger", Version: "0"}, {Name: "report", Version: "0"}}, "2.60.3")
+	got := r.ByName()
+	if got["trigger"].Version != "1.0" || got["credentials"].Version != "2.1.19" {
+		t.Errorf("want trigger 1.0 with credentials 2.1.19, got %+v", r.Plugins)
+	}
+	if got["report"].Version != "3.0" {
+		t.Errorf("an optional dependency that is not installed does not hold a release back, got %+v", got["report"])
+	}
+	if len(r.Problems) != 1 || !strings.Contains(r.Problems[0], "gone") {
+		t.Errorf("want only the removed dependency as a problem, got %v", r.Problems)
+	}
+
+	// On a core that runs the newer credentials, the newer trigger wins.
+	r = Resolve(rel, []Pick{{Name: "trigger", Version: "0"}}, "2.138.4")
+	if got := r.ByName(); got["trigger"].Version != "2.0" || got["credentials"].Version != "2.6.1.1" {
+		t.Errorf("on 2.138.4 want trigger 2.0 with credentials 2.6.1.1, got %+v", r.Plugins)
+	}
+}
+
+func TestPrevious(t *testing.T) {
+	p := &Plan{Steps: []Step{{Core: "2.249.3"}, {Core: "2.462.3"}, {Core: "2.541.3"}, {Core: "2.580.1"}}, Target: Resolution{Core: "2.580.1"}}
+	for step, want := range map[int]string{0: "", 1: "2.249.3", 2: "2.462.3", 3: "2.541.3", -1: "2.541.3", 4: ""} {
+		if got := p.Previous(step); got != want {
+			t.Errorf("Previous(%d) = %q, want %q", step, got, want)
+		}
+	}
+	if got := (&Plan{Steps: []Step{{Core: "2.541.3"}}}).Previous(-1); got != "" {
+		t.Errorf("no core upgrade: %q", got)
+	}
+}
+
+// A plugin built for an older core expects what core split out since; the
+// war no longer carries those plugins, so the plan adds them.
+func TestResolveAddsPluginsSplitOutOfCore(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "translation":{"1.16":{"requiredCore":"1.466"}},
+ "script-security":{"1.0":{"requiredCore":"2.60.3"}},
+ "modern":{"1.0":{"requiredCore":"2.479.3"}},
+ "javax-mail-api":{"1.6.2-11":{"requiredCore":"2.361.4","dependencies":[{"name":"javax-activation-api","version":"1.2.0-2","optional":false}]}},
+ "javax-activation-api":{"1.2.0-8":{"requiredCore":"2.361.4"}},
+ "trilead-api":{"2.1.0":{"requiredCore":"2.184"}},
+ "command-launcher":{"1.0":{"requiredCore":"2.86"}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{{Name: "translation", Version: "1.16"}, {Name: "script-security", Version: "1.0"}, {Name: "modern", Version: "1.0"}}, "2.580.1")
+	got := r.ByName()
+	for _, name := range []string{"javax-mail-api", "javax-activation-api", "trilead-api", "command-launcher"} {
+		if p, ok := got[name]; !ok || !p.Added || !contains(p.RequiredBy, "translation") {
+			t.Errorf("%s: want added for translation, got %+v", name, p)
+		}
+	}
+	if contains(got["command-launcher"].RequiredBy, "script-security") {
+		t.Errorf("script-security is exempt from command-launcher (split-plugin-cycles.txt): %+v", got["command-launcher"])
+	}
+	if len(r.Problems) != 0 {
+		t.Errorf("problems: %v", r.Problems)
+	}
+
+	// Before the split, core still has it: nothing to add.
+	r = Resolve(rel, []Pick{{Name: "translation", Version: "1.16"}}, "2.249.3")
+	got = r.ByName()
+	if _, ok := got["javax-mail-api"]; ok {
+		t.Errorf("2.249.3 still ships JavaMail; got %+v", r.Plugins)
+	}
+	if _, ok := got["trilead-api"]; !ok {
+		t.Errorf("trilead-api was split out in 2.184; got %+v", r.Plugins)
+	}
+}

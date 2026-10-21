@@ -1,47 +1,208 @@
-name: Upgrade experiment
+name: Upgrade matrix
 
-# Rehearses upgrading a typical controller from several older versions to
-# the current LTS. Long and network-heavy, so only on request or when the
-# experiment itself changes.
+# Rehearses upgrading a typical controller from the last release of every LTS
+# line to the current LTS (hack/experiment.sh), and publishes the table to the
+# matrix branch. Runs when a new LTS is out (checked every Monday), on
+# request, and on two starting versions when the experiment itself changes.
 on:
+  schedule:
+    - cron: "23 4 * * 1"
   workflow_dispatch:
     inputs:
       to:
         description: Target version, or lts
         default: lts
+      from:
+        description: Starting versions, space-separated, or all
+        default: all
+      top:
+        description: How many of the most installed plugins, space-separated
+        default: "100 300"
+      publish:
+        description: Publish the table to the matrix branch
+        type: boolean
+        default: true
   pull_request:
     paths:
       - hack/experiment.sh
+      - hack/matrix/**
+      - hack/publish-matrix.sh
+      - internal/dryrun/**
       - .github/workflows/experiment.yml
 
 permissions:
   contents: read
 
+concurrency:
+  group: upgrade-matrix-${{ github.ref }}
+
 jobs:
-  rehearse:
+  setup:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    outputs:
+      to: ${{ steps.setup.outputs.to }}
+      month: ${{ steps.setup.outputs.month }}
+      from: ${{ steps.setup.outputs.from }}
+      top: ${{ steps.setup.outputs.top }}
+      run: ${{ steps.setup.outputs.run }}
+      publish: ${{ steps.setup.outputs.publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - name: What to rehearse
+        id: setup
+        env:
+          EVENT: ${{ github.event_name }}
+          TO: ${{ inputs.to || 'lts' }}
+          FROM: ${{ inputs.from || 'all' }}
+          TOP: ${{ inputs.top || '100 300' }}
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+          to=$TO
+          if [ "$to" = lts ]; then
+            to=$(curl -fsSL https://updates.jenkins.io/stable/latestCore.txt)
+          fi
+          month=$(go run ./hack/matrix month)
+          publish=false
+          case $EVENT in
+            pull_request) FROM="2.60.3 2.346.3"; TOP=100 ;;
+            schedule) publish=true ;;
+            workflow_dispatch) publish=$PUBLISH ;;
+          esac
+          for v in $to $FROM $TOP; do
+            [[ $v =~ ^(all|[0-9]+|2\.[0-9]+(\.[0-9]+)?)$ ]] || { echo "not a version: $v"; exit 1; }
+          done
+          if [ "$FROM" = all ]; then
+            from=$(go run ./hack/matrix versions -to "$to")
+          else
+            # shellcheck disable=SC2086 # one argument per version
+            from=$(jq -cn '$ARGS.positional' --args $FROM)
+          fi
+          # shellcheck disable=SC2086
+          top=$(jq -cn '$ARGS.positional | map(tonumber)' --args $TOP)
+          run=true
+          # Every Monday: only when this LTS has no table yet.
+          if [ "$EVENT" = schedule ] && git fetch -q --depth 1 origin matrix 2>/dev/null &&
+            git cat-file -e "FETCH_HEAD:$to/matrix.json" 2>/dev/null; then
+            run=false
+          fi
+          {
+            echo "to=$to"
+            echo "month=$month"
+            echo "from=$from"
+            echo "top=$top"
+            echo "run=$run"
+            echo "publish=$publish"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  rehearse:
+    needs: setup
+    if: needs.setup.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
-        from: ["2.346.3", "2.426.3", "2.462.3", "2.492.3", "2.541.3"]
-        top: ["100", "300"]
+        from: ${{ fromJSON(needs.setup.outputs.from) }}
+        top: ${{ fromJSON(needs.setup.outputs.top) }}
     steps:
+      # Five Jenkins images and four sets of a few hundred plugins, each
+      # also unpacked in its container, outgrow the runner's free disk.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: go.mod
       - run: go build ./cmd/jenkins-upgrade-check
       - name: Rehearse
-        run: hack/experiment.sh "${{ matrix.from }}" "${{ inputs.to || 'lts' }}" "${{ matrix.top }}"
+        env:
+          FROM: ${{ matrix.from }}
+          TO: ${{ needs.setup.outputs.to }}
+          TOP: ${{ matrix.top }}
+          MONTH: ${{ needs.setup.outputs.month }}
+        run: hack/experiment.sh "$FROM" "$TO" "$TOP" "$MONTH"
       - name: Report
         if: always()
+        env:
+          D: results/${{ matrix.from }}-top${{ matrix.top }}
         run: |
-          d="results/${{ matrix.from }}-top${{ matrix.top }}"
-          cat "$d/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
-          for f in baseline as-is planned plan; do echo "===== $f"; cat "$d/$f.md" || true; done
+          df -h /
+          cat "$D/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
+          cat "$D/summary.md" || true
+          for log in "$D"/*/dry-run-*.log; do
+            [ -f "$log" ] || continue
+            echo "===== $log: first errors"
+            grep -m 4 -A 12 -E "SEVERE|Exception in thread|Error: " "$log" | head -n 80 || true
+            if ! grep -q "Jenkins is fully up and running" "$log"; then
+              echo "===== $log: did not start; the lines before it stopped"
+              grep -vE "^\s+at |^\s+\.\.\. [0-9]+ more" "$log" |
+                sed -n '/Started termination\|JVM is terminating/q;p' | tail -n 40
+            fi
+          done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: results-${{ matrix.from }}-top${{ matrix.top }}
           path: results/
+          retention-days: 30
+
+  table:
+    needs: [setup, rehearse]
+    if: always() && needs.setup.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - name: Table
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh run download "$GITHUB_RUN_ID" --dir collected --pattern 'results-*'
+          mkdir -p table
+          for row in collected/*/*/row.json; do
+            d=table/$(basename "$(dirname "$row")")
+            mkdir -p "$d"
+            cp "$(dirname "$row")"/{row.json,summary.md,plan.md} "$d"/ 2>/dev/null || true
+          done
+          go run ./hack/matrix table -results table -o table/README.md -json table/matrix.json
+          cat table/README.md >> "$GITHUB_STEP_SUMMARY"
+          cat table/README.md
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: matrix
+          path: table/
+          retention-days: 90
+
+  # Only a complete table is published: a rehearsal that failed (a full disk,
+  # a download outage) would leave its row out.
+  publish:
+    needs: [setup, rehearse, table]
+    if: always() && needs.rehearse.result == 'success' && needs.table.result == 'success' && needs.setup.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TO: ${{ needs.setup.outputs.to }}
+        run: |
+          gh run download "$GITHUB_RUN_ID" --dir matrix --name matrix
+          hack/publish-matrix.sh matrix "$TO"
