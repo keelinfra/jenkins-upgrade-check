@@ -1,8 +1,8 @@
 # Jenkins upgrade plan: 2.89.4 → 2.580.1
 
-Source: results/2.89.4-top100/plugins-2.89.4.txt · generated 2026-10-21 13:34 UTC by jenkins-upgrade-check dev
+Source: results/2.89.4-top100/plugins-2.89.4.txt · generated 2026-10-21 15:23 UTC by jenkins-upgrade-check dev
 
-**3 core upgrade(s)**, 147 plugins: 105 to upgrade, 39 new dependencies; 46 with security warnings today, 3 not from the update center.
+**3 core upgrade(s)**, 149 plugins: 105 to upgrade, 41 new dependencies; 46 with security warnings today, 3 not from the update center.
 
 Jenkins 2.89.4 runs on Java 8; Jenkins 2.580.1 runs on Java 21, 25.
 
@@ -57,8 +57,8 @@ Jenkins 2.89.4 runs on Java 8; Jenkins 2.580.1 runs on Java 21, 25.
 ## Steps
 
 1. **On 2.89.4, update plugins** (0 change(s)). Back up `$JENKINS_HOME` first.
-2. **Run the controller and every agent on Java 8**, upgrade Jenkins to **2.346.3**, start it, then update plugins (124 change(s)).
-3. **Run the controller and every agent on Java 17**, upgrade Jenkins to **2.541.3**, start it, then update plugins (142 change(s)).
+2. **Run the controller and every agent on Java 8**, upgrade Jenkins to **2.346.3**, start it, then update plugins (126 change(s)).
+3. **Run the controller and every agent on Java 17**, upgrade Jenkins to **2.541.3**, start it, then update plugins (144 change(s)).
 4. **Run the controller and every agent on Java 21**, upgrade Jenkins to **2.580.1**, start it, then update plugins (14 change(s)).
 
 No Java version runs both the current and the target core, so the upgrade stops at the last release of each Java generation on the way.
@@ -83,7 +83,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | git-server | 1.7 | 137.ve0060b_432302 | [SECURITY-3319](https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-3319) fixed by the upgrade<br>[SECURITY-3342](https://www.jenkins.io/security/advisory/2024-05-02/#SECURITY-3342) fixed by the upgrade |
 | github | 1.30.0 | 1.47.0 | [SECURITY-1849](https://www.jenkins.io/security/advisory/2022-07-27/#SECURITY-1849) fixed by the upgrade<br>[SECURITY-3246](https://www.jenkins.io/security/advisory/2023-10-25/#SECURITY-3246) fixed by the upgrade<br>[SECURITY-3704](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3704) fixed by the upgrade |
 | github-branch-source | 2.4.2 | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
-| gradle | 1.34 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 1.34 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | handlebars | 1.1.1 | 1.1.1 | not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself |
 | htmlpublisher | 1.21 | 429 | [SECURITY-3301](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3301) fixed by the upgrade<br>[SECURITY-3302](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3302) fixed by the upgrade<br>[SECURITY-3303](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3303) fixed by the upgrade<br>[SECURITY-3547](https://www.jenkins.io/security/advisory/2025-07-09/#SECURITY-3547) fixed by the upgrade<br>[SECURITY-3706](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3706) fixed by the upgrade |
 | junit | 1.27 | 1442.vb_b_a_467df2767 | [SECURITY-2760](https://www.jenkins.io/security/advisory/2022-06-22/#SECURITY-2760) fixed by the upgrade<br>[SECURITY-2888](https://www.jenkins.io/security/advisory/2022-11-15/#SECURITY-2888) fixed by the upgrade<br>[SECURITY-3032](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-3032) fixed by the upgrade |
@@ -170,12 +170,12 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | github | 1.30.0 | 1.47.0 |
 | github-api | 1.95 | 1.330-492.v3941a_032db_2a_ |
 | github-branch-source | 2.4.2 | 1986.v801e40614d00 |
-| gradle | 1.34 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 1.34 | 2.20.1259.v6355c2b_e38c7 |
 | gson-api | – | 2.14.0-201.v8eefe5515533 (new, for git-client, trilead-api) |
 | handlebars | 1.1.1 | 1.1.1 |
 | handy-uri-templates-2-api | 2.1.8-1.0 | 2.1.8-38.vcea_5d521d5f3 |
 | htmlpublisher | 1.21 | 429 |
-| instance-identity | – | 203.v15e81a_1b_7a_38 (new, for git-server, github, mailer, pubsub-light, sshd) |
+| instance-identity | – | 203.v15e81a_1b_7a_38 (new, for git-server, github, jquery-detached, mailer, pipeline-model-declarative-agent, pubsub-light, sshd) |
 | ionicons-api | – | 94.vcc3065403257 (new, for branch-api, cloudbees-folder, config-file-provider, credentials, favorite, git, github-branch-source, junit, matrix-auth, matrix-project, metrics, pipeline-model-definition, role-strategy, workflow-cps, workflow-job, workflow-multibranch) |
 | jackson-annotations2-api | – | 2.22-19.v10a_a_582ea_26e (new, for jackson2-api, jackson3-api) |
 | jackson2-api | 2.9.9.1 | 2.22.3-447.v6a_93ce7d2c82 |
@@ -184,8 +184,10 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | jakarta-mail-api | – | 2.1.5-1 (new, for email-ext, mailer, workflow-basic-steps) |
 | jakarta-xml-bind-api | – | 4.0.9-19.v2b_a_5b_44d9a_1c (new, for jackson2-api) |
 | javadoc | 1.6 | 354.vee1a_660b_4990 |
-| javax-activation-api | – | 1.2.0-8 (new, for jackson2-api, jaxb) |
+| javax-activation-api | – | 1.2.0-8 (new, for ant, antisamy-markup-formatter, apache-httpcomponents-client-4-api, authentication-tokens, blueocean-commons, blueocean-core-js, blueocean-git-pipeline, blueocean-jwt, blueocean-pipeline-api-impl, blueocean-pipeline-scm-api, blueocean-rest, blueocean-rest-impl, blueocean-web, bouncycastle-api, caffeine-api, cloudbees-folder, commons-lang3-api, commons-text-api, conditional-buildstep, credentials-binding, docker-commons, durable-task, external-monitor-job, favorite, git-server, github-api, gradle, handy-uri-templates-2-api, htmlpublisher, jackson2-api, javadoc, javax-mail-api, jaxb, jenkins-design-language, jjwt-api, jquery, jquery-detached, jsch, jsoup, localization-support, localization-zh-cn, lockable-resources, mapdb-api, matrix-auth, matrix-project, mercurial, mina-sshd-api-common, mina-sshd-api-core, nodejs, okhttp-api, pam-auth, pipeline-build-step, pipeline-github-lib, pipeline-graph-analysis, pipeline-input-step, pipeline-milestone-step, pipeline-model-declarative-agent, pipeline-rest-api, pipeline-stage-view, pipeline-utility-steps, plain-credentials, publish-over, pubsub-light, resource-disposer, role-strategy, run-condition, sse-gateway, sshd, structs, token-macro, trilead-api, variant, workflow-aggregator, workflow-cps-global-lib, workflow-multibranch, workflow-scm-step, workflow-step-api, ws-cleanup) |
+| javax-mail-api | – | 1.6.2-11 (new, for ant, antisamy-markup-formatter, apache-httpcomponents-client-4-api, authentication-tokens, blueocean-commons, blueocean-core-js, blueocean-git-pipeline, blueocean-jwt, blueocean-pipeline-api-impl, blueocean-pipeline-scm-api, blueocean-rest, blueocean-rest-impl, blueocean-web, bouncycastle-api, caffeine-api, cloudbees-folder, commons-lang3-api, commons-text-api, conditional-buildstep, credentials-binding, docker-commons, durable-task, external-monitor-job, favorite, git-server, github-api, gradle, handy-uri-templates-2-api, htmlpublisher, jackson2-api, javadoc, jenkins-design-language, jjwt-api, jquery, jquery-detached, jsch, jsoup, localization-support, localization-zh-cn, lockable-resources, mapdb-api, matrix-auth, matrix-project, mercurial, mina-sshd-api-common, mina-sshd-api-core, nodejs, okhttp-api, pam-auth, pipeline-build-step, pipeline-github-lib, pipeline-graph-analysis, pipeline-input-step, pipeline-milestone-step, pipeline-model-declarative-agent, pipeline-rest-api, pipeline-stage-view, pipeline-utility-steps, plain-credentials, publish-over, pubsub-light, resource-disposer, role-strategy, run-condition, sse-gateway, sshd, structs, token-macro, trilead-api, variant, workflow-aggregator, workflow-cps-global-lib, workflow-multibranch, workflow-scm-step, workflow-step-api, ws-cleanup) |
 | jaxb | 2.3.0 | 2.3.9-143.v5979df3304e6 |
+| jdk-tool | – | 83.v417146707a_3d (new, for jquery, jquery-detached, jsoup, pipeline-model-declarative-agent, publish-over) |
 | jenkins-design-language | 1.5.5 | 1.27.26 |
 | jjwt-api | – | 0.13.0-141.vd58b_a_9592b_6c (new, for github-api, github-branch-source) |
 | joda-time-api | – | 2.15.0-208.v6b_084e7a_d9f0 (new, for handy-uri-templates-2-api, pipeline-model-api) |
@@ -248,7 +250,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | ssh-agent | 1.20 | 433.v9e73d67c3f74 |
 | ssh-credentials | 1.16 | 372.va_250881b_08cd |
 | ssh-slaves | 1.29.4 | 3.1097.v868116049892 |
-| sshd | – | 3.384.vc89b_5e138cf9 (new, for git-server) |
+| sshd | – | 3.384.vc89b_5e138cf9 (new, for antisamy-markup-formatter, authentication-tokens, blueocean-commons, blueocean-core-js, blueocean-git-pipeline, blueocean-jwt, blueocean-pipeline-api-impl, blueocean-pipeline-scm-api, blueocean-rest, blueocean-rest-impl, blueocean-web, docker-commons, external-monitor-job, git-server, jackson2-api, jenkins-design-language, jquery, jquery-detached, jsoup, localization-zh-cn, matrix-auth, pipeline-model-declarative-agent, publish-over, pubsub-light, run-condition, sse-gateway) |
 | structs | 1.19 | 362.va_b_695ef4fdf9 |
 | subversion | 2.12.1 | 1327.vc36e0019a_653 |
 | timestamper | 1.8.10 | 1.30 |

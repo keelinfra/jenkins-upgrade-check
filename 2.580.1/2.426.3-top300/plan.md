@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.426.3 → 2.580.1
 
-Source: results/2.426.3-top300/plugins-2.426.3.txt · generated 2026-10-21 13:50 UTC by jenkins-upgrade-check dev
+Source: results/2.426.3-top300/plugins-2.426.3.txt · generated 2026-10-21 15:37 UTC by jenkins-upgrade-check dev
 
 **2 core upgrade(s)**, 327 plugins: 281 to upgrade, 27 new dependencies; 39 with security warnings today, 3 still with warnings after the upgrade, 3 deprecated.
 
@@ -54,7 +54,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | github | 1.40.0 | 1.47.0 | [SECURITY-3704](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3704) fixed by the upgrade |
 | github-branch-source | 1793.v1831e9c68d77 | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
 | gitlab-plugin | 1.8.2 | 1.2158.v49db_f64b_fc28 | [SECURITY-3260](https://www.jenkins.io/security/advisory/2025-01-22/#SECURITY-3260) fixed by the upgrade<br>[SECURITY-4097](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4097) fixed by the upgrade<br>[SECURITY-3851](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3851) fixed by the upgrade |
-| gradle | 2.13.1 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 2.13.1 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | greenballs | 1.15.1 | 1.15.1 | [deprecated](https://github.com/jenkins-infra/update-center2/pull/735) |
 | hashicorp-vault-plugin | 371.v884a_4dd60fb_6 | 384.vda_86ec66c537 | [SECURITY-3045](https://www.jenkins.io/security/advisory/2025-12-10/#SECURITY-3045) fixed by the upgrade |
 | htmlpublisher | 1.36 | 429 | [SECURITY-3547](https://www.jenkins.io/security/advisory/2025-07-09/#SECURITY-3547) fixed by the upgrade<br>[SECURITY-3706](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3706) fixed by the upgrade |
@@ -245,7 +245,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | gitlab-oauth | 1.19 | 1.30 |
 | gitlab-plugin | 1.8.2 | 1.2158.v49db_f64b_fc28 |
 | google-oauth-plugin | 1.330.vf5e86021cb_ec | 1.346.v712b_a_e0d1e60 |
-| gradle | 2.13.1 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.13.1 | 2.20.1259.v6355c2b_e38c7 |
 | greenballs | 1.15.1 | 1.15.1 |
 | groovy | 457.v99900cb_85593 | 537.v741a_5a_f1b_581 |
 | groovy-postbuild | 228.vcdb_cf7265066 | 335.vf10eb_c1b_5e14 |

@@ -4,9 +4,9 @@
 |---|---|---|---|---|---|---|---|
 | baseline: 2.121.3 | jenkins/jenkins:2.121.3 | started | 304 | 0 | 0 | 0 | 0 |
 | as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 304 | 122 | 22 | 9 | 0 |
-| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk11 | started | 347 | 0 | 0 | 0 | 0 |
-| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 396 | 0 | 0 | 0 | 0 |
-| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 398 | 0 | 0 | 1 | 0 |
+| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk11 | started | 348 | 0 | 0 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 397 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 399 | 0 | 0 | 0 | 0 |
 
 - as-is: **junit 1.27** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 49 more)
 - as-is: **workflow-support 3.3** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 44 more)
@@ -32,5 +32,4 @@
 - as-is: **uno-choice 2.2.2** other: Required plugin is disabled: Script Security Plugin (script-security)
 - as-is: loaded in part (extensions failed): configurationslicing, description-setter, flexible-publish, git-server, ldap, mailer, postbuildscript, ssh-slaves, translation
 - planned 2.346.3: Java 11 because gradle needs Java 11 or newer
-- planned 2.580.1: loaded in part (extensions failed): translation
 

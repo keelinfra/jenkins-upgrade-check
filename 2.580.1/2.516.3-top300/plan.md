@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.516.3 → 2.580.1
 
-Source: results/2.516.3-top300/plugins-2.516.3.txt · generated 2026-10-21 13:54 UTC by jenkins-upgrade-check dev
+Source: results/2.516.3-top300/plugins-2.516.3.txt · generated 2026-10-21 15:42 UTC by jenkins-upgrade-check dev
 
 **1 core upgrade(s)**, 317 plugins: 59 to upgrade, 13 new dependencies; 12 with security warnings today, 3 still with warnings after the upgrade, 1 deprecated.
 
@@ -29,7 +29,7 @@ Jenkins 2.516.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | extended-choice-parameter | 388.ve7b_d0b_920e10 | 388.ve7b_d0b_920e10 | [SECURITY-1350](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-1350) **no fix yet**<br>[SECURITY-1351](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-1351) **no fix yet**<br>[SECURITY-2232](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-2232) **no fix yet**<br>[SECURITY-2617-extended-choice-parameter](https://www.jenkins.io/security/advisory/2022-04-12/#SECURITY-2617) **no fix yet**<br>[deprecated](https://github.com/jenkinsci/extended-choice-parameter-plugin?tab=readme-ov-file#end-of-life) |
 | github-branch-source | 1917.v9ee8a_39b_3d0d | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
 | gitlab-plugin | 1.9.13 | 1.2158.v49db_f64b_fc28 | [SECURITY-4097](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4097) fixed by the upgrade<br>[SECURITY-3851](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3851) fixed by the upgrade |
-| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | jobConfigHistory | 1367.vc8fa_b_15101dc | 1380.v762185b_9a_793 | [SECURITY-4098](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4098) fixed by the upgrade |
 | pipeline-groovy-lib | 798.v5cc688825312 | 822.vc95f70dea_db_7 | [SECURITY-3815](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3815) fixed by the upgrade<br>[SECURITY-3796](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3796) fixed by the upgrade |
 | ssh | 159.v496ca_25e5e82 | 159.v496ca_25e5e82 | [SECURITY-2093](https://www.jenkins.io/security/advisory/2022-05-17/#SECURITY-2093) **no fix yet**<br>[SECURITY-2315](https://www.jenkins.io/security/advisory/2022-05-17/#SECURITY-2315) **no fix yet** |
@@ -201,7 +201,7 @@ Jenkins 2.516.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | gitlab-oauth | 1.28 | 1.30 |
 | gitlab-plugin | 1.9.13 | 1.2158.v49db_f64b_fc28 |
 | google-oauth-plugin | 1.346.v712b_a_e0d1e60 | 1.346.v712b_a_e0d1e60 |
-| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1259.v6355c2b_e38c7 |
 | groovy | 537.v741a_5a_f1b_581 | 537.v741a_5a_f1b_581 |
 | groovy-postbuild | 310.v0c5b_924e439f | 335.vf10eb_c1b_5e14 |
 | gson-api | 2.14.0-201.v8eefe5515533 | 2.14.0-201.v8eefe5515533 |

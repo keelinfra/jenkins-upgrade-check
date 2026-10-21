@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.289.3 → 2.580.1
 
-Source: results/2.289.3-top100/plugins-2.289.3.txt · generated 2026-10-21 13:34 UTC by jenkins-upgrade-check dev
+Source: results/2.289.3-top100/plugins-2.289.3.txt · generated 2026-10-21 15:28 UTC by jenkins-upgrade-check dev
 
 **3 core upgrade(s)**, 121 plugins: 102 to upgrade, 15 new dependencies; 29 with security warnings today, 2 not from the update center.
 
@@ -58,7 +58,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | git-server | 1.11 | 137.ve0060b_432302 | [SECURITY-3319](https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-3319) fixed by the upgrade<br>[SECURITY-3342](https://www.jenkins.io/security/advisory/2024-05-02/#SECURITY-3342) fixed by the upgrade |
 | github | 1.34.3.1 | 1.47.0 | [SECURITY-3246](https://www.jenkins.io/security/advisory/2023-10-25/#SECURITY-3246) fixed by the upgrade<br>[SECURITY-3704](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3704) fixed by the upgrade |
 | github-branch-source | 2.11.4 | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
-| gradle | 1.40 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 1.40 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | htmlpublisher | 1.31 | 429 | [SECURITY-3301](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3301) fixed by the upgrade<br>[SECURITY-3302](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3302) fixed by the upgrade<br>[SECURITY-3303](https://www.jenkins.io/security/advisory/2024-03-06/#SECURITY-3303) fixed by the upgrade<br>[SECURITY-3547](https://www.jenkins.io/security/advisory/2025-07-09/#SECURITY-3547) fixed by the upgrade<br>[SECURITY-3706](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3706) fixed by the upgrade |
 | jakarta-mail-api | 2.0.0-5 | 2.1.5-1 | [SECURITY-3617](https://www.jenkins.io/security/advisory/2025-09-03/#SECURITY-3617) fixed by the upgrade |
 | junit | 1.53.0.1 | 1442.vb_b_a_467df2767 | [SECURITY-2888](https://www.jenkins.io/security/advisory/2022-11-15/#SECURITY-2888) fixed by the upgrade<br>[SECURITY-3032](https://www.jenkins.io/security/advisory/2023-02-15/#SECURITY-3032) fixed by the upgrade |
@@ -120,11 +120,11 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | github | 1.34.3.1 | 1.47.0 |
 | github-api | 1.303-400.v35c2d8258028 | 1.330-492.v3941a_032db_2a_ |
 | github-branch-source | 2.11.4 | 1986.v801e40614d00 |
-| gradle | 1.40 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 1.40 | 2.20.1259.v6355c2b_e38c7 |
 | gson-api | – | 2.14.0-201.v8eefe5515533 (new, for git-client, trilead-api) |
 | handy-uri-templates-2-api | 2.1.8-22.v77d5b_75e6953 | 2.1.8-38.vcea_5d521d5f3 |
 | htmlpublisher | 1.31 | 429 |
-| instance-identity | – | 203.v15e81a_1b_7a_38 (new, for git-server, github, mailer, sshd) |
+| instance-identity | – | 203.v15e81a_1b_7a_38 (new, for bootstrap4-api, git-server, github, mailer, popper-api, sshd) |
 | ionicons-api | – | 94.vcc3065403257 (new, for branch-api, cloudbees-folder, config-file-provider, credentials, git, github-branch-source, junit, matrix-auth, matrix-project, metrics, pipeline-graph-view, pipeline-model-definition, role-strategy, theme-manager, workflow-cps, workflow-job, workflow-multibranch) |
 | jackson-annotations2-api | – | 2.22-19.v10a_a_582ea_26e (new, for jackson2-api, jackson3-api) |
 | jackson2-api | 2.14.2-319.v37853346a_229 | 2.22.3-447.v6a_93ce7d2c82 |

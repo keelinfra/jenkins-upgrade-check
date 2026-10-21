@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.528.3 → 2.580.1
 
-Source: results/2.528.3-top300/plugins-2.528.3.txt · generated 2026-10-21 13:55 UTC by jenkins-upgrade-check dev
+Source: results/2.528.3-top300/plugins-2.528.3.txt · generated 2026-10-21 15:45 UTC by jenkins-upgrade-check dev
 
 **1 core upgrade(s)**, 317 plugins: 44 to upgrade, 13 new dependencies; 11 with security warnings today, 3 still with warnings after the upgrade, 1 deprecated.
 
@@ -199,7 +199,7 @@ Jenkins 2.528.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | gitlab-oauth | 1.30 | 1.30 |
 | gitlab-plugin | 1.9.13 | 1.2158.v49db_f64b_fc28 |
 | google-oauth-plugin | 1.346.v712b_a_e0d1e60 | 1.346.v712b_a_e0d1e60 |
-| gradle | 2.20.1253.vc116f0763a_eb_ | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.20.1259.v6355c2b_e38c7 | 2.20.1259.v6355c2b_e38c7 |
 | groovy | 537.v741a_5a_f1b_581 | 537.v741a_5a_f1b_581 |
 | groovy-postbuild | 310.v0c5b_924e439f | 335.vf10eb_c1b_5e14 |
 | gson-api | 2.14.0-201.v8eefe5515533 | 2.14.0-201.v8eefe5515533 |

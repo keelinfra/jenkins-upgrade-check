@@ -4,12 +4,11 @@
 |---|---|---|---|---|---|---|---|
 | baseline: 2.164.3 | jenkins/jenkins:2.164.3 | started | 304 | 0 | 0 | 0 | 0 |
 | as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | did not start | 304 | 1 | 1 | 10 | 0 |
-| planned: 2.462.3, plugins from plan | jenkins/jenkins:2.462.3-jdk11 | started | 363 | 0 | 0 | 0 | 0 |
-| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 386 | 0 | 0 | 0 | 0 |
-| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 388 | 0 | 0 | 1 | 0 |
+| planned: 2.462.3, plugins from plan | jenkins/jenkins:2.462.3-jdk11 | started | 364 | 0 | 0 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 387 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 389 | 0 | 0 | 0 | 0 |
 
 - as-is: **ec2 1.50.2.1** other: Required plugin is disabled: Trilead API Plugin (trilead-api)
 - as-is: loaded in part (extensions failed): bitbucket-push-and-pull-request, copyartifact, email-ext, git-server, github, ldap, mailer, scriptler, ssh-slaves, translation
-- as-is: the container exited (state: false 5); the log ends: hudson.util.BootFailure#publish: Failed to initialize Jenkins — java.lang.NullPointerException: Cannot invoke "com.dabsquared.gitlabjenkins.connection.GitLabConnectionConfig.getConnections()" because "descriptor" is null
-- planned 2.580.1: loaded in part (extensions failed): translation
+- as-is: the container exited (state: false 5); the log ends: hudson.util.BootFailure#publish: Failed to initialize Jenkins — java.lang.IllegalStateException: Jenkins is not up
 

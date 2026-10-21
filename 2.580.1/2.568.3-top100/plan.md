@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.568.3 → 2.580.1
 
-Source: results/2.568.3-top100/plugins-2.568.3.txt · generated 2026-10-21 13:52 UTC by jenkins-upgrade-check dev
+Source: results/2.568.3-top100/plugins-2.568.3.txt · generated 2026-10-21 15:44 UTC by jenkins-upgrade-check dev
 
 **1 core upgrade(s)**, 105 plugins: 0 to upgrade, 0 new dependencies.
 
@@ -45,7 +45,7 @@ Jenkins 2.568.3 runs on Java 21, 25; Jenkins 2.580.1 runs on Java 21, 25.
 | github | 1.47.0 | 1.47.0 |
 | github-api | 1.330-492.v3941a_032db_2a_ | 1.330-492.v3941a_032db_2a_ |
 | github-branch-source | 1986.v801e40614d00 | 1986.v801e40614d00 |
-| gradle | 2.20.1253.vc116f0763a_eb_ | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.20.1259.v6355c2b_e38c7 | 2.20.1259.v6355c2b_e38c7 |
 | gson-api | 2.14.0-201.v8eefe5515533 | 2.14.0-201.v8eefe5515533 |
 | instance-identity | 203.v15e81a_1b_7a_38 | 203.v15e81a_1b_7a_38 |
 | ionicons-api | 94.vcc3065403257 | 94.vcc3065403257 |

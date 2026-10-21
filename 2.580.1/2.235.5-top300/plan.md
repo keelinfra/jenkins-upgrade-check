@@ -1,8 +1,8 @@
 # Jenkins upgrade plan: 2.235.5 → 2.580.1
 
-Source: results/2.235.5-top300/plugins-2.235.5.txt · generated 2026-10-21 13:40 UTC by jenkins-upgrade-check dev
+Source: results/2.235.5-top300/plugins-2.235.5.txt · generated 2026-10-21 15:25 UTC by jenkins-upgrade-check dev
 
-**3 core upgrade(s)**, 373 plugins: 291 to upgrade, 69 new dependencies; 94 with security warnings today, 3 still with warnings after the upgrade, 3 deprecated, 3 not from the update center.
+**3 core upgrade(s)**, 374 plugins: 291 to upgrade, 70 new dependencies; 94 with security warnings today, 3 still with warnings after the upgrade, 3 deprecated, 3 not from the update center.
 
 Jenkins 2.235.5 runs on Java 8, 11; Jenkins 2.580.1 runs on Java 21, 25.
 
@@ -42,8 +42,8 @@ Jenkins 2.235.5 runs on Java 8, 11; Jenkins 2.580.1 runs on Java 21, 25.
 ## Steps
 
 1. **On 2.235.5, update plugins** (0 change(s)). Back up `$JENKINS_HOME` first.
-2. **Run the controller and every agent on Java 11**, upgrade Jenkins to **2.462.3**, start it, then update plugins (330 change(s)).
-3. **Run the controller and every agent on Java 17**, upgrade Jenkins to **2.541.3**, start it, then update plugins (341 change(s)).
+2. **Run the controller and every agent on Java 11**, upgrade Jenkins to **2.462.3**, start it, then update plugins (331 change(s)).
+3. **Run the controller and every agent on Java 17**, upgrade Jenkins to **2.541.3**, start it, then update plugins (342 change(s)).
 4. **Run the controller and every agent on Java 21**, upgrade Jenkins to **2.580.1**, start it, then update plugins (32 change(s)).
 
 No Java version runs both the current and the target core, so the upgrade stops at the last release of each Java generation on the way.
@@ -93,7 +93,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | gitlab-branch-source | 1.5.4 | 744.vb_d0403d08ec7 | [SECURITY-2871](https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-2871) fixed by the upgrade<br>[SECURITY-3040](https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-3040) fixed by the upgrade<br>[SECURITY-3251](https://www.jenkins.io/security/advisory/2024-01-24/#SECURITY-3251) fixed by the upgrade |
 | gitlab-oauth | 1.12 | 1.30 | [SECURITY-1833](https://www.jenkins.io/security/advisory/2022-02-15/#SECURITY-1833) fixed by the upgrade<br>[SECURITY-1891](https://www.jenkins.io/security/advisory/2022-03-15/#SECURITY-1891) fixed by the upgrade<br>[SECURITY-2696](https://www.jenkins.io/security/advisory/2023-07-26/#SECURITY-2696) fixed by the upgrade |
 | gitlab-plugin | 1.5.24 | 1.2158.v49db_f64b_fc28 | [SECURITY-2753](https://www.jenkins.io/security/advisory/2022-05-17/#SECURITY-2753) fixed by the upgrade<br>[SECURITY-2316](https://www.jenkins.io/security/advisory/2022-06-30/#SECURITY-2316) fixed by the upgrade<br>[SECURITY-2877](https://www.jenkins.io/security/advisory/2022-10-19/#SECURITY-2877) fixed by the upgrade<br>[SECURITY-3260](https://www.jenkins.io/security/advisory/2025-01-22/#SECURITY-3260) fixed by the upgrade<br>[SECURITY-4097](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4097) fixed by the upgrade<br>[SECURITY-3851](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3851) fixed by the upgrade |
-| gradle | 1.40 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 1.40 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | greenballs | 1.15.1 | 1.15.1 | [deprecated](https://github.com/jenkins-infra/update-center2/pull/735) |
 | handlebars | 3.0.8 | 3.0.8 | not listed by the update center (removed from distribution, or a private build); it stays at this version, so find a replacement or test it yourself |
 | hashicorp-vault-plugin | 336.v182c0fbaaeb7 | 384.vda_86ec66c537 | [SECURITY-2521](https://www.jenkins.io/security/advisory/2022-02-15/#SECURITY-2521) fixed by the upgrade<br>[SECURITY-2593](https://www.jenkins.io/security/advisory/2022-07-27/#SECURITY-2593) fixed by the upgrade<br>[SECURITY-3077](https://www.jenkins.io/security/advisory/2023-05-16/#SECURITY-3077) fixed by the upgrade<br>[SECURITY-3045](https://www.jenkins.io/security/advisory/2025-12-10/#SECURITY-3045) fixed by the upgrade |
@@ -336,7 +336,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | gitlab-oauth | 1.12 | 1.30 |
 | gitlab-plugin | 1.5.24 | 1.2158.v49db_f64b_fc28 |
 | google-oauth-plugin | 1.0.6 | 1.346.v712b_a_e0d1e60 |
-| gradle | 1.40 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 1.40 | 2.20.1259.v6355c2b_e38c7 |
 | greenballs | 1.15.1 | 1.15.1 |
 | groovy | 2.4 | 537.v741a_5a_f1b_581 |
 | groovy-postbuild | 2.5 | 335.vf10eb_c1b_5e14 |
@@ -349,7 +349,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | htmlpublisher | 1.25 | 429 |
 | http_request | 1.12 | 1.659.v1b_9d9e942a_e6 |
 | icon-shim | 2.0.3 | 3.0.0 |
-| instance-identity | – | 203.v15e81a_1b_7a_38 (new, for atlassian-bitbucket-server-integration, build-monitor-plugin, docker-plugin, git-server, github, mailer, pubsub-light, sshd) |
+| instance-identity | – | 203.v15e81a_1b_7a_38 (new, for artifactory, atlassian-bitbucket-server-integration, azure-commons, blueocean-autofavorite, bootstrap4-api, build-monitor-plugin, build-token-root, build-with-parameters, cobertura, commons-httpclient3-api, delivery-pipeline-plugin, deploy, discard-old-build, docker-build-publish, docker-plugin, envinject-api, git-server, github, greenballs, groovy, hashicorp-vault-plugin, icon-shim, job-import-plugin, jquery-detached, jquery-ui, localization-support, mailer, multiple-scms, nexus-artifact-uploader, permissive-script-security, pipeline-model-declarative-agent, pipeline-multibranch-defaults, popper-api, postbuild-task, publish-over, pubsub-light, python, skip-certificate-check, sshd, translation) |
 | ionicons-api | – | 94.vcc3065403257 (new, for active-directory, badge, branch-api, build-failure-analyzer, cloudbees-disk-usage-simple, cloudbees-folder, code-coverage-api, config-file-provider, coverage, credentials, dashboard-view, docker-plugin, emailext-template, embeddable-build-status, favorite, gerrit-trigger, git, github-branch-source, jobConfigHistory, junit, matrix-auth, matrix-project, metrics, naginator, nested-view, next-build-number, pipeline-model-definition, role-strategy, schedule-build, scriptler, test-results-analyzer, theme-manager, thinBackup, workflow-cps, workflow-job, workflow-multibranch) |
 | ivy | 2.2 | 609.v66779e68503d |
 | jackson-annotations2-api | – | 2.22-19.v10a_a_582ea_26e (new, for jackson2-api, jackson3-api) |
@@ -360,7 +360,8 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | jakarta-mail-api | – | 2.1.5-1 (new, for configurationslicing, disk-usage, email-ext, mailer, workflow-basic-steps) |
 | jakarta-xml-bind-api | – | 4.0.9-19.v2b_a_5b_44d9a_1c (new, for gitlab-oauth, gitlab-plugin, jackson2-api, jersey3-api, jobConfigHistory) |
 | javadoc | 1.6 | 354.vee1a_660b_4990 |
-| javax-activation-api | – | 1.2.0-8 (new, for gitlab-api, gitlab-plugin, jackson2-api, jaxb, jersey2-api) |
+| javax-activation-api | – | 1.2.0-8 (new, for artifactory, azure-commons, blueocean-autofavorite, bootstrap4-api, build-token-root, cobertura, commons-httpclient3-api, delivery-pipeline-plugin, deploy, docker-build-publish, gitlab-api, gitlab-plugin, greenballs, groovy, hashicorp-vault-plugin, icon-shim, jackson2-api, javax-mail-api, jaxb, jersey2-api, job-import-plugin, jquery-detached, jquery-ui, localization-support, multiple-scms, nexus-artifact-uploader, permissive-script-security, pipeline-model-declarative-agent, pipeline-multibranch-defaults, popper-api, postbuild-task, publish-over, python, translation) |
+| javax-mail-api | – | 1.6.2-11 (new, for artifactory, azure-commons, blueocean-autofavorite, bootstrap4-api, build-token-root, cobertura, commons-httpclient3-api, delivery-pipeline-plugin, deploy, docker-build-publish, greenballs, groovy, hashicorp-vault-plugin, icon-shim, job-import-plugin, jquery-detached, jquery-ui, localization-support, multiple-scms, nexus-artifact-uploader, permissive-script-security, pipeline-model-declarative-agent, pipeline-multibranch-defaults, popper-api, postbuild-task, publish-over, python, translation) |
 | jaxb | 2.3.0.1 | 2.3.9-143.v5979df3304e6 |
 | jdk-tool | 1.5 | 83.v417146707a_3d |
 | jenkins-design-language | 1.24.8 | 1.27.26 |
@@ -494,7 +495,7 @@ No Java version runs both the current and the target core, so the upgrade stops 
 | ssh-credentials | 1.18.1 | 372.va_250881b_08cd |
 | ssh-slaves | 1.31.5 | 3.1097.v868116049892 |
 | ssh-steps | 2.0.0 | 2.0.92.vb_a_0583935f9b_ |
-| sshd | – | 3.384.vc89b_5e138cf9 (new, for git-server, scriptler) |
+| sshd | – | 3.384.vc89b_5e138cf9 (new, for artifactory, azure-commons, blueocean-autofavorite, build-token-root, cobertura, delivery-pipeline-plugin, deploy, docker-build-publish, git-server, greenballs, icon-shim, job-import-plugin, jquery-detached, jquery-ui, multiple-scms, permissive-script-security, pipeline-model-declarative-agent, pipeline-multibranch-defaults, postbuild-task, publish-over, python, scriptler, translation) |
 | stashNotifier | 1.24 | 1.557.vb_d02a_d29f87f |
 | strict-crumb-issuer | 2.1.0 | 2.58.va_0da_723a_dc84 |
 | structs | 308.v852b473a2b8c | 362.va_b_695ef4fdf9 |

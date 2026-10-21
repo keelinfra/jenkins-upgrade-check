@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.479.3 → 2.580.1
 
-Source: results/2.479.3-top100/plugins-2.479.3.txt · generated 2026-10-21 13:50 UTC by jenkins-upgrade-check dev
+Source: results/2.479.3-top100/plugins-2.479.3.txt · generated 2026-10-21 15:42 UTC by jenkins-upgrade-check dev
 
 **1 core upgrade(s)**, 105 plugins: 52 to upgrade, 3 new dependencies; 8 with security warnings today.
 
@@ -30,7 +30,7 @@ Jenkins 2.479.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | git-client | 6.2.1 | 6.6.1 | [SECURITY-3614](https://www.jenkins.io/security/advisory/2025-12-10/#SECURITY-3614) fixed by the upgrade<br>[SECURITY-3723](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3723) fixed by the upgrade |
 | github | 1.43.0 | 1.47.0 | [SECURITY-3704](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3704) fixed by the upgrade |
 | github-branch-source | 1824.v046257273408 | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
-| gradle | 2.15 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 2.15 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | ldap | 780.vcb_33c9a_e4332 | 825.v2fca_37dd5b_cb_ | [SECURITY-3654](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3654) fixed by the upgrade<br>[SECURITY-3678](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3678) fixed by the upgrade |
 | pipeline-groovy-lib | 752.vdddedf804e72 | 822.vc95f70dea_db_7 | [SECURITY-3727](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3727) fixed by the upgrade<br>[SECURITY-3815](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3815) fixed by the upgrade<br>[SECURITY-3796](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3796) fixed by the upgrade |
 | workflow-cps | 4183.v94b_6fd39da_c1 | 4395.v738456a_5da_6b_ | [SECURITY-3677](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3677) fixed by the upgrade |
@@ -70,7 +70,7 @@ Jenkins 2.479.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | github | 1.43.0 | 1.47.0 |
 | github-api | 1.330-492.v3941a_032db_2a_ | 1.330-492.v3941a_032db_2a_ |
 | github-branch-source | 1824.v046257273408 | 1986.v801e40614d00 |
-| gradle | 2.15 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.15 | 2.20.1259.v6355c2b_e38c7 |
 | gson-api | 2.13.1-139.v4569c2ef303f | 2.14.0-201.v8eefe5515533 |
 | instance-identity | 203.v15e81a_1b_7a_38 | 203.v15e81a_1b_7a_38 |
 | ionicons-api | 88.va_4187cb_eddf1 | 94.vcc3065403257 |

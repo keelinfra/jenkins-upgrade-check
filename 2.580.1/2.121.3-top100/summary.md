@@ -4,9 +4,9 @@
 |---|---|---|---|---|---|---|---|
 | baseline: 2.121.3 | jenkins/jenkins:2.121.3 | started | 108 | 0 | 0 | 0 | 0 |
 | as-is: 2.580.1, plugins unchanged | jenkins/jenkins:2.580.1-jdk21 | started | 108 | 44 | 9 | 4 | 0 |
-| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk11 | started | 130 | 0 | 0 | 0 | 0 |
-| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 147 | 0 | 0 | 0 | 0 |
-| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 147 | 0 | 0 | 0 | 0 |
+| planned: 2.346.3, plugins from plan | jenkins/jenkins:2.346.3-jdk11 | started | 131 | 0 | 0 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 148 | 0 | 0 | 0 | 0 |
+| planned: 2.580.1, plugins from plan | jenkins/jenkins:2.580.1-jdk21 | started | 148 | 0 | 0 | 0 | 0 |
 
 - as-is: **workflow-support 3.3** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 22 more)
 - as-is: **junit 1.27** other: Required plugin is disabled: Script Security Plugin (script-security) (takes down 12 more)

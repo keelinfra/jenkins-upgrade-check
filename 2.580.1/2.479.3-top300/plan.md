@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.479.3 → 2.580.1
 
-Source: results/2.479.3-top300/plugins-2.479.3.txt · generated 2026-10-21 13:43 UTC by jenkins-upgrade-check dev
+Source: results/2.479.3-top300/plugins-2.479.3.txt · generated 2026-10-21 15:37 UTC by jenkins-upgrade-check dev
 
 **1 core upgrade(s)**, 319 plugins: 117 to upgrade, 16 new dependencies; 20 with security warnings today, 3 still with warnings after the upgrade, 1 deprecated.
 
@@ -36,7 +36,7 @@ Jenkins 2.479.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | github | 1.43.0 | 1.47.0 | [SECURITY-3704](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3704) fixed by the upgrade |
 | github-branch-source | 1824.v046257273408 | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
 | gitlab-plugin | 1.9.8 | 1.2158.v49db_f64b_fc28 | [SECURITY-4097](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4097) fixed by the upgrade<br>[SECURITY-3851](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3851) fixed by the upgrade |
-| gradle | 2.15 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 2.15 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | jobConfigHistory | 1356.ve360da_6c523a_ | 1380.v762185b_9a_793 | [SECURITY-3742](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3742) fixed by the upgrade<br>[SECURITY-4098](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4098) fixed by the upgrade |
 | ldap | 780.vcb_33c9a_e4332 | 825.v2fca_37dd5b_cb_ | [SECURITY-3654](https://www.jenkins.io/security/advisory/2026-05-27/#SECURITY-3654) fixed by the upgrade<br>[SECURITY-3678](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3678) fixed by the upgrade |
 | performance | 980.vf4df84f69474 | 1022.v48fce959f0c3 | [SECURITY-4026](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-4026) fixed by the upgrade |
@@ -213,7 +213,7 @@ Jenkins 2.479.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | gitlab-oauth | 1.22 | 1.30 |
 | gitlab-plugin | 1.9.8 | 1.2158.v49db_f64b_fc28 |
 | google-oauth-plugin | 1.335.ve6de40e2db_18 | 1.346.v712b_a_e0d1e60 |
-| gradle | 2.15 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.15 | 2.20.1259.v6355c2b_e38c7 |
 | groovy | 537.v741a_5a_f1b_581 | 537.v741a_5a_f1b_581 |
 | groovy-postbuild | 310.v0c5b_924e439f | 335.vf10eb_c1b_5e14 |
 | gson-api | 2.13.1-139.v4569c2ef303f | 2.14.0-201.v8eefe5515533 |

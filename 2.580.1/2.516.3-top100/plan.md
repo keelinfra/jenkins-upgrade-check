@@ -1,6 +1,6 @@
 # Jenkins upgrade plan: 2.516.3 → 2.580.1
 
-Source: results/2.516.3-top100/plugins-2.516.3.txt · generated 2026-10-21 13:53 UTC by jenkins-upgrade-check dev
+Source: results/2.516.3-top100/plugins-2.516.3.txt · generated 2026-10-21 15:41 UTC by jenkins-upgrade-check dev
 
 **1 core upgrade(s)**, 105 plugins: 23 to upgrade, 0 new dependencies; 4 with security warnings today.
 
@@ -25,7 +25,7 @@ Jenkins 2.516.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | Plugin | Now | After | Why |
 |---|---|---|---|
 | github-branch-source | 1917.v9ee8a_39b_3d0d | 1986.v801e40614d00 | [SECURITY-3702](https://www.jenkins.io/security/advisory/2026-04-29/#SECURITY-3702) fixed by the upgrade<br>[SECURITY-3808](https://www.jenkins.io/security/advisory/2026-06-24/#SECURITY-3808) fixed by the upgrade |
-| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1253.vc116f0763a_eb_ | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
+| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1259.v6355c2b_e38c7 | [SECURITY-4028](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-4028) fixed by the upgrade |
 | pipeline-groovy-lib | 798.v5cc688825312 | 822.vc95f70dea_db_7 | [SECURITY-3815](https://www.jenkins.io/security/advisory/2026-09-02/#SECURITY-3815) fixed by the upgrade<br>[SECURITY-3796](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3796) fixed by the upgrade |
 | workflow-multibranch | 841.vec5b_9e1806ec | 842.v3a_b_59b_57b_e6e | [SECURITY-3729](https://www.jenkins.io/security/advisory/2026-09-16/#SECURITY-3729) fixed by the upgrade |
 
@@ -63,7 +63,7 @@ Jenkins 2.516.3 runs on Java 17, 21; Jenkins 2.580.1 runs on Java 21, 25.
 | github | 1.47.0 | 1.47.0 |
 | github-api | 1.330-492.v3941a_032db_2a_ | 1.330-492.v3941a_032db_2a_ |
 | github-branch-source | 1917.v9ee8a_39b_3d0d | 1986.v801e40614d00 |
-| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1253.vc116f0763a_eb_ |
+| gradle | 2.18.1203.v2c96b_1243c72 | 2.20.1259.v6355c2b_e38c7 |
 | gson-api | 2.14.0-201.v8eefe5515533 | 2.14.0-201.v8eefe5515533 |
 | instance-identity | 203.v15e81a_1b_7a_38 | 203.v15e81a_1b_7a_38 |
 | ionicons-api | 94.vcc3065403257 | 94.vcc3065403257 |
