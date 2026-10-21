@@ -158,16 +158,21 @@ func LastPatches(metadata, target string, min int) []string {
 type Rehearsal struct {
 	Core string `json:"core"`
 	Java int    `json:"java,omitempty"`
-	// PlanJava is the Java the plan switches to for this stop.
-	PlanJava int    `json:"planJava,omitempty"`
-	Image    string `json:"image,omitempty"`
-	Started  bool   `json:"started"`
-	Reason   string `json:"reason,omitempty"`
-	Plugins  int    `json:"plugins"`
-	Failed   int    `json:"failed"`
-	Broken   int    `json:"broken"`
-	Skipped  int    `json:"skipped"`
-	Roots    []Root `json:"roots"`
+	// PlanJava is the Java the plan switches to for this stop; the
+	// rehearsal runs a newer one when a plugin needs it, and JavaReason
+	// says which.
+	PlanJava   int    `json:"planJava,omitempty"`
+	JavaReason string `json:"javaReason,omitempty"`
+	Image      string `json:"image,omitempty"`
+	Started    bool   `json:"started"`
+	Reason     string `json:"reason,omitempty"`
+	Plugins    int    `json:"plugins"`
+	Failed     int    `json:"failed"`
+	// Broken plugins loaded, but some of their extensions did not.
+	Broken      int      `json:"broken"`
+	BrokenNames []string `json:"brokenNames,omitempty"`
+	Skipped     int      `json:"skipped"`
+	Roots       []Root   `json:"roots"`
 }
 
 // Root is one cause of failed plugins.
@@ -351,6 +356,9 @@ func cell(r Rehearsal) string {
 		s = fmt.Sprintf("⚠️ %d of %d fail: %s", r.Failed, r.Plugins, rootNames(r.Roots))
 	case r.Broken > 0:
 		s = fmt.Sprintf("⚠️ %d of %d load in part", r.Broken, r.Plugins)
+		if names := firstNames(r.BrokenNames); names != "" {
+			s += ": " + names
+		}
 	default:
 		s = fmt.Sprintf("✅ all %d load", r.Plugins)
 	}
@@ -361,13 +369,17 @@ func cell(r Rehearsal) string {
 }
 
 func rootNames(roots []Root) string {
-	var names []string
+	names := make([]string, len(roots))
 	for i, r := range roots {
-		if i == 3 {
-			names = append(names, fmt.Sprintf("and %d more", len(roots)-3))
-			break
-		}
-		names = append(names, r.Name)
+		names[i] = r.Name
+	}
+	return firstNames(names)
+}
+
+// firstNames lists three names and counts the rest.
+func firstNames(names []string) string {
+	if len(names) > 3 {
+		return strings.Join(names[:3], ", ") + fmt.Sprintf(", and %d more", len(names)-3)
 	}
 	return strings.Join(names, ", ")
 }
@@ -376,9 +388,13 @@ func path(r Row) string {
 	var hops []string
 	for _, s := range r.Stops {
 		h := s.Core
-		if j := s.PlanJava; j > 0 {
-			h += fmt.Sprintf(" (Java %d)", j)
-		} else if s.Java > 0 {
+		switch {
+		case s.JavaReason != "" && s.Java > 0:
+			// The plan does not know every plugin's Java; the rehearsal does.
+			h += fmt.Sprintf(" (Java %d: %s)", s.Java, s.JavaReason)
+		case s.PlanJava > 0:
+			h += fmt.Sprintf(" (Java %d)", s.PlanJava)
+		case s.Java > 0:
 			h += fmt.Sprintf(" (Java %d)", s.Java)
 		}
 		hops = append(hops, h)

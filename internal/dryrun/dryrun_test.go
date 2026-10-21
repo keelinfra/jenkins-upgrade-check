@@ -1,6 +1,8 @@
 package dryrun
 
 import (
+	"archive/zip"
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -190,5 +192,63 @@ func TestPluginOf(t *testing.T) {
 func TestItemName(t *testing.T) {
 	if got := itemName("jobs/f/jobs/b"); got != "f/b" {
 		t.Errorf("itemName = %q", got)
+	}
+}
+
+// An extension Jenkins could not load (old email-ext on a core without
+// javax.mail) leaves its plugin working in part.
+func TestScoutFailureBreaksItsPlugin(t *testing.T) {
+	log := "2026-10-21 12:41:50.000+0000 [id=30]\tWARNING\thudson.ExtensionFinder$Sezpoz#scout: Failed to scout hudson.plugins.emailext.ExtendedEmailPublisher$DescriptorImpl\n" +
+		"java.lang.ClassNotFoundException: javax.mail.internet.AddressException\n" +
+		"\tat java.base/java.lang.Class.forName0(Native Method)\n" +
+		"Caused: java.lang.NoClassDefFoundError: javax/mail/internet/AddressException\n" +
+		"2026-10-21 12:41:51.000+0000 [id=30]\tINFO\tjenkins.InitReactorRunner$1#onAttained: Completed initialization\n"
+	failed, errs := ParseLog(log)
+	if len(failed) != 0 || len(errs) != 1 || !strings.Contains(errs[0], "Failed to scout hudson.plugins.emailext.ExtendedEmailPublisher$DescriptorImpl — java.lang.ClassNotFoundException: javax.mail.internet.AddressException") {
+		t.Fatalf("failed = %v, errors = %q", failed, errs)
+	}
+
+	dir := t.TempDir()
+	f, err := os.Create(filepath.Join(dir, "email-ext.jpi"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	z := zip.NewWriter(f)
+	if _, err := z.Create("WEB-INF/classes/hudson/plugins/emailext/ExtendedEmailPublisher$DescriptorImpl.class"); err != nil {
+		t.Fatal(err)
+	}
+	if err := z.Close(); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	broken, rest := attribute(errs, dir, nil, map[string]string{"email-ext": "2.40"})
+	if len(broken) != 1 || broken[0].Name != "email-ext" || broken[0].Version != "2.40" || len(rest) != 0 {
+		t.Errorf("broken = %+v, rest = %q", broken, rest)
+	}
+}
+
+// The plan's Java comes first unless a plugin needs more; an explicit Java
+// always does.
+func TestPickImageJava(t *testing.T) {
+	docker := filepath.Join(t.TempDir(), "docker")
+	if err := os.WriteFile(docker, []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		java, prefer, min int
+		want              string
+	}{
+		{0, 8, 0, "jenkins/jenkins:2.346.3-jdk8"},
+		{0, 8, 11, "jenkins/jenkins:2.346.3-jdk11"},
+		{0, 17, 11, "jenkins/jenkins:2.346.3-jdk17"},
+		{8, 0, 11, "jenkins/jenkins:2.346.3-jdk8"},
+		{0, 0, 0, "jenkins/jenkins:2.346.3-jdk8"},
+		{0, 0, 21, "jenkins/jenkins:2.346.3-jdk8"},
+	} {
+		o := Options{Core: "2.346.3", Java: c.java, PreferJava: c.prefer, Docker: docker}
+		got, _, err := o.pickImage(context.Background(), c.min)
+		if err != nil || got != c.want {
+			t.Errorf("java %d, prefer %d, plugins need %d: %s, %v; want %s", c.java, c.prefer, c.min, got, err, c.want)
+		}
 	}
 }

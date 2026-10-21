@@ -308,10 +308,9 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		o.Core, o.Plugins = core, picks
-		if o.Java == 0 {
-			o.Java = java
-		}
+		// The plan's Java is a preference: plugins that need a newer
+		// Java than the plan knows of get it, and the report says why.
+		o.Core, o.Plugins, o.PreferJava = core, picks, java
 	default:
 		s, err := in.load()
 		if err != nil {

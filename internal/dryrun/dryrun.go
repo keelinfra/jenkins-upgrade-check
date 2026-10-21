@@ -27,6 +27,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -44,9 +45,12 @@ const ProbeFile = "jenkins-upgrade-check-probe.json"
 
 // Options configure one rehearsal.
 type Options struct {
-	Core    string
-	Java    int // Java for the image; 0 picks the oldest the core and plugins allow
-	Plugins []plan.Pick
+	Core string
+	Java int // Java for the image; 0 picks the oldest the core and plugins allow
+	// PreferJava is the Java to use when Java is 0 and the plugins run on
+	// it: the plan's Java for a stop. Plugins that need more win.
+	PreferJava int
+	Plugins    []plan.Pick
 	// Home is a JENKINS_HOME whose configuration (not its build records)
 	// is copied into the rehearsal.
 	Home string
@@ -207,7 +211,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	}
 	res.Image, res.Java = base, java
 	if minJava > 0 && o.Java == 0 && o.Image == "" && java >= minJava {
-		if oldest := version.SupportedJava(o.Core); len(oldest) > 0 && oldest[0] < minJava {
+		if o.PreferJava > 0 {
+			if java != o.PreferJava {
+				res.JavaReason = fmt.Sprintf("%s needs Java %d or newer", who, minJava)
+			}
+		} else if oldest := version.SupportedJava(o.Core); len(oldest) > 0 && oldest[0] < minJava {
 			res.JavaReason = fmt.Sprintf("%s needs Java %d or newer", who, minJava)
 		}
 	}
@@ -338,6 +346,10 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		}
 	}
 
+	if n := len(res.Errors); n > maxErrors {
+		res.Errors = append(res.Errors[:maxErrors:maxErrors], fmt.Sprintf("and %d more errors in the log", n-maxErrors))
+	}
+
 	logDir := o.OutDir
 	if logDir == "" {
 		logDir = work
@@ -350,6 +362,9 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	}
 	return res, nil
 }
+
+// maxErrors is how many errors that name no plugin a report lists.
+const maxErrors = 40
 
 // rehearsalNoise are administrator warnings a rehearsal shows because it has
 // no network, no URL, no executors and a fresh Java, or that the report
@@ -580,7 +595,7 @@ func probeReasons(causes []string) []string {
 	return out
 }
 
-var failedToLoadClass = regexp.MustCompile(`(?:Failed to load|Failed to instantiate|Failed to resolve class|Failed to inject)\s+(?:class\s+)?([A-Za-z_$][\w$]*(?:\.[\w$]+)+)`)
+var failedToLoadClass = regexp.MustCompile(`(?:Failed to load|Failed to scout|Failed to instantiate|Failed to resolve class|Failed to inject)\s+(?:class\s+)?([A-Za-z_$][\w$]*(?:\.[\w$]+)+)`)
 
 // attribute moves log errors that name a class to the plugin that ships the
 // class; the rest stay general errors.
@@ -737,21 +752,26 @@ func (o *Options) pickImage(ctx context.Context, minJava int) (string, int, erro
 	}
 	javas := version.SupportedJava(o.Core)
 	var order []int
-	if o.Java > 0 {
-		order = append(order, o.Java)
+	add := func(j int) {
+		if j > 0 && !slices.Contains(order, j) {
+			order = append(order, j)
+		}
+	}
+	add(o.Java)
+	if o.Java == 0 && o.PreferJava >= minJava {
+		add(o.PreferJava) // the plan's Java, when the plugins run on it
 	}
 	for _, j := range javas {
-		if j != o.Java && j >= minJava {
-			order = append(order, j)
+		if j >= minJava {
+			add(j)
 		}
 	}
 	if len(order) == 0 || (o.Java > 0 && len(order) == 1) {
 		// No Java the core supports satisfies every plugin, so the ones
 		// that need more fail whatever runs; rehearse what runs today.
+		add(o.PreferJava)
 		for _, j := range javas {
-			if j != o.Java {
-				order = append(order, j)
-			}
+			add(j)
 		}
 	}
 	var tried []string
@@ -959,7 +979,11 @@ func copyTree(src, dst string) error {
 
 var (
 	failedLoading = regexp.MustCompile(`Failed Loading plugin (.*?) v(\S+) \(([^)\s]+)\)`)
-	logHeader     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}[ T][\d:.]+\S*\s+\[id=\d+\]\s+(SEVERE|WARNING)\s+(.*)$`)
+	// Jenkins logs an extension it cannot load as a warning
+	// ("ExtensionFinder$Sezpoz#scout: Failed to scout <class>"); optional
+	// ones, which are allowed to fail, only at a finer level.
+	extensionFailure = regexp.MustCompile(`ExtensionFinder\S*: Failed to (?:scout|load|instantiate) [A-Za-z_$]`)
+	logHeader        = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}[ T][\d:.]+\S*\s+\[id=\d+\]\s+(SEVERE|WARNING)\s+(.*)$`)
 )
 
 // logLine trims a log line and the "[LF]>" marker newer Jenkins puts in
@@ -1021,6 +1045,9 @@ func ParseLog(log string) ([]Failure, []string) {
 				pendingErr = m[2]
 			} else if strings.Contains(m[2], "NoClassDefFoundError") || strings.Contains(m[2], "ClassNotFoundException") || strings.Contains(m[2], "LinkageError") {
 				pendingErr = m[2]
+			} else if extensionFailure.MatchString(m[2]) {
+				// An extension that did not load: its plugin works in part.
+				pendingErr = m[2]
 			}
 			if strings.Contains(m[2], "optional component") {
 				pendingErr = ""
@@ -1032,7 +1059,7 @@ func ParseLog(log string) ([]Failure, []string) {
 			if t := logLine(line); t != "" && !strings.HasPrefix(t, "at ") {
 				msg += " — " + t
 			}
-			if !seenErr[msg] && len(errs) < 40 {
+			if !seenErr[msg] && len(errs) < 1000 {
 				seenErr[msg] = true
 				errs = append(errs, msg)
 			}

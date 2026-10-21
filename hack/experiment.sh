@@ -56,8 +56,9 @@ done
 brief() {
   local json=$1.json err=$1.err
   if [ -s "$json" ]; then
-    jq -c '{core, java, image, started, reason, plugins,
+    jq -c '{core, java, javaReason, image, started, reason, plugins,
       failed: (.failed // [] | length), broken: (.broken // [] | length),
+      brokenNames: [(.broken // [])[] | .name],
       skipped: (.skipped // [] | length),
       roots: [(.roots // [])[] | {name, version, kind: .diagnosis.kind, why: .diagnosis.why, cascade: (.cascade // [] | length)}]}' "$json"
   else
@@ -84,7 +85,9 @@ summary() {
   jq -r --arg name "$1" '"| \($name) | \(.image // "") | \(if .started then "started" else "did not start" end) | \(.plugins // 0) | \(.failed // 0) | \(.roots | length) | \(.broken // 0) | \(.skipped // 0) |"'
 }
 causes() {
-  jq -r --arg name "$1" '.roots[] | "- \($name): **\(.name) \(.version // "")** \(.kind): \(.why)\(if .cascade > 0 then " (takes down \(.cascade) more)" else "" end)"'
+  jq -r --arg name "$1" '(.roots[] | "- \($name): **\(.name) \(.version // "")** \(.kind): \(.why)\(if .cascade > 0 then " (takes down \(.cascade) more)" else "" end)"),
+    (select((.brokenNames // []) != []) | "- \($name): loaded in part (extensions failed): \(.brokenNames | join(", "))"),
+    (select(.javaReason) | "- \($name): Java \(.java) because \(.javaReason)")'
 }
 {
   echo "### $from → $to, $top most installed plugins"

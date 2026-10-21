@@ -49,3 +49,17 @@ func TestTable(t *testing.T) {
 		}
 	}
 }
+
+func TestCellAndPath(t *testing.T) {
+	asIs := Rehearsal{Core: "2.580.1", Started: true, Plugins: 108, Broken: 4, BrokenNames: []string{"email-ext", "mailer", "ssh-cli", "subversion"}}
+	if got, want := cell(asIs), "⚠️ 4 of 108 load in part: email-ext, mailer, ssh-cli, and 1 more"; got != want {
+		t.Errorf("cell = %q, want %q", got, want)
+	}
+	r := Row{Stops: []Rehearsal{
+		{Core: "2.346.3", Java: 11, PlanJava: 8, JavaReason: "gradle needs Java 11 or newer"},
+		{Core: "2.541.3", Java: 17, PlanJava: 17},
+	}}
+	if got, want := path(r), "2.346.3 (Java 11: gradle needs Java 11 or newer) → 2.541.3 (Java 17)"; got != want {
+		t.Errorf("path = %q, want %q", got, want)
+	}
+}
