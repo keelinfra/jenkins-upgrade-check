@@ -1,0 +1,52 @@
+name: Split plugins minimal set
+
+# One-off, on this branch only: the smallest plugin set with which a 2.346.3
+# controller does not start after only its core is replaced by 2.580.1.
+on:
+  push:
+    branches: [claude/project-thread-qepmti]
+    paths: [.github/workflows/split-plugins-min.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        names:
+          - github
+          - bitbucket-server-integration
+          - kubernetes-credentials-provider
+          - git-server
+          - github,bitbucket-server-integration,kubernetes-credentials-provider
+    env:
+      FROM: "2.346.3"
+      TO: "2.580.1"
+      NAMES: ${{ matrix.names }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: go build ./cmd/jenkins-upgrade-check
+      - name: Rehearse
+        run: |
+          mkdir -p out
+          ./jenkins-upgrade-check resolve --core "$FROM" --names "$NAMES" -o out/plugins.txt
+          echo "== $(wc -l < out/plugins.txt) plugins:"; cat out/plugins.txt
+          ./jenkins-upgrade-check dry-run --core "$FROM" --plugins-file out/plugins.txt \
+            --out-dir out/baseline -o out/baseline.md --json out/baseline.json || true
+          ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file out/plugins.txt \
+            --out-dir out/core-only -o out/core-only.md --json out/core-only.json || true
+          for s in baseline core-only; do
+            echo "== $s"; jq -c '{started, reason, plugins}' "out/$s.json"
+          done
+          echo "== core-only first errors"
+          grep -m 4 -E "NoClassDefFoundError|ClassNotFoundException|BootFailure" out/core-only/dry-run-*.log | cut -c1-300 || true
+          cat out/core-only.md
