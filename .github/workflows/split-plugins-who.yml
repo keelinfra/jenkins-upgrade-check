@@ -1,0 +1,83 @@
+name: Split plugins, which plugin stops the start
+
+# One-off, on this branch only. Of the 300 most installed plugins at the
+# versions a 2.346.3 controller can load, which ones reference the
+# instance-identity classes, and which of them alone (with dependencies)
+# stops 2.346.3 -> 2.580.1 (core only, offline) from starting.
+on:
+  push:
+    branches: [claude/project-thread-qepmti]
+    paths: [.github/workflows/split-plugins-who.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      FROM: "2.346.3"
+      TO: "2.580.1"
+      TOP: "300"
+    steps:
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: go build ./cmd/jenkins-upgrade-check
+
+      - name: Plugins that reference InstanceIdentity
+        run: |
+          # no pipefail: grep -q ends the unzip pipe early on a match
+          set -eu
+          mkdir -p out hpi x
+          month=$(go run ./hack/matrix month)
+          curl -fsSL "https://raw.githubusercontent.com/jenkins-infra/infra-statistics/gh-pages/jenkins-stats/svg/${month}-top-plugins1000.csv" -o out/top.csv
+          ./jenkins-upgrade-check resolve --core "$FROM" --top-plugins out/top.csv --top "$TOP" -o out/plugins-from.txt
+          : > out/refs.txt
+          while IFS=: read -r name ver; do
+            [ -n "$name" ] || continue
+            curl -fsSL --retry 3 -o "hpi/$name.hpi" "https://updates.jenkins.io/download/plugins/$name/$ver/$name.hpi"
+            rm -rf x/* && unzip -q -o "hpi/$name.hpi" 'WEB-INF/lib/*.jar' 'WEB-INF/classes/*' -d x 2>/dev/null || true
+            hit=no
+            for jar in x/WEB-INF/lib/*.jar; do
+              [ -f "$jar" ] || continue
+              if unzip -p "$jar" '*.class' 2>/dev/null | grep -aq 'org/jenkinsci/main/modules/instance_identity/'; then hit=yes; fi
+            done
+            if [ -d x/WEB-INF/classes ] && grep -raq 'org/jenkinsci/main/modules/instance_identity/' x/WEB-INF/classes; then hit=yes; fi
+            if [ "$hit" = yes ]; then
+              m=$(unzip -p "hpi/$name.hpi" META-INF/MANIFEST.MF | tr -d '\r')
+              jv=$(echo "$m" | sed -n 's/^Jenkins-Version: //p')
+              echo "$name:$ver built-for=$jv declares-instance-identity=$(echo "$m" | tr -d '\n ' | grep -q 'instance-identity' && echo yes || echo no)" | tee -a out/refs.txt
+            fi
+          done < out/plugins-from.txt
+          echo "== $(wc -l < out/refs.txt) of $(wc -l < out/plugins-from.txt) plugins reference instance-identity classes"
+
+      - name: Each of them alone, core only, offline
+        run: |
+          set -uo pipefail
+          run() {
+            label=$1 names=$2
+            ./jenkins-upgrade-check resolve --core "$FROM" --names "$names" -o "out/$label.txt" || { echo "== $label: resolve failed"; return; }
+            ./jenkins-upgrade-check dry-run --core "$FROM" --plugins-file "out/$label.txt" \
+              --out-dir "out/$label-base" --json "out/$label-base.json" -o /dev/null >/dev/null 2>&1 || true
+            ./jenkins-upgrade-check dry-run --core "$TO" --from "$FROM" --plugins-file "out/$label.txt" \
+              --out-dir "out/$label-up" --json "out/$label-up.json" -o "out/$label-up.md" >/dev/null 2>&1 || true
+            b=$(jq -r '.started' "out/$label-base.json" 2>/dev/null)
+            u=$(jq -r '.started' "out/$label-up.json" 2>/dev/null)
+            g=$(grep -c "Failed to create Guice container" out/$label-up/dry-run-*.log 2>/dev/null || echo 0)
+            echo "== $label ($(wc -l < "out/$label.txt") plugins): $FROM started=$b; $TO core-only started=$u; guice-container-failed=$g"
+            grep -m 3 -E "BootFailure|Unable to inject" out/$label-up/dry-run-*.log | cut -c1-250 || true
+          }
+          for name in $(cut -d: -f1 out/refs.txt); do run "$name" "$name"; done
+          run all-refs "$(cut -d: -f1 out/refs.txt | paste -sd,)"
+          for j in out/*-up.json; do
+            if [ "$(jq -r '.started' "$j")" != true ]; then
+              l=${j%-up.json}; echo "##### did not start: ${l#out/}"; cat "$l-up.md"; echo "== plugins:"; cat "$l.txt"
+            fi
+          done
