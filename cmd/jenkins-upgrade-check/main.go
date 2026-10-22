@@ -64,44 +64,57 @@ Run "jenkins-upgrade-check COMMAND -h" for the flags of one command.
 `
 
 func main() {
+	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.Getenv))
+}
+
+// env is where a command writes and how it reads the environment.
+type env struct {
+	stdout, stderr io.Writer
+	getenv         func(string) string
+}
+
+// run runs the command line args (without the program name) and returns
+// the exit code.
+func run(args []string, stdout, stderr io.Writer, getenv func(string) string) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-	if len(os.Args) < 2 {
-		fmt.Fprint(os.Stderr, usage)
-		os.Exit(2)
+	if len(args) < 1 {
+		fmt.Fprint(stderr, usage)
+		return 2
 	}
+	e := &env{stdout: stdout, stderr: stderr, getenv: getenv}
 	var err error
 	code := 0
-	switch os.Args[1] {
+	switch args[0] {
 	case "collect":
-		err = cmdCollect(ctx, os.Args[2:])
+		err = e.cmdCollect(ctx, args[1:])
 	case "plan":
-		err = cmdPlan(ctx, os.Args[2:])
+		err = e.cmdPlan(ctx, args[1:])
 	case "dry-run", "dryrun":
-		code, err = cmdDryRun(ctx, os.Args[2:])
+		code, err = e.cmdDryRun(ctx, args[1:])
 	case "resolve":
-		err = cmdResolve(ctx, os.Args[2:])
+		err = e.cmdResolve(ctx, args[1:])
 	case "download":
-		err = cmdDownload(ctx, os.Args[2:])
+		err = e.cmdDownload(ctx, args[1:])
 	case "probe":
-		err = cmdProbe(os.Args[2:])
+		err = e.cmdProbe(args[1:])
 	case "verify":
-		code, err = cmdVerify(ctx, os.Args[2:])
+		code, err = e.cmdVerify(ctx, args[1:])
 	case "version", "--version":
-		fmt.Println(tool, Version)
+		fmt.Fprintln(stdout, tool, Version)
 	case "help", "-h", "--help":
-		fmt.Print(usage)
+		fmt.Fprint(stdout, usage)
 	default:
-		fmt.Fprintf(os.Stderr, "unknown command %q\n\n%s", os.Args[1], usage)
-		os.Exit(2)
+		fmt.Fprintf(stderr, "unknown command %q\n\n%s", args[0], usage)
+		return 2
 	}
 	if err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
-			fmt.Fprintln(os.Stderr, "error:", err)
+			fmt.Fprintln(stderr, "error:", err)
 		}
-		os.Exit(2)
+		return 2
 	}
-	os.Exit(code)
+	return code
 }
 
 type sourceFlags struct {
@@ -126,8 +139,8 @@ func (s *sourceFlags) source() *uc.Source {
 	return &uc.Source{Base: s.base, Dir: s.dir, CacheDir: s.cache, MaxAge: s.maxAge, UserAgent: tool + "/" + Version}
 }
 
-func load(ctx context.Context, src *uc.Source) (*uc.Releases, *uc.UpdateCenter, error) {
-	fmt.Fprintln(os.Stderr, "reading update center data")
+func (e *env) load(ctx context.Context, src *uc.Source) (*uc.Releases, *uc.UpdateCenter, error) {
+	fmt.Fprintln(e.stderr, "reading update center data")
 	rel, err := src.Releases(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -139,11 +152,12 @@ func load(ctx context.Context, src *uc.Source) (*uc.Releases, *uc.UpdateCenter, 
 	return rel, center, nil
 }
 
-func cmdCollect(ctx context.Context, args []string) error {
+func (e *env) cmdCollect(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("collect", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	c := &snapshot.Collector{Tool: tool, ToolVersion: Version}
-	fs.StringVar(&c.URL, "url", os.Getenv("JENKINS_URL"), "controller URL (or JENKINS_URL)")
-	fs.StringVar(&c.User, "user", os.Getenv("JENKINS_USER"), "user name (or JENKINS_USER)")
+	fs.StringVar(&c.URL, "url", e.getenv("JENKINS_URL"), "controller URL (or JENKINS_URL)")
+	fs.StringVar(&c.User, "user", e.getenv("JENKINS_USER"), "user name (or JENKINS_USER)")
 	fs.StringVar(&c.Token, "token", "", "API token (better: JENKINS_TOKEN, which stays out of shell history)")
 	fs.StringVar(&c.CAFile, "ca-file", "", "extra CA certificates (PEM) to trust, for an internal CA")
 	fs.BoolVar(&c.AllowHTTP, "allow-http", false, "allow a plain http URL that is not localhost")
@@ -152,7 +166,7 @@ func cmdCollect(ctx context.Context, args []string) error {
 		return err
 	}
 	if c.Token == "" {
-		c.Token = os.Getenv("JENKINS_TOKEN")
+		c.Token = e.getenv("JENKINS_TOKEN")
 	}
 	if c.URL == "" {
 		return errors.New("--url is required")
@@ -164,9 +178,9 @@ func cmdCollect(ctx context.Context, args []string) error {
 	if err := s.Write(*out); err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stderr, "Jenkins %s: %d plugins, %d agents → %s (%d GET requests, nothing written to the controller)\n", s.Core, len(s.Plugins), len(s.Agents), *out, c.Requests())
+	fmt.Fprintf(e.stderr, "Jenkins %s: %d plugins, %d agents → %s (%d GET requests, nothing written to the controller)\n", s.Core, len(s.Plugins), len(s.Agents), *out, c.Requests())
 	for _, n := range s.Notes {
-		fmt.Fprintln(os.Stderr, "note:", n)
+		fmt.Fprintln(e.stderr, "note:", n)
 	}
 	return nil
 }
@@ -205,8 +219,9 @@ func (in *inputFlags) load() (*snapshot.Snapshot, error) {
 	return nil, errors.New("give --snapshot (from collect) or --plugins-file with --core")
 }
 
-func cmdPlan(ctx context.Context, args []string) error {
+func (e *env) cmdPlan(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("plan", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	var in inputFlags
 	in.register(fs)
 	var sf sourceFlags
@@ -233,7 +248,7 @@ func cmdPlan(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	rel, center, err := load(ctx, src)
+	rel, center, err := e.load(ctx, src)
 	if err != nil {
 		return err
 	}
@@ -248,7 +263,7 @@ func cmdPlan(ctx context.Context, args []string) error {
 		}
 	}
 	if *pluginsOut != "" {
-		if err := writePicks(*pluginsOut, p.Target.Plugins); err != nil {
+		if err := e.writePicks(*pluginsOut, p.Target.Plugins); err != nil {
 			return err
 		}
 	}
@@ -262,15 +277,16 @@ func cmdPlan(ctx context.Context, args []string) error {
 			planFile = "plan.json"
 		}
 		o := runbook.Options{Install: *install, Home: *home, URL: url, PlanFile: planFile}
-		if err := withOutput(*rb, func(w io.Writer) error { return runbook.Write(w, p, o) }); err != nil {
+		if err := e.withOutput(*rb, func(w io.Writer) error { return runbook.Write(w, p, o) }); err != nil {
 			return err
 		}
 	}
-	return withOutput(*out, func(w io.Writer) error { return report.Plan(w, p) })
+	return e.withOutput(*out, func(w io.Writer) error { return report.Plan(w, p) })
 }
 
-func cmdDryRun(ctx context.Context, args []string) (int, error) {
+func (e *env) cmdDryRun(ctx context.Context, args []string) (int, error) {
 	fs := flag.NewFlagSet("dry-run", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	var in inputFlags
 	in.register(fs)
 	var sf sourceFlags
@@ -291,7 +307,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 	if err := fs.Parse(args); err != nil {
 		return 0, err
 	}
-	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, Upgrading: *from, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: os.Stderr}
+	o := dryrun.Options{Home: *home, CasC: *casc, Java: *java, Image: *image, Upgrading: *from, OutDir: *outDir, Timeout: *timeout, Keep: *keep, Progress: e.stderr}
 	if sf.cache != "" {
 		o.CacheDir = filepath.Join(sf.cache, "plugins")
 	}
@@ -331,7 +347,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 		if *resolve {
 			r := plan.Resolve(rel, picks, s.Core)
 			for _, pr := range r.Problems {
-				fmt.Fprintln(os.Stderr, "warning:", pr)
+				fmt.Fprintln(e.stderr, "warning:", pr)
 			}
 			picks = r.Plugins
 		} else {
@@ -349,7 +365,7 @@ func cmdDryRun(ctx context.Context, args []string) (int, error) {
 			return 0, err
 		}
 	}
-	if err := withOutput(*out, func(w io.Writer) error { return report.Rehearsal(w, res) }); err != nil {
+	if err := e.withOutput(*out, func(w io.Writer) error { return report.Rehearsal(w, res) }); err != nil {
 		return 0, err
 	}
 	if !res.OK() {
@@ -370,8 +386,9 @@ func readPlan(path string) (*plan.Plan, error) {
 	return &p, nil
 }
 
-func cmdDownload(ctx context.Context, args []string) error {
+func (e *env) cmdDownload(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("download", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	var sf sourceFlags
 	sf.register(fs)
 	planFile := fs.String("plan", "", "plan JSON written by plan --json")
@@ -398,33 +415,35 @@ func cmdDownload(ctx context.Context, args []string) error {
 	if sf.cache != "" {
 		cache = filepath.Join(sf.cache, "plugins")
 	}
-	fmt.Fprintf(os.Stderr, "downloading %d plugins for Jenkins %s into %s\n", len(picks), core, *dir)
+	fmt.Fprintf(e.stderr, "downloading %d plugins for Jenkins %s into %s\n", len(picks), core, *dir)
 	got, skipped := dryrun.Download(ctx, picks, *dir, cache)
 	for _, sk := range skipped {
-		fmt.Fprintln(os.Stderr, "not downloaded:", sk)
+		fmt.Fprintln(e.stderr, "not downloaded:", sk)
 	}
-	fmt.Fprintf(os.Stderr, "%d of %d plugins downloaded\n", len(got), len(picks))
+	fmt.Fprintf(e.stderr, "%d of %d plugins downloaded\n", len(got), len(picks))
 	if len(skipped) > 0 {
 		return fmt.Errorf("%d plugin(s) could not be downloaded; the plugins directory would be incomplete", len(skipped))
 	}
 	return nil
 }
 
-func cmdProbe(args []string) error {
+func (e *env) cmdProbe(args []string) error {
 	fs := flag.NewFlagSet("probe", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	quiet := fs.Bool("quiet", false, "also put Jenkins into quiet mode as it starts, so no build runs until it is verified")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	_, err := os.Stdout.Write(dryrun.ProbeScript(*quiet))
+	_, err := e.stdout.Write(dryrun.ProbeScript(*quiet))
 	return err
 }
 
-func cmdVerify(ctx context.Context, args []string) (int, error) {
+func (e *env) cmdVerify(ctx context.Context, args []string) (int, error) {
 	fs := flag.NewFlagSet("verify", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	c := &snapshot.Collector{Tool: tool, ToolVersion: Version}
-	fs.StringVar(&c.URL, "url", os.Getenv("JENKINS_URL"), "controller URL (or JENKINS_URL)")
-	fs.StringVar(&c.User, "user", os.Getenv("JENKINS_USER"), "user name (or JENKINS_USER); the token comes from JENKINS_TOKEN")
+	fs.StringVar(&c.URL, "url", e.getenv("JENKINS_URL"), "controller URL (or JENKINS_URL)")
+	fs.StringVar(&c.User, "user", e.getenv("JENKINS_USER"), "user name (or JENKINS_USER); the token comes from JENKINS_TOKEN")
 	fs.StringVar(&c.CAFile, "ca-file", "", "extra CA certificates (PEM) to trust")
 	fs.BoolVar(&c.AllowHTTP, "allow-http", false, "allow a plain http URL that is not localhost")
 	before := fs.String("before", "", "snapshot collected before the upgrade")
@@ -437,7 +456,7 @@ func cmdVerify(ctx context.Context, args []string) (int, error) {
 	if err := fs.Parse(args); err != nil {
 		return 0, err
 	}
-	c.Token = os.Getenv("JENKINS_TOKEN")
+	c.Token = e.getenv("JENKINS_TOKEN")
 	if *before == "" || c.URL == "" {
 		return 0, errors.New("--before and --url are required")
 	}
@@ -466,9 +485,9 @@ func cmdVerify(ctx context.Context, args []string) (int, error) {
 		pr, err := dryrun.ReadProbe(filepath.Join(*home, dryrun.ProbeFile))
 		switch {
 		case err != nil:
-			fmt.Fprintf(os.Stderr, "note: no probe record in %s (%v); install it with: jenkins-upgrade-check probe --quiet > %s\n", *home, err, filepath.Join(*home, "init.groovy.d", "zz-jenkins-upgrade-check.groovy"))
+			fmt.Fprintf(e.stderr, "note: no probe record in %s (%v); install it with: jenkins-upgrade-check probe --quiet > %s\n", *home, err, filepath.Join(*home, "init.groovy.d", "zz-jenkins-upgrade-check.groovy"))
 		case in.Core != "" && pr.Version != in.Core:
-			fmt.Fprintf(os.Stderr, "note: the probe record is from Jenkins %s, not %s; ignoring it\n", pr.Version, in.Core)
+			fmt.Fprintf(e.stderr, "note: the probe record is from Jenkins %s, not %s; ignoring it\n", pr.Version, in.Core)
 		default:
 			in.Probe = pr
 		}
@@ -513,18 +532,19 @@ func cmdVerify(ctx context.Context, args []string) (int, error) {
 			return 0, err
 		}
 	}
-	if err := withOutput(*out, func(w io.Writer) error { return report.Verify(w, res) }); err != nil {
+	if err := e.withOutput(*out, func(w io.Writer) error { return report.Verify(w, res) }); err != nil {
 		return 0, err
 	}
-	fmt.Fprintf(os.Stderr, "%s\n", res.Verdict)
+	fmt.Fprintf(e.stderr, "%s\n", res.Verdict)
 	if res.Verdict != verify.Go {
 		return 1, nil
 	}
 	return 0, nil
 }
 
-func cmdResolve(ctx context.Context, args []string) error {
+func (e *env) cmdResolve(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("resolve", flag.ContinueOnError)
+	fs.SetOutput(e.stderr)
 	var sf sourceFlags
 	sf.register(fs)
 	core := fs.String("core", "", "Jenkins version to resolve for")
@@ -577,10 +597,10 @@ func cmdResolve(ctx context.Context, args []string) error {
 	}
 	r := plan.Resolve(rel, picks, target)
 	for _, pr := range r.Problems {
-		fmt.Fprintln(os.Stderr, "warning:", pr)
+		fmt.Fprintln(e.stderr, "warning:", pr)
 	}
-	fmt.Fprintf(os.Stderr, "%d plugins for Jenkins %s\n", len(r.Plugins), target)
-	return withOutput(*out, func(w io.Writer) error { return picksTxt(w, r.Plugins) })
+	fmt.Fprintf(e.stderr, "%d plugins for Jenkins %s\n", len(r.Plugins), target)
+	return e.withOutput(*out, func(w io.Writer) error { return picksTxt(w, r.Plugins) })
 }
 
 // topPlugins reads a usage statistics CSV and returns the most installed
@@ -638,8 +658,8 @@ func picksTxt(w io.Writer, picks []plan.Pick) error {
 	return nil
 }
 
-func writePicks(path string, picks []plan.Pick) error {
-	return withOutput(path, func(w io.Writer) error { return picksTxt(w, picks) })
+func (e *env) writePicks(path string, picks []plan.Pick) error {
+	return e.withOutput(path, func(w io.Writer) error { return picksTxt(w, picks) })
 }
 
 func writeJSON(path string, v any) error {
@@ -650,9 +670,9 @@ func writeJSON(path string, v any) error {
 	return os.WriteFile(path, append(b, '\n'), 0o644)
 }
 
-func withOutput(path string, fn func(io.Writer) error) error {
+func (e *env) withOutput(path string, fn func(io.Writer) error) error {
 	if path == "" || path == "-" {
-		return fn(os.Stdout)
+		return fn(e.stdout)
 	}
 	f, err := os.Create(path)
 	if err != nil {
