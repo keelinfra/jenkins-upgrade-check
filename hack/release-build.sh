@@ -24,22 +24,30 @@ cp install.sh dist/
 # The SBOM lists what is compiled in: the Go standard library (its version decides which
 # Go vulnerabilities apply) and any third-party module.
 go_version=$(go env GOVERSION | sed 's/^go//')
+# A random serial number per SBOM, as CycloneDX asks; actions/attest refuses an SBOM without one.
+uuid() {
+    if [ -r /proc/sys/kernel/random/uuid ]; then cat /proc/sys/kernel/random/uuid
+    else uuidgen | tr 'A-F' 'a-f'
+    fi
+}
 go list -deps -f '{{with .Module}}{{if .Version}}{{.Path}} {{.Version}}{{end}}{{end}}' ./cmd/$name | sort -u |
     jq -R -s --arg name "$name" --arg module "$module" --arg version "$version" --arg go "$go_version" \
-        --arg time "$(git log -1 --format=%cI)" '
+        --arg time "$(git log -1 --format=%cI)" --arg serial "urn:uuid:$(uuid)" '
     def comp($type; $name; $version; $purl; $license):
       {type: $type, "bom-ref": $purl, name: $name, version: $version, purl: $purl}
       + (if $license then {licenses: [{license: {id: $license}}]} else {} end);
     ("pkg:golang/\($module)@v\($version)") as $self
     | ([comp("library"; "stdlib"; $go; "pkg:golang/stdlib@\($go)"; "BSD-3-Clause")]
        + [split("\n")[] | select(length > 0) | split(" ") | comp("library"; .[0]; .[1]; "pkg:golang/\(.[0])@\(.[1])"; null)]) as $deps
-    | {bomFormat: "CycloneDX", specVersion: "1.6", version: 1,
+    | {bomFormat: "CycloneDX", specVersion: "1.6", serialNumber: $serial, version: 1,
        metadata: {timestamp: $time,
          component: (comp("application"; $name; $version; $self; "Apache-2.0")
            + {supplier: {name: "keelinfra", url: ["https://keelinfra.io"]}})},
        components: $deps,
        dependencies: [{ref: $self, dependsOn: [$deps[]["bom-ref"]]}]}' \
     > "dist/$name.cdx.json"
+jq -e '.bomFormat == "CycloneDX" and .specVersion == "1.6" and (.serialNumber | test("^urn:uuid:[0-9a-f-]{36}$"))' \
+    "dist/$name.cdx.json" > /dev/null || { echo "dist/$name.cdx.json is not a CycloneDX SBOM actions/attest accepts" >&2; exit 1; }
 
 if command -v sha256sum > /dev/null; then sha256='sha256sum'; else sha256='shasum -a 256'; fi
 (cd dist && $sha256 "${name}"_* install.sh "$name.cdx.json" > sha256sums.txt)
