@@ -163,7 +163,13 @@ func (r *writer) settings() {
 	case War:
 		lines = append(lines, "WAR_DIR=/opt/jenkins                        # where jenkins.war is", "SERVICE=jenkins                             # the service that runs it")
 	}
-	lines = append(lines, `mkdir -p "$WORK"`, `api() { curl -fsS -u "$JENKINS_USER:$JENKINS_TOKEN" "$@"; }`)
+	// WORK and BACKUP end up holding JENKINS_HOME's secrets (secrets/,
+	// credentials.xml). /var/tmp is writable by every user: WORK must be
+	// root's own directory, and no file in it or the backup readable by others.
+	lines = append(lines,
+		`mkdir -p "$WORK" && chmod 700 "$WORK"      # it will hold secrets: root only`,
+		`[ "$(stat -c %u "$WORK")" = 0 ] || echo "STOP: $WORK belongs to another user; remove it and run these settings again"`,
+		`api() { curl -fsS -u "$JENKINS_USER:$JENKINS_TOKEN" "$@"; }`)
 	r.sh(lines...)
 }
 
@@ -288,7 +294,7 @@ func (r *writer) drain() {
 		`until api "$JENKINS_URL/computer/api/json?tree=busyExecutors" | grep -q '"busyExecutors":0'; do sleep 30; done`,
 		r.stop())
 	r.b.WriteString("**Back up.** Everything but workspaces, which builds recreate:\n\n")
-	r.sh(`tar -C "$JENKINS_HOME" --exclude=./workspace --exclude=./caches -czf "$BACKUP" .`)
+	r.sh(`(umask 077 && rm -f "$BACKUP" && tar -C "$JENKINS_HOME" --exclude=./workspace --exclude=./caches -czf "$BACKUP" .)   # holds secrets: root only`)
 }
 
 func (r *writer) stop() string {
