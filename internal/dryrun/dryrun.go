@@ -289,7 +289,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-time.After(2 * time.Second):
+		case <-time.After(startPoll):
 		}
 	}
 
@@ -304,7 +304,7 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()
-			case <-time.After(time.Second):
+			case <-time.After(probePoll):
 			}
 		}
 		logs, _ = o.run(ctx, "logs", name)
@@ -389,6 +389,15 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 
 // maxErrors is how many errors that name no plugin a report lists.
 const maxErrors = 40
+
+// How long Run waits between looks at the starting container, and between
+// tries to read the probe's final report; and how long get waits before
+// its second try (twice that before its third).
+var (
+	startPoll = 2 * time.Second
+	probePoll = time.Second
+	retryWait = 2 * time.Second
+)
 
 // rehearsalNoise are administrator warnings a rehearsal shows because it has
 // no network, no URL, no executors and a fresh Java, or that the report
@@ -895,7 +904,7 @@ func (o *Options) get(ctx context.Context, url, dest string) error {
 	var lastErr error
 	for attempt := 0; attempt < 3; attempt++ {
 		if attempt > 0 {
-			time.Sleep(time.Duration(attempt*2) * time.Second)
+			time.Sleep(time.Duration(attempt) * retryWait)
 		}
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
