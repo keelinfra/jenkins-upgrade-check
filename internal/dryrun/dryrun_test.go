@@ -3,12 +3,18 @@ package dryrun
 import (
 	"archive/zip"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
 )
 
 func TestParseLog(t *testing.T) {
@@ -297,5 +303,37 @@ func TestUpgradeFrom(t *testing.T) {
 	}
 	if got := detachedPlugins("Jenkins is fully up and running"); got != nil {
 		t.Errorf("no upgrade: %q", got)
+	}
+}
+
+// TestDownloadWithoutCache: with no cache directory, plugins go straight into
+// dir, checked against their checksum, and nothing is written to a fixed path
+// in the shared temp directory.
+func TestDownloadWithoutCache(t *testing.T) {
+	body := []byte("plugin bytes")
+	sum := sha256.Sum256(body)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(body)
+	}))
+	defer srv.Close()
+	t.Setenv("TMPDIR", t.TempDir())
+	dir := t.TempDir()
+	picks := []plan.Pick{
+		{Name: "good", Version: "1.0", URL: srv.URL + "/good.hpi", SHA256: base64.StdEncoding.EncodeToString(sum[:])},
+		{Name: "bad", Version: "1.0", URL: srv.URL + "/bad.hpi", SHA256: base64.StdEncoding.EncodeToString(make([]byte, 32))},
+	}
+	got, skipped := Download(context.Background(), picks, dir, "")
+	if len(got) != 1 || got[0].Name != "good" || len(skipped) != 1 || !strings.Contains(skipped[0], "checksum mismatch") {
+		t.Fatalf("got %v, skipped %v; want good downloaded and bad refused", got, skipped)
+	}
+	if b, err := os.ReadFile(filepath.Join(dir, "good.jpi")); err != nil || string(b) != string(body) {
+		t.Errorf("good.jpi = %q, %v", b, err)
+	}
+	entries, _ := os.ReadDir(dir)
+	if len(entries) != 1 {
+		t.Errorf("dir holds %d entries, want only good.jpi", len(entries))
+	}
+	if entries, _ := os.ReadDir(os.TempDir()); len(entries) != 0 {
+		t.Errorf("wrote to the shared temp directory: %v", entries)
 	}
 }

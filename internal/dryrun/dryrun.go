@@ -874,11 +874,21 @@ func (o *Options) download(ctx context.Context, picks []plan.Pick, dir string) (
 }
 
 func (o *Options) fetchOne(ctx context.Context, p plan.Pick, dir string) error {
-	cache := o.CacheDir
-	if cache == "" {
-		cache = filepath.Join(os.TempDir(), "jenkins-upgrade-check-plugins")
+	if o.CacheDir == "" {
+		// No cache (no user cache directory): straight into dir. Never a
+		// fixed path in the shared temp directory, where another local user
+		// could plant or swap a plugin.
+		dest := filepath.Join(dir, p.Name+".jpi")
+		if err := o.get(ctx, p.URL, dest); err != nil {
+			return err
+		}
+		if err := verify(dest, p.SHA256); err != nil {
+			os.Remove(dest)
+			return err
+		}
+		return nil
 	}
-	cached := filepath.Join(cache, p.Name, p.Version, p.Name+".hpi")
+	cached := filepath.Join(o.CacheDir, p.Name, p.Version, p.Name+".hpi")
 	if _, err := os.Stat(cached); err != nil {
 		if err := o.get(ctx, p.URL, cached); err != nil {
 			return err
