@@ -37,29 +37,41 @@ const (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: matrix month | versions -to VERSION | table -results DIR")
-		os.Exit(2)
+	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+}
+
+// run is main without the process: it returns the exit code.
+func run(args []string, stdout, stderr io.Writer) int {
+	if len(args) < 1 {
+		fmt.Fprintln(stderr, "usage: matrix month | versions -to VERSION | table -results DIR")
+		return 2
 	}
 	ctx := context.Background()
 	var err error
-	switch os.Args[1] {
+	switch args[0] {
 	case "month":
-		err = cmdMonth(ctx)
+		err = cmdMonth(ctx, stdout)
 	case "versions":
-		err = cmdVersions(ctx, os.Args[2:])
+		err = cmdVersions(ctx, args[1:], stdout)
 	case "table":
-		err = cmdTable(ctx, os.Args[2:])
+		err = cmdTable(ctx, args[1:], stdout)
 	default:
-		err = fmt.Errorf("unknown command %q", os.Args[1])
+		err = fmt.Errorf("unknown command %q", args[0])
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "matrix:", err)
-		os.Exit(1)
+		fmt.Fprintln(stderr, "matrix:", err)
+		return 1
 	}
+	return 0
 }
 
-var client = &http.Client{Timeout: 2 * time.Minute}
+// client, updateCenter and now are variables so that tests can replace
+// them.
+var (
+	client       = &http.Client{Timeout: 2 * time.Minute}
+	updateCenter = &uc.Source{}
+	now          = time.Now
+)
 
 func get(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -79,8 +91,8 @@ func get(ctx context.Context, url string) ([]byte, error) {
 
 // cmdMonth prints the newest month the usage statistics have a plugin
 // ranking for. They are published with a delay, and sometimes not at all.
-func cmdMonth(ctx context.Context) error {
-	now := time.Now().UTC()
+func cmdMonth(ctx context.Context, stdout io.Writer) error {
+	now := now().UTC()
 	for i := 0; i < 24; i++ {
 		m := time.Date(now.Year(), now.Month()-time.Month(i), 1, 0, 0, 0, 0, time.UTC).Format("200601")
 		req, err := http.NewRequestWithContext(ctx, http.MethodHead, statsBase+"/"+m+"-top-plugins1000.csv", nil)
@@ -93,7 +105,7 @@ func cmdMonth(ctx context.Context) error {
 		}
 		resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
-			fmt.Println(m)
+			fmt.Fprintln(stdout, m)
 			return nil
 		}
 	}
@@ -102,15 +114,14 @@ func cmdMonth(ctx context.Context) error {
 
 // cmdVersions prints, as a JSON array, the last release of every LTS line
 // older than the target's line: where controllers that stopped updating sit.
-func cmdVersions(ctx context.Context, args []string) error {
+func cmdVersions(ctx context.Context, args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("versions", flag.ContinueOnError)
 	to := fs.String("to", "lts", "target version, or lts")
 	min := fs.Int("min-line", firstLine, "oldest LTS line to include")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	src := &uc.Source{}
-	target, err := src.ResolveCore(ctx, *to)
+	target, err := updateCenter.ResolveCore(ctx, *to)
 	if err != nil {
 		return err
 	}
@@ -122,7 +133,7 @@ func cmdVersions(ctx context.Context, args []string) error {
 	if len(out) == 0 {
 		return fmt.Errorf("no LTS line between 2.%d and %s", *min, target)
 	}
-	return json.NewEncoder(os.Stdout).Encode(out)
+	return json.NewEncoder(stdout).Encode(out)
 }
 
 var ltsVersion = regexp.MustCompile(`<version>2\.(\d+)\.(\d+)</version>`)
@@ -225,7 +236,7 @@ type Matrix struct {
 	Rows        []Row     `json:"rows"`
 }
 
-func cmdTable(ctx context.Context, args []string) error {
+func cmdTable(ctx context.Context, args []string, stdout io.Writer) error {
 	fs := flag.NewFlagSet("table", flag.ContinueOnError)
 	dir := fs.String("results", "results", "directory with the row.json files")
 	stats := fs.String("stats", "", "usage statistics CSV of Jenkins versions (default: download it for the rows' month)")
@@ -250,7 +261,7 @@ func cmdTable(ctx context.Context, args []string) error {
 	if err := m.AddShares(string(csvData)); err != nil {
 		return err
 	}
-	m.Generated = time.Now().UTC()
+	m.Generated = now().UTC()
 	if *jsonOut != "" {
 		b, err := json.MarshalIndent(m, "", "  ")
 		if err != nil {
@@ -260,7 +271,7 @@ func cmdTable(ctx context.Context, args []string) error {
 			return err
 		}
 	}
-	w := os.Stdout
+	w := stdout
 	if *out != "" {
 		f, err := os.Create(*out)
 		if err != nil {
