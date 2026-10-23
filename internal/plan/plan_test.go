@@ -282,3 +282,204 @@ func TestResolveAddsPluginsSplitOutOfCore(t *testing.T) {
 		t.Errorf("trilead-api was split out in 2.184; got %+v", r.Plugins)
 	}
 }
+
+// Dependencies that are installed but too old, and ones no release on the
+// core satisfies: each is raised where a release exists, and named as a
+// problem where none does.
+func TestResolveRaisesInstalledDependencies(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "web":{"1.0":{"requiredCore":"2.400","dependencies":[{"name":"util","version":"2.0","optional":false}]}},
+ "util":{
+  "1.0":{"requiredCore":"2.400","url":"https://u/util-1.0.hpi"},
+  "2.0":{"requiredCore":"2.400","url":"https://u/util-2.0.hpi","sha256":"s2","dependencies":[{"name":"core-lib","version":"5.0","optional":false}]}
+ },
+ "core-lib":{"5.0":{"requiredCore":"2.500"}},
+ "needy":{"1.0":{"requiredCore":"2.400","dependencies":[{"name":"old","version":"3.0","optional":false}]}},
+ "old":{"1.0":{"requiredCore":"2.300"},"3.0":{"requiredCore":"2.500"}},
+ "uses-private":{"1.0":{"requiredCore":"2.400","dependencies":[{"name":"private","version":"2.0","optional":false}]}},
+ "app":{"1.0":{"requiredCore":"2.400","dependencies":[{"name":"lib","version":"2.0","optional":false}]}},
+ "lib":{"1.0":{"requiredCore":"2.300"},"3.0":{"requiredCore":"2.500"}},
+ "too-new":{"9.0":{"requiredCore":"2.500"}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{
+		{Name: "web", Version: "1.0"}, {Name: "util", Version: "1.0"},
+		{Name: "needy", Version: "1.0"}, {Name: "old", Version: "1.0"},
+		{Name: "uses-private", Version: "1.0"}, {Name: "private", Version: "1.0"},
+		{Name: "app", Version: "1.0"},
+		{Name: "too-new", Version: "8.0"},
+	}, "2.400")
+	got := r.ByName()
+	// web needs util 2.0, which loads on 2.400 even though its own
+	// dependency does not: util is raised, and the dependency is a problem.
+	if u := got["util"]; u.Version != "2.0" || u.URL != "https://u/util-2.0.hpi" || u.SHA256 != "s2" {
+		t.Errorf("util = %+v, want 2.0 with its URL and checksum", u)
+	}
+	// A private plugin is raised to the version its dependent asks for,
+	// from the download archive.
+	if p := got["private"]; p.Version != "2.0" || !p.Unknown || p.URL != uc.ArchiveURL("private", "2.0") {
+		t.Errorf("private = %+v, want 2.0 from the archive", p)
+	}
+	if o := got["old"]; o.Version != "1.0" {
+		t.Errorf("old = %+v, want kept at 1.0", o)
+	}
+	if n := got["too-new"]; n.Version != "8.0" {
+		t.Errorf("too-new = %+v, want kept at 8.0", n)
+	}
+	if _, ok := got["lib"]; ok {
+		t.Errorf("lib has no release that satisfies app; it must not be added: %+v", got["lib"])
+	}
+	want := []string{
+		"app 1.0 needs lib 2.0 or newer, and no such release runs on Jenkins 2.400",
+		"needy 1.0 needs old 3.0 or newer, but the newest old that runs on Jenkins 2.400 is 1.0",
+		"too-new: no release runs on Jenkins 2.400; kept at 8.0",
+		"util 2.0 needs core-lib 5.0 or newer, and no such release runs on Jenkins 2.400",
+	}
+	if !reflect.DeepEqual(r.Problems, want) {
+		t.Errorf("problems =\n%q\nwant\n%q", r.Problems, want)
+	}
+}
+
+// Two plugins that depend on each other resolve instead of looping.
+func TestResolveDependencyCycle(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "a":{"1.0":{"requiredCore":"2.400","dependencies":[{"name":"b","version":"1.0","optional":false}]}},
+ "b":{"1.0":{"requiredCore":"2.400","dependencies":[{"name":"a","version":"1.0","optional":false}]}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{{Name: "a", Version: "0"}}, "2.400")
+	got := r.ByName()
+	if got["a"].Version != "1.0" || got["b"].Version != "1.0" || !got["b"].Added || len(r.Problems) != 0 {
+		t.Errorf("plugins = %+v, problems = %q", r.Plugins, r.Problems)
+	}
+}
+
+// A plugin built for an old core expects a split plugin; when no release
+// of it runs on the core, that is a problem.
+func TestResolveSplitPluginTooNew(t *testing.T) {
+	rel, err := uc.ReadReleases(strings.NewReader(`{"plugins":{
+ "ancient":{"1.0":{"requiredCore":"1.400"}},
+ "mailer":{"500.v1":{"requiredCore":"2.500"}}
+}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := Resolve(rel, []Pick{{Name: "ancient", Version: "1.0"}}, "2.400")
+	want := "ancient 1.0 was built for Jenkins 1.400 and expects mailer, which was split out of core, but no mailer release runs on Jenkins 2.400"
+	if len(r.Problems) != 1 || r.Problems[0] != want {
+		t.Errorf("problems = %q, want %q", r.Problems, want)
+	}
+	if _, ok := r.ByName()["mailer"]; ok {
+		t.Error("mailer cannot load on 2.400; it must not be added")
+	}
+}
+
+// Locate keeps every version and only says where to download it.
+func TestLocate(t *testing.T) {
+	rel, _ := fixtures(t)
+	got := Locate(rel, []Pick{{Name: "workflow-cps", Version: "2.90"}, {Name: "private-plugin", Version: "1.0"}, {Name: "workflow-cps", Version: "1.0"}})
+	if p := got[0]; p.Version != "2.90" || p.URL != "https://updates.jenkins.io/download/plugins/workflow-cps/2.90/workflow-cps.hpi" || p.SHA256 != "x" || p.Unknown {
+		t.Errorf("published release = %+v", p)
+	}
+	if p := got[1]; p.Version != "1.0" || !p.Unknown || p.URL != uc.ArchiveURL("private-plugin", "1.0") {
+		t.Errorf("private plugin = %+v, want the archive URL", p)
+	}
+	if p := got[2]; p.Version != "1.0" || p.URL != "" || p.Unknown {
+		t.Errorf("a release the update center does not list for a known plugin = %+v, want no URL", p)
+	}
+}
+
+func TestAttention(t *testing.T) {
+	for _, c := range []struct {
+		p    PluginPlan
+		want bool
+	}{
+		{PluginPlan{Name: "git", Current: "4.0", Target: "5.0"}, false},
+		{PluginPlan{Unknown: true}, true},
+		{PluginPlan{NotDistributed: true}, true},
+		{PluginPlan{Deprecated: "https://x"}, true},
+		{PluginPlan{VulnerableNow: []WarningRef{{ID: "S"}}}, true},
+		{PluginPlan{VulnerableAfter: []WarningRef{{ID: "S"}}}, true},
+	} {
+		if got := c.p.Attention(); got != c.want {
+			t.Errorf("Attention(%+v) = %v, want %v", c.p, got, c.want)
+		}
+	}
+}
+
+func TestBuildNeedsACore(t *testing.T) {
+	rel, center := fixtures(t)
+	_, err := Build(&snapshot.Snapshot{}, "2.555.1", rel, center)
+	if err == nil || err.Error() != "the snapshot does not say which Jenkins version it is; pass --core" {
+		t.Errorf("err = %v", err)
+	}
+	_, err = Build(&snapshot.Snapshot{Core: "2.555.1"}, "2.541.3", rel, center)
+	if err == nil || err.Error() != "the controller already runs 2.555.1, which is not older than 2.541.3" {
+		t.Errorf("err = %v", err)
+	}
+}
+
+// The controller's own Java, a deprecation without a link, and agents on
+// HP-UX and old AIX.
+func TestBuildNotesAndAgents(t *testing.T) {
+	rel, _ := fixtures(t)
+	center, err := uc.ReadUpdateCenter(strings.NewReader(`{"plugins":{"workflow-cps":{}},"deprecations":{"workflow-cps":{}}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &snapshot.Snapshot{Core: "2.479.3", Java: "17.0.9", Notes: []string{"agents could not be read"},
+		Plugins: []snapshot.Plugin{{Name: "workflow-cps", Version: "2.90", Enabled: true}},
+		Agents: []snapshot.Agent{
+			{Name: "hp", OS: "HP-UX (ia64)", Java: "1.8.0_202"},
+			{Name: "aix71", OS: "AIX (ppc64)", Java: "1.8.0_391"},
+			{Name: "aix-unknown", OS: "AIX (ppc64)"},
+			{Name: "linux", OS: "Linux (amd64)"},
+		}}
+	p, err := Build(s, "2.555.1", rel, center)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantNotes := []string{"agents could not be read", "the controller runs Java 17.0.9; Jenkins 2.555.1 runs on Java 21 or 25"}
+	if !reflect.DeepEqual(p.Notes, wantNotes) {
+		t.Errorf("notes = %q, want %q", p.Notes, wantNotes)
+	}
+	for _, pp := range p.Plugins {
+		if pp.Name == "workflow-cps" && pp.Deprecated != "deprecated" {
+			t.Errorf("a deprecation without a URL still marks the plugin: %+v", pp)
+		}
+	}
+	problems := map[string]string{}
+	for _, a := range p.Agents {
+		problems[a.Name] = a.Problem
+	}
+	if !strings.HasPrefix(problems["hp"], "HP-UX has no Java 21 (HP's Java stops at 8)") {
+		t.Errorf("hp: %q", problems["hp"])
+	}
+	for _, n := range []string{"aix71", "aix-unknown"} {
+		if !strings.HasPrefix(problems[n], "Jenkins 2.555.1 needs Java 21 on this agent; IBM Semeru 21 needs AIX 7.2 TL5") {
+			t.Errorf("%s: %q", n, problems[n])
+		}
+	}
+	if _, ok := problems["linux"]; ok || len(p.Agents) != 3 {
+		t.Errorf("an agent with no known Java on Linux is not flagged: %+v", p.Agents)
+	}
+	if p.Summary.Deprecated != 1 || p.Summary.Agents != 3 {
+		t.Errorf("summary = %+v", p.Summary)
+	}
+}
+
+func TestStopWithoutPlugins(t *testing.T) {
+	p := &Plan{Steps: []Step{{Core: "2.462.3"}, {Core: "2.541.3", Upgrade: true}}}
+	_, _, _, err := p.Stop(1)
+	if err == nil || err.Error() != "step 1 has no plugin set; make the plan again with this version" {
+		t.Errorf("err = %v", err)
+	}
+	core, picks, java, err := (&Plan{Target: Resolution{Core: "2.555.1"}}).Stop(-1)
+	if err != nil || core != "2.555.1" || picks != nil || java != 0 {
+		t.Errorf("a plan without steps: %s %v %d %v", core, picks, java, err)
+	}
+}
