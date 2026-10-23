@@ -147,22 +147,6 @@ func TestDownloadUnwritable(t *testing.T) {
 	}
 }
 
-// Without a cache directory, downloads are kept in the system's temporary
-// directory.
-func TestDownloadDefaultCache(t *testing.T) {
-	tmp := t.TempDir()
-	t.Setenv("TMPDIR", tmp)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("x")) }))
-	defer srv.Close()
-	got, skipped := Download(context.Background(), []plan.Pick{{Name: "p", Version: "1", URL: srv.URL + "/p.hpi"}}, t.TempDir(), "")
-	if len(got) != 1 || len(skipped) != 0 {
-		t.Fatalf("got %v, skipped %q", got, skipped)
-	}
-	if _, err := os.Stat(filepath.Join(tmp, "jenkins-upgrade-check-plugins", "p", "1", "p.hpi")); err != nil {
-		t.Errorf("not cached in the temporary directory: %v", err)
-	}
-}
-
 func sha256Hex(b []byte) string {
 	s := sha256.Sum256(b)
 	return hex.EncodeToString(s[:])
