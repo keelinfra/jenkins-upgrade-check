@@ -6,20 +6,25 @@
 [![Go](https://img.shields.io/github/go-mod/go-version/keelinfra/jenkins-upgrade-check)](go.mod)
 [![License](https://img.shields.io/github/license/keelinfra/jenkins-upgrade-check)](LICENSE)
 
-Plan a Jenkins upgrade, rehearse it on a copy of your controller, and know within minutes
-of the real upgrade whether to keep it or roll back, and why.
+Tested upgrade paths for Jenkins: the last release of every LTS line since 2.60.3, upgraded
+to the current LTS in a rehearsal, with what broke and the stops that work. Read the
+[upgrade matrix](https://keelinfra.io/jenkins/upgrade-matrix/), hand its data to the AI agent
+that is doing your upgrade, or run the CLI to rehearse your own controller.
 
-It is for the people who run a Jenkins controller and have put off upgrading it. One
-static binary; the rehearsal needs Docker. Nothing is installed on the controller.
+## The upgrade matrix
 
-**Why rehearse.** We upgraded a controller with the 300 most installed plugins from the
-last release of every LTS line since 2.60.3 to 2.580.1
-([upgrade matrix](https://keelinfra.io/jenkins/upgrade-matrix/), 2026-10-21). Replacing only
-the war, package or image, Jenkins did not start from 12 of the 38 lines and started with
-plugins failing from 12 more; 13.6% of the controllers that report usage are on those lines.
-Following the path `plan` gives, every stop loaded every plugin, from all 38. From 2.356 or
-older the core-only upgrade fails with network access too: 2.580.1 no longer ships the plugins
-that were split out of core.
+We upgraded a controller with the 300 most installed plugins from the last release of every
+LTS line since 2.60.3 to 2.580.1 (2026-10-21). Replacing only the war, package or image,
+Jenkins did not start from 12 of the 38 lines and started with plugins failing from 12 more;
+13.6% of the controllers that report usage are on those lines. Going through the planned stops,
+every stop loaded every plugin, from all 38. From 2.356 or older the core-only upgrade fails
+with network access too: 2.580.1 no longer ships the plugins that were split out of core.
+
+- The table and what it means: [keelinfra.io/jenkins/upgrade-matrix](https://keelinfra.io/jenkins/upgrade-matrix/)
+- The plan and summary for every row: the [matrix branch](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix)
+- The data: [`2.580.1/matrix.json`](https://raw.githubusercontent.com/keelinfra/jenkins-upgrade-check/matrix/2.580.1/matrix.json)
+
+The "Upgrade matrix" workflow runs it again from every LTS line whenever a new LTS is out.
 
 Upgrading an old controller is rarely one step. Jenkins 2.346.3 cannot go straight
 to today's LTS: no Java version runs both, so the controller and every agent have
@@ -27,6 +32,37 @@ to change Java on the way, and the plugin versions you can install depend on the
 core you are on at each stop. Plugins that break on an API change (the move to
 Jakarta EE 9 in 2.475, for example) do not show it in any metadata: they fail when
 Jenkins starts.
+
+## Use it with an AI agent
+
+`matrix.json` has one row per starting line and plugin count (`top`: 100 or 300). In a row:
+
+- `from` is the starting release, the last of its LTS line.
+- `asIs` is what happened when only the core was replaced: `started`, and the plugins in
+  `brokenNames`.
+- `stops` is the tested path, in order. Each stop has the `core` to upgrade to and the `java`
+  it ran on. Use `java`, not `planJava`: `java` is what the rehearsal needed, and it is newer
+  where a plugin required it (from 2.150.3 or older, the gradle plugin needs Java 11 at the
+  2.346.3 stop, where the plan alone says Java 8).
+
+A prompt you can give the agent:
+
+```text
+Upgrade my Jenkins controller from <current version> to 2.580.1. Use the tested path in
+https://raw.githubusercontent.com/keelinfra/jenkins-upgrade-check/matrix/2.580.1/matrix.json:
+take the row with "top": 300 whose "from" is the last release of my LTS line, and go through
+its "stops" in order. Before the first stop, back up JENKINS_HOME and update every plugin on the
+current version. At each stop, switch the controller and every agent to the stop's "java",
+upgrade the core to the stop's "core", start Jenkins, check that every plugin loaded, and
+update every plugin before going on to the next stop.
+```
+
+The row is a reference for a typical controller. If yours is on an earlier release of the
+line, or runs plugins outside the 300 most installed, rehearse your own plugin list with the
+CLI below. Agents that cannot move to a newer Java (AIX, Solaris, HP-UX, old Linux) can stay
+connected with [Agent8](https://github.com/keelinfra/agent8).
+
+## Rehearse your own controller
 
 `jenkins-upgrade-check` covers the whole upgrade:
 
