@@ -1,0 +1,242 @@
+{
+  "from": "2.89.4",
+  "to": "2.580.2",
+  "top": 300,
+  "month": "202603",
+  "baseline": {
+    "core": "2.89.4",
+    "java": 8,
+    "javaReason": null,
+    "image": "jenkins/jenkins:2.89.4",
+    "started": true,
+    "reason": null,
+    "plugins": 305,
+    "upgrading": null,
+    "detached": null,
+    "failed": 0,
+    "broken": 0,
+    "brokenNames": [],
+    "skipped": 0,
+    "skippedWhy": [],
+    "roots": []
+  },
+  "asIs": {
+    "core": "2.580.2",
+    "java": 21,
+    "javaReason": null,
+    "image": "jenkins/jenkins:2.580.2-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 305,
+    "upgrading": "2.89.4",
+    "detached": null,
+    "failed": 121,
+    "broken": 10,
+    "brokenNames": [
+      "configurationslicing",
+      "description-setter",
+      "flexible-publish",
+      "git-server",
+      "ldap",
+      "mailer",
+      "postbuildscript",
+      "ssh-slaves",
+      "swarm",
+      "translation"
+    ],
+    "skipped": 0,
+    "skippedWhy": [],
+    "roots": [
+      {
+        "name": "junit",
+        "version": "1.27",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 54
+      },
+      {
+        "name": "workflow-support",
+        "version": "2.20",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 44
+      },
+      {
+        "name": "aws-credentials",
+        "version": "1.28.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 3
+      },
+      {
+        "name": "badge",
+        "version": "1.8",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 1
+      },
+      {
+        "name": "command-launcher",
+        "version": "1.4",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb",
+        "cascade": 0
+      },
+      {
+        "name": "embeddable-build-status",
+        "version": "2.0.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "extended-choice-parameter",
+        "version": "346.vd87693c5a_86c",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "extensible-choice-parameter",
+        "version": "1.8.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "folder-properties",
+        "version": "1.2.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "groovy",
+        "version": "2.3",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "http_request",
+        "version": "1.8.26",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "jaxb",
+        "version": "2.3.0",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb",
+        "cascade": 0
+      },
+      {
+        "name": "job-dsl",
+        "version": "1.71",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "permissive-script-security",
+        "version": "0.4",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "pipeline-utility-steps",
+        "version": "2.1.0",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "script-security",
+        "version": "1.71",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb",
+        "cascade": 0
+      },
+      {
+        "name": "scriptler",
+        "version": "3.1",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:jaxb -> Plugin:command-launcher -> Plugin:script-security -> Plugin:trilead-api -> Plugin:jaxb",
+        "cascade": 0
+      },
+      {
+        "name": "uno-choice",
+        "version": "2.2.2",
+        "kind": "other",
+        "why": "Required plugin is disabled: Script Security Plugin (script-security)",
+        "cascade": 0
+      }
+    ]
+  },
+  "stops": [
+    {
+      "core": "2.346.3",
+      "java": 11,
+      "javaReason": "gradle needs Java 11 or newer",
+      "image": "jenkins/jenkins:2.346.3-jdk11",
+      "started": true,
+      "reason": null,
+      "plugins": 350,
+      "upgrading": "2.89.4",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 8
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": true,
+      "reason": null,
+      "plugins": 399,
+      "upgrading": "2.346.3",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.2",
+      "java": 21,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.580.2-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 402,
+      "upgrading": "2.541.3",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}

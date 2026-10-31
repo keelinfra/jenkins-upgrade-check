@@ -1,0 +1,119 @@
+{
+  "from": "2.164.3",
+  "to": "2.580.2",
+  "top": 100,
+  "month": "202603",
+  "baseline": {
+    "core": "2.164.3",
+    "java": 8,
+    "javaReason": null,
+    "image": "jenkins/jenkins:2.164.3",
+    "started": true,
+    "reason": null,
+    "plugins": 110,
+    "upgrading": null,
+    "detached": null,
+    "failed": 0,
+    "broken": 0,
+    "brokenNames": [],
+    "skipped": 0,
+    "skippedWhy": [],
+    "roots": []
+  },
+  "asIs": {
+    "core": "2.580.2",
+    "java": 21,
+    "javaReason": null,
+    "image": "jenkins/jenkins:2.580.2-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 110,
+    "upgrading": "2.164.3",
+    "detached": null,
+    "failed": 2,
+    "broken": 6,
+    "brokenNames": [
+      "email-ext",
+      "git-server",
+      "github",
+      "ldap",
+      "mailer",
+      "ssh-slaves"
+    ],
+    "skipped": 0,
+    "skippedWhy": [],
+    "roots": [
+      {
+        "name": "jaxb",
+        "version": "2.3.0.1",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:trilead-api -> Plugin:jaxb -> Plugin:trilead-api",
+        "cascade": 0
+      },
+      {
+        "name": "trilead-api",
+        "version": "1.0.3",
+        "kind": "other",
+        "why": "hudson.util.CyclicGraphDetector$CycleDetectedException: Cycle detected: Plugin:trilead-api -> Plugin:jaxb -> Plugin:trilead-api",
+        "cascade": 0
+      }
+    ]
+  },
+  "stops": [
+    {
+      "core": "2.462.3",
+      "java": 11,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.462.3-jdk11",
+      "started": true,
+      "reason": null,
+      "plugins": 133,
+      "upgrading": "2.164.3",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 11
+    },
+    {
+      "core": "2.541.3",
+      "java": 17,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.541.3-jdk17",
+      "started": true,
+      "reason": null,
+      "plugins": 142,
+      "upgrading": "2.462.3",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 17
+    },
+    {
+      "core": "2.580.2",
+      "java": 21,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.580.2-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 143,
+      "upgrading": "2.541.3",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}

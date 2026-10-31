@@ -1,0 +1,61 @@
+{
+  "from": "2.555.3",
+  "to": "2.580.2",
+  "top": 300,
+  "month": "202603",
+  "baseline": {
+    "core": "2.555.3",
+    "java": 21,
+    "javaReason": null,
+    "image": "jenkins/jenkins:2.555.3-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 317,
+    "upgrading": null,
+    "detached": null,
+    "failed": 0,
+    "broken": 0,
+    "brokenNames": [],
+    "skipped": 0,
+    "skippedWhy": [],
+    "roots": []
+  },
+  "asIs": {
+    "core": "2.580.2",
+    "java": 21,
+    "javaReason": null,
+    "image": "jenkins/jenkins:2.580.2-jdk21",
+    "started": true,
+    "reason": null,
+    "plugins": 317,
+    "upgrading": "2.555.3",
+    "detached": null,
+    "failed": 0,
+    "broken": 0,
+    "brokenNames": [],
+    "skipped": 0,
+    "skippedWhy": [],
+    "roots": []
+  },
+  "stops": [
+    {
+      "core": "2.580.2",
+      "java": 21,
+      "javaReason": null,
+      "image": "jenkins/jenkins:2.580.2-jdk21",
+      "started": true,
+      "reason": null,
+      "plugins": 318,
+      "upgrading": "2.555.3",
+      "detached": null,
+      "failed": 0,
+      "broken": 0,
+      "brokenNames": [],
+      "skipped": 0,
+      "skippedWhy": [],
+      "roots": [],
+      "planJava": 21
+    }
+  ],
+  "planProblems": 0
+}

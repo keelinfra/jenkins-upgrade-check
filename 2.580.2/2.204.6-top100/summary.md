@@ -1,0 +1,12 @@
+### 2.204.6 → 2.580.2, 100 most installed plugins
+
+| Rehearsal | Image | Jenkins | Plugins | Failed | Causes | Partly loaded | Not downloaded |
+|---|---|---|---|---|---|---|---|
+| baseline: 2.204.6 | jenkins/jenkins:2.204.6 | started | 107 | 0 | 0 | 0 | 0 |
+| as-is: 2.580.2, plugins unchanged | jenkins/jenkins:2.580.2-jdk21 | started | 107 | 0 | 0 | 5 | 0 |
+| planned: 2.462.3, plugins from plan | jenkins/jenkins:2.462.3-jdk11 | started | 129 | 0 | 0 | 0 | 0 |
+| planned: 2.541.3, plugins from plan | jenkins/jenkins:2.541.3-jdk17 | started | 138 | 0 | 0 | 0 | 0 |
+| planned: 2.580.2, plugins from plan | jenkins/jenkins:2.580.2-jdk21 | started | 139 | 0 | 0 | 0 | 0 |
+
+- as-is: loaded in part (extensions failed): email-ext, git-server, github, ldap, mailer
+
