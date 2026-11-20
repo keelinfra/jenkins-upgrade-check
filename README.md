@@ -1,10 +1,27 @@
-# jenkins-upgrade-check
+<a href="https://keelinfra.io/jenkins/upgrade-matrix/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/readme/hero-dark.svg">
+    <img alt="Jenkins upgrade check: every LTS line since 2.60.3, upgraded to 2.580.2 in a rehearsal with the 300 most installed plugins. Replacing only the core, 12 lines do not start and 12 start with plugins failing, 13.6% of reporting controllers; going through the planned stops, 38 of 38 load every plugin." src=".github/readme/hero-light.svg" width="100%">
+  </picture>
+</a>
 
-[![CI](https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/ci.yml/badge.svg)](https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/ci.yml)
-[![Upgrade matrix](https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/experiment.yml/badge.svg)](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix)
-[![Release](https://img.shields.io/github/v/release/keelinfra/jenkins-upgrade-check)](https://github.com/keelinfra/jenkins-upgrade-check/releases)
-[![Go](https://img.shields.io/github/go-mod/go-version/keelinfra/jenkins-upgrade-check)](go.mod)
-[![License](https://img.shields.io/github/license/keelinfra/jenkins-upgrade-check)](LICENSE)
+<p align="center">
+  <a href="https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/keelinfra/jenkins-upgrade-check/ci.yml?branch=main&style=flat-square&label=CI&labelColor=0b2239"></a>
+  <a href="https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix"><img alt="Upgrade matrix" src="https://img.shields.io/github/actions/workflow/status/keelinfra/jenkins-upgrade-check/experiment.yml?style=flat-square&label=upgrade%20matrix&labelColor=0b2239"></a>
+  <a href="https://github.com/keelinfra/jenkins-upgrade-check/releases"><img alt="Release" src="https://img.shields.io/github/v/release/keelinfra/jenkins-upgrade-check?style=flat-square&label=release&labelColor=0b2239&color=b06d10"></a>
+  <a href="go.mod"><img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/keelinfra/jenkins-upgrade-check?style=flat-square&labelColor=0b2239&color=b06d10"></a>
+  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-b06d10?style=flat-square&labelColor=0b2239"></a>
+</p>
+
+<p align="center">
+  <a href="https://keelinfra.io/jenkins/upgrade-matrix/"><b>The matrix</b></a> &nbsp;·&nbsp;
+  <a href="#use-it-with-an-ai-agent"><b>For AI agents</b></a> &nbsp;·&nbsp;
+  <a href="#rehearse-your-own-controller"><b>Rehearse yours</b></a> &nbsp;·&nbsp;
+  <a href="#install"><b>Install</b></a> &nbsp;·&nbsp;
+  <a href="#quick-start"><b>Quick start</b></a>
+</p>
+
+<br>
 
 Tested upgrade paths for Jenkins: the last release of every LTS line since 2.60.3, upgraded
 to the current LTS in a rehearsal, with what broke and the stops that work. Read the
@@ -14,24 +31,32 @@ that is doing your upgrade, or run the CLI to rehearse your own controller.
 ## The upgrade matrix
 
 We upgraded a controller with the 300 most installed plugins from the last release of every
-LTS line since 2.60.3 to 2.580.1 (2026-10-21). Replacing only the war, package or image,
-Jenkins did not start from 12 of the 38 lines and started with plugins failing from 12 more;
-13.6% of the controllers that report usage are on those lines. Going through the planned stops,
-every stop loaded every plugin, from all 38. From 2.356 or older the core-only upgrade fails
-with network access too: 2.580.1 no longer ships the plugins that were split out of core.
+LTS line since 2.60.3 to 2.580.2 (2026-10-31).
+
+| | Replacing only the war, package or image | Going through the planned stops |
+| --- | --- | --- |
+| **Jenkins does not start** | 12 of 38 lines | none |
+| **Starts, some plugins fail** | 12 more | none |
+| **Every plugin loads** | 14, from 2.401.3 on | **all 38** |
+
+13.6% of the controllers that report usage are on the 24 lines where the core-only upgrade
+breaks. From 2.346.3 or older it fails even with network access: 2.580.x no longer ships the
+plugins that were split out of core, and Jenkins does not download them when it starts. The
+2.580.1 run on 2026-10-21 came out the same.
 
 - The table and what it means: [keelinfra.io/jenkins/upgrade-matrix](https://keelinfra.io/jenkins/upgrade-matrix/)
 - The plan and summary for every row: the [matrix branch](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix)
-- The data: [`2.580.1/matrix.json`](https://raw.githubusercontent.com/keelinfra/jenkins-upgrade-check/matrix/2.580.1/matrix.json)
+- The data: [`2.580.2/matrix.json`](https://raw.githubusercontent.com/keelinfra/jenkins-upgrade-check/matrix/2.580.2/matrix.json)
 
 The "Upgrade matrix" workflow runs it again from every LTS line whenever a new LTS is out.
 
-Upgrading an old controller is rarely one step. Jenkins 2.346.3 cannot go straight
-to today's LTS: no Java version runs both, so the controller and every agent have
-to change Java on the way, and the plugin versions you can install depend on the
-core you are on at each stop. Plugins that break on an API change (the move to
-Jakarta EE 9 in 2.475, for example) do not show it in any metadata: they fail when
-Jenkins starts.
+> [!NOTE]
+> Upgrading an old controller is rarely one step. Jenkins 2.346.3 cannot go straight
+> to today's LTS: no Java version runs both, so the controller and every agent have
+> to change Java on the way, and the plugin versions you can install depend on the
+> core you are on at each stop. Plugins that break on an API change (the move to
+> Jakarta EE 9 in 2.475, for example) do not show it in any metadata: they fail when
+> Jenkins starts.
 
 ## Use it with an AI agent
 
@@ -48,8 +73,8 @@ Jenkins starts.
 A prompt you can give the agent:
 
 ```text
-Upgrade my Jenkins controller from <current version> to 2.580.1. Use the tested path in
-https://raw.githubusercontent.com/keelinfra/jenkins-upgrade-check/matrix/2.580.1/matrix.json:
+Upgrade my Jenkins controller from <current version> to 2.580.2. Use the tested path in
+https://raw.githubusercontent.com/keelinfra/jenkins-upgrade-check/matrix/2.580.2/matrix.json:
 take the row with "top": 300 whose "from" is the last release of my LTS line, and go through
 its "stops" in order. Before the first stop, back up JENKINS_HOME and update every plugin on the
 current version. At each stop, switch the controller and every agent to the stop's "java",
@@ -148,6 +173,9 @@ online agent's System Information page, which needs Overall/Administer.
 
 ## What it reads, what it sends
 
+<details>
+<summary>GET requests only to the controller, public update center data, and a container with no network</summary>
+
 - `collect` and `verify` send GET requests to the controller (core version and job
   names, plugins, agents; without `versioncolumn`, one more per online agent for its
   Java; after an upgrade, one per agent that did not come back, for its connection
@@ -166,6 +194,8 @@ online agent's System Information page, which needs Overall/Administer.
 - The probe script writes one file, `jenkins-upgrade-check-probe.json`, into
   JENKINS_HOME. With `--quiet` it also puts Jenkins into quiet mode; nothing else.
 
+</details>
+
 ## Limits
 
 - A plugin that loads can still break at run time: a pipeline step, a UI page, an
@@ -177,6 +207,9 @@ online agent's System Information page, which needs Overall/Administer.
 - `verify` compares job names four folder levels deep.
 
 ## Commands
+
+<details>
+<summary>All commands and flags, and the script behind the matrix</summary>
 
 ```
 jenkins-upgrade-check collect  --url URL --user USER [-o snapshot.json]
@@ -197,17 +230,31 @@ workflow runs it from the last release of every LTS line since 2.60.3 whenever a
 LTS is out, and publishes the table to the
 [matrix branch](https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix).
 
-## Status and help
+</details>
 
-jenkins-upgrade-check is new (0.x): commands and report formats may still change. Bugs and
-questions go to [GitHub issues](https://github.com/keelinfra/jenkins-upgrade-check/issues);
-security problems to [SECURITY.md](SECURITY.md). It gets free security updates until at least
-31 December 2031.
+## Status and get involved
 
-To have your own plugin list rehearsed, or help with the upgrade itself, see
-[keelinfra.io/jenkins/upgrade-check](https://keelinfra.io/jenkins/upgrade-check/) or write to
-hello@keelinfra.io.
+jenkins-upgrade-check is new (0.x): commands and report formats may still change. It gets free
+security updates until at least 31 December 2031.
+
+An upgrade that went differently from the matrix, a plugin the rehearsal missed, or a bug in the
+CLI: [open an issue](https://github.com/keelinfra/jenkins-upgrade-check/issues), where the answer
+helps the next person too. Pull requests are welcome. Security problems go to
+[SECURITY.md](SECURITY.md).
 
 ## License
 
 Apache-2.0
+
+<br>
+
+<p align="center">
+  <a href="https://keelinfra.io"><img alt="keelinfra" src="https://raw.githubusercontent.com/keelinfra/.github/main/assets/logo.svg" width="28"></a>
+  <br>
+  <sub>
+    Part of <a href="https://keelinfra.io"><b>keelinfra</b></a>: tested, open-source builds for CI that can't upgrade yet.<br>
+    <a href="https://github.com/keelinfra/agent8">Agent8 for Jenkins</a> &nbsp;·&nbsp;
+    <a href="https://github.com/keelinfra/jenkins-extended-security">Extended Security for Jenkins 2.541.x</a> &nbsp;·&nbsp;
+    <a href="https://github.com/keelinfra/aix-runner">AIX Runner for GitLab</a>
+  </sub>
+</p>
