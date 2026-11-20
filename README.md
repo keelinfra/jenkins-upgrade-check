@@ -8,9 +8,9 @@
 <p align="center">
   <a href="https://github.com/keelinfra/jenkins-upgrade-check/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/keelinfra/jenkins-upgrade-check/ci.yml?branch=main&style=flat-square&label=CI&labelColor=0b2239"></a>
   <a href="https://github.com/keelinfra/jenkins-upgrade-check/tree/matrix"><img alt="Upgrade matrix" src="https://img.shields.io/github/actions/workflow/status/keelinfra/jenkins-upgrade-check/experiment.yml?style=flat-square&label=upgrade%20matrix&labelColor=0b2239"></a>
-  <a href="https://github.com/keelinfra/jenkins-upgrade-check/releases"><img alt="Release" src="https://img.shields.io/github/v/release/keelinfra/jenkins-upgrade-check?style=flat-square&label=release&labelColor=0b2239&color=e8a33d"></a>
-  <a href="go.mod"><img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/keelinfra/jenkins-upgrade-check?style=flat-square&labelColor=0b2239&color=e8a33d"></a>
-  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-e8a33d?style=flat-square&labelColor=0b2239"></a>
+  <a href="https://github.com/keelinfra/jenkins-upgrade-check/releases"><img alt="Release" src="https://img.shields.io/github/v/release/keelinfra/jenkins-upgrade-check?style=flat-square&label=release&labelColor=0b2239&color=b06d10"></a>
+  <a href="go.mod"><img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/keelinfra/jenkins-upgrade-check?style=flat-square&labelColor=0b2239&color=b06d10"></a>
+  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-b06d10?style=flat-square&labelColor=0b2239"></a>
 </p>
 
 <p align="center">
