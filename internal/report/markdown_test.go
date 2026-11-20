@@ -46,7 +46,7 @@ func TestRehearsalReport(t *testing.T) {
 			Missing: []dryrun.ConfigProblem{{Item: "deploy", Problem: "CannotResolveClassException: flow-definition", Plugin: "workflow-job 2.40", PluginState: dryrun.PluginFailed}}},
 	})
 	out := b.String()
-	for _, want := range []string{"2 plugin(s) did not load, because of 1 cause(s)", "| script-security 1.75 | this release needs Jenkins 2.400 or newer |", "| workflow-cps |", "2 of 3 jobs and folders loaded", "| deploy | plugin workflow-job 2.40, failed to load |"} {
+	for _, want := range []string{"2 plugins did not load, because of 1 cause", "| script-security 1.75 | this release needs Jenkins 2.400 or newer |", "| workflow-cps |", "2 of 3 jobs and folders loaded", "| deploy | plugin workflow-job 2.40, failed to load |"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("report lacks %q\n%s", want, out)
 		}
@@ -104,11 +104,11 @@ func TestPlanReportAllSections(t *testing.T) {
 	out := b.String()
 	contains(t, out,
 		"Source: https://ci.example.com · generated 2026-10-01 12:30 UTC by jenkins-upgrade-check 1.0",
-		"**1 core upgrade(s)**, 5 plugins: 2 to upgrade, 0 new dependencies; 1 with security warnings today, 1 still with warnings after the upgrade, 2 deprecated, 1 no longer distributed, 1 not from the update center, 1 dependency problem(s), 1 agent(s) that cannot follow.",
+		"**1 core upgrade**, 5 plugins: 2 to upgrade, 0 new dependencies; 1 with security warnings today, 1 still with warnings after the upgrade, 2 deprecated, 1 no longer distributed, 1 not from the update center, 1 dependency problem, 1 agent that cannot follow.",
 		"Jenkins 2.479.3 runs on Java 17, 21; Jenkins 2.492.3 runs on Java 17, 21. The controller runs Java 17.0.9.",
 		"## Security warnings for the running core\n\n- [SECURITY-3501](https://www.jenkins.io/security/advisory/2024-10-02/): Exposure of secrets\n",
-		"1. **On 2.479.3, update plugins** (1 change(s)).",
-		"2. Upgrade Jenkins to **2.492.3**, start it, then update plugins (0 change(s)).\n   - ⚠ gitlab-plugin 1.5 needs jersey3-api 2.0 or newer\n",
+		"1. **On 2.479.3, update plugins** (1 change).",
+		"2. Upgrade Jenkins to **2.492.3**, start it, then update plugins (0 changes).\n   - ⚠ gitlab-plugin 1.5 needs jersey3-api 2.0 or newer\n",
 		"| both | 1.0 | 1.1 | [S-1](https://s1) fixed by the upgrade<br>[S-2](https://s2) **no fix yet**<br>[S-3](https://s3) affects the target version |",
 		"| dep-link | 1 | 1 | [deprecated](https://plugins.jenkins.io/dep-link/) |",
 		"| dep-plain | 1 | 1 | deprecated<br>no longer distributed by the update center",
@@ -193,7 +193,7 @@ func TestRehearsalHeadlines(t *testing.T) {
 		{"clean with home", dryrun.Result{Started: true, StartupSeconds: 30, Home: &dryrun.HomeResult{Items: 7, Loaded: 7}},
 			"**Jenkins started in 30s and every plugin loaded.** All 7 jobs and folders of your configuration came back."},
 		{"failed and broken", dryrun.Result{Started: true, StartupSeconds: 30, Failed: failed, Broken: []dryrun.Failure{{Name: "email-ext", Reasons: []string{"Failed to scout x"}}}},
-			"but 1 plugin(s) did not load, because of 1 cause(s).** 1 more loaded only in part. Upgrading"},
+			"but 1 plugin did not load, because of 1 cause.** 1 more loaded only in part. Upgrading"},
 		{"broken only", dryrun.Result{Started: true, StartupSeconds: 30, Broken: []dryrun.Failure{{Name: "email-ext", Reasons: []string{"Failed to scout x"}}}},
 			"**Jenkins started in 30s and every plugin loaded, but 1 loaded only in part.**"},
 		{"configuration only", dryrun.Result{Started: true, StartupSeconds: 30, Home: &dryrun.HomeResult{Items: 2, Loaded: 1, Missing: []dryrun.ConfigProblem{{Item: "x", Problem: "y"}}}},
@@ -238,7 +238,7 @@ func TestRehearsalDetails(t *testing.T) {
 	out := b.String()
 	contains(t, out,
 		"Image `jenkins/jenkins:2.555.1-jdk25` (Java 25 because gradle needs Java 25 or newer).",
-		"Jenkins started as an upgrade from 2.346.3 and installed 2 plugin(s) split out of core since then from its own war: sshd, instance-identity.\n",
+		"Jenkins started as an upgrade from 2.346.3 and installed 2 plugins split out of core since then from its own war: sshd, instance-identity.\n",
 		"## Loaded only in part\n",
 		"| email-ext | – | Failed to scout A<br>Failed to scout B |",
 		"Copied 40 configuration files from `/srv/home` (no build records, workspaces or logs).\n",
@@ -246,7 +246,7 @@ func TestRehearsalDetails(t *testing.T) {
 		"| job29 | – | did not load |\n| … | | 2 more |\n",
 		"**Settings Jenkins could not read (1).**",
 		"Warnings Jenkins shows administrators after the upgrade:\n\n- Builds run as SYSTEM\n",
-		"Could not copy 12 file(s), so they were not rehearsed: secrets/f0: permission denied,",
+		"Could not copy 12 files, so they were not rehearsed: secrets/f0: permission denied,",
 		"secrets/f9: permission denied and 2 more\n",
 		"Not rehearsed (could not be downloaded): private 1.0: no download known; gone 2.0: GET x: 404 Not Found.",
 		"<details><summary>Other errors in the log</summary>\n\n```\nsome.Thing#run: boom\n```",
