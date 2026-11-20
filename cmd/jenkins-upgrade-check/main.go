@@ -24,6 +24,8 @@ import (
 	"github.com/keelinfra/jenkins-upgrade-check/internal/snapshot"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/uc"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/verify"
+
+	"github.com/keelinfra/jenkins-upgrade-check/internal/words"
 )
 
 const tool = "jenkins-upgrade-check"
@@ -422,7 +424,7 @@ func (e *env) cmdDownload(ctx context.Context, args []string) error {
 	}
 	fmt.Fprintf(e.stderr, "%d of %d plugins downloaded\n", len(got), len(picks))
 	if len(skipped) > 0 {
-		return fmt.Errorf("%d plugin(s) could not be downloaded; the plugins directory would be incomplete", len(skipped))
+		return fmt.Errorf("%s could not be downloaded; the plugins directory would be incomplete", words.Count(len(skipped), "plugin"))
 	}
 	return nil
 }

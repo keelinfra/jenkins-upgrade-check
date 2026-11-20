@@ -190,7 +190,7 @@ func TestProbeSettingsLost(t *testing.T) {
 	if got := c["Jenkins version ok"].Detail; got != "2.580.1 (was 2.462.3)" {
 		t.Errorf("version detail = %q", got)
 	}
-	if got := c["Settings fail"].Detail; got != "1 setting(s) come from plugins that ran before and do not now; Jenkins drops them when the item is next saved" {
+	if got := c["Settings fail"].Detail; got != "1 setting comes from plugins that ran before and do not now; Jenkins drops it when the item is next saved" {
 		t.Errorf("settings = %+v", r.Checks)
 	}
 	if got := c["Jobs and folders check"].Detail; !strings.HasPrefix(got, "not compared: the snapshot from before the upgrade has no job list") {
@@ -220,7 +220,7 @@ func TestProbeSettingsWarnAndOK(t *testing.T) {
 	pr := probe(t, `{"completed":true,"unreadable":[{"item":"app","path":"jobs/app","problem":"CannotResolveClassException: bar.Thing"},{"item":"(global configuration)","path":"","problem":"old field"}]}`)
 	r := Run(Input{Before: b, After: after, Probe: pr, Home: home, Core: "2.580.1"})
 	c := checks(r)
-	if got := c["Settings check"].Detail; !strings.HasPrefix(got, "2 setting(s) Jenkins cannot read, from plugins that were not running before the upgrade either") {
+	if got := c["Settings check"].Detail; !strings.HasPrefix(got, "2 settings Jenkins cannot read, from plugins that were not running before the upgrade either") {
 		t.Errorf("checks = %+v", r.Checks)
 	}
 	if r.Verdict != Go {

@@ -16,6 +16,8 @@ import (
 
 	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/version"
+
+	"github.com/keelinfra/jenkins-upgrade-check/internal/words"
 )
 
 // Install types.
@@ -380,7 +382,7 @@ func (r *writer) copyPlugins(step int) []string {
 
 func (r *writer) pluginWindow(s plan.Step, n int) {
 	r.f("## Window %d: update plugins on %s\n\n", n, s.Core)
-	r.f("The Jenkins upgrade guides ask for plugins to be current before the core moves; this window changes %d plugin(s) and nothing else. Do it a few days before the core upgrade, so a problem is easy to place.\n\n", len(s.Changes))
+	r.f("The Jenkins upgrade guides ask for plugins to be current before the core moves; this window changes %s and nothing else. Do it a few days before the core upgrade, so a problem is easy to place.\n\n", words.Count(len(s.Changes), "plugin"))
 	r.drain()
 	r.b.WriteString("**Update plugins.**\n\n")
 	r.sh(r.copyPlugins(0)...)

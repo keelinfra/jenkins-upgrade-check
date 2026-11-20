@@ -9,6 +9,8 @@ import (
 	"github.com/keelinfra/jenkins-upgrade-check/internal/dryrun"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/verify"
+
+	"github.com/keelinfra/jenkins-upgrade-check/internal/words"
 )
 
 const footer = "\n---\n" +
@@ -23,7 +25,7 @@ func Plan(w io.Writer, p *plan.Plan) error {
 	fmt.Fprintf(b, "# Jenkins upgrade plan: %s → %s\n\n", p.From, p.To)
 	fmt.Fprintf(b, "Source: %s · generated %s by %s %s\n\n", p.Source, p.GeneratedAt.Format("2006-01-02 15:04 MST"), p.Tool, p.ToolVersion)
 
-	fmt.Fprintf(b, "**%d core upgrade(s)**, %d plugins: %d to upgrade, %d new dependencies", s.CoreUpgrades, s.Plugins, s.Upgraded, s.Added)
+	fmt.Fprintf(b, "**%s**, %s: %d to upgrade, %s", words.Count(s.CoreUpgrades, "core upgrade"), words.Count(s.Plugins, "plugin"), s.Upgraded, words.CountOf(s.Added, "new dependency", "new dependencies"))
 	var flags []string
 	if s.VulnerableNow > 0 {
 		flags = append(flags, fmt.Sprintf("%d with security warnings today", s.VulnerableNow))
@@ -41,10 +43,10 @@ func Plan(w io.Writer, p *plan.Plan) error {
 		flags = append(flags, fmt.Sprintf("%d not from the update center", s.Unknown))
 	}
 	if s.Problems > 0 {
-		flags = append(flags, fmt.Sprintf("%d dependency problem(s)", s.Problems))
+		flags = append(flags, words.Count(s.Problems, "dependency problem"))
 	}
 	if s.Agents > 0 {
-		flags = append(flags, fmt.Sprintf("%d agent(s) that cannot follow", s.Agents))
+		flags = append(flags, words.Count(s.Agents, "agent")+" that cannot follow")
 	}
 	if len(flags) > 0 {
 		fmt.Fprintf(b, "; %s", strings.Join(flags, ", "))
@@ -69,11 +71,11 @@ func Plan(w io.Writer, p *plan.Plan) error {
 	for i, st := range p.Steps {
 		switch {
 		case !st.Upgrade:
-			fmt.Fprintf(b, "%d. **On %s, update plugins** (%d change(s)). Back up `$JENKINS_HOME` first.\n", i+1, st.Core, len(st.Changes))
+			fmt.Fprintf(b, "%d. **On %s, update plugins** (%s). Back up `$JENKINS_HOME` first.\n", i+1, st.Core, words.Count(len(st.Changes), "change"))
 		case st.Java > 0:
-			fmt.Fprintf(b, "%d. **Run the controller and every agent on Java %d**, upgrade Jenkins to **%s**, start it, then update plugins (%d change(s)).\n", i+1, st.Java, st.Core, len(st.Changes))
+			fmt.Fprintf(b, "%d. **Run the controller and every agent on Java %d**, upgrade Jenkins to **%s**, start it, then update plugins (%s).\n", i+1, st.Java, st.Core, words.Count(len(st.Changes), "change"))
 		default:
-			fmt.Fprintf(b, "%d. Upgrade Jenkins to **%s**, start it, then update plugins (%d change(s)).\n", i+1, st.Core, len(st.Changes))
+			fmt.Fprintf(b, "%d. Upgrade Jenkins to **%s**, start it, then update plugins (%s).\n", i+1, st.Core, words.Count(len(st.Changes), "change"))
 		}
 		for _, pr := range st.Problems {
 			fmt.Fprintf(b, "   - ⚠ %s\n", pr)
@@ -241,7 +243,7 @@ func Verify(w io.Writer, r *verify.Result) error {
 // Rehearsal writes a Markdown report of a dry run.
 func Rehearsal(w io.Writer, r *dryrun.Result) error {
 	b := &strings.Builder{}
-	fmt.Fprintf(b, "# Dry run: Jenkins %s with %d plugins\n\n", r.Core, r.Plugins)
+	fmt.Fprintf(b, "# Dry run: Jenkins %s with %s\n\n", r.Core, words.Count(r.Plugins, "plugin"))
 	fmt.Fprintf(b, "Image `%s`", r.Image)
 	if r.JavaReason != "" {
 		fmt.Fprintf(b, " (Java %d because %s)", r.Java, r.JavaReason)
@@ -250,7 +252,7 @@ func Rehearsal(w io.Writer, r *dryrun.Result) error {
 	if r.Upgrading != "" {
 		fmt.Fprintf(b, "Jenkins started as an upgrade from %s", r.Upgrading)
 		if len(r.Detached) > 0 {
-			fmt.Fprintf(b, " and installed %d plugin(s) split out of core since then from its own war: %s", len(r.Detached), strings.Join(r.Detached, ", "))
+			fmt.Fprintf(b, " and installed %s split out of core since then from its own war: %s", words.Count(len(r.Detached), "plugin"), strings.Join(r.Detached, ", "))
 		}
 		b.WriteString(".\n\n")
 	}
@@ -273,9 +275,9 @@ func Rehearsal(w io.Writer, r *dryrun.Result) error {
 		}
 		b.WriteString("\n\n")
 	case len(r.Failed) > 0:
-		fmt.Fprintf(b, "**Jenkins started in %.0fs, but %d plugin(s) did not load", r.StartupSeconds, len(r.Failed))
+		fmt.Fprintf(b, "**Jenkins started in %.0fs, but %s did not load", r.StartupSeconds, words.Count(len(r.Failed), "plugin"))
 		if len(roots) > 0 {
-			fmt.Fprintf(b, ", because of %d cause(s)", len(roots))
+			fmt.Fprintf(b, ", because of %s", words.Count(len(roots), "cause"))
 		}
 		b.WriteString(".**")
 		if len(r.Broken) > 0 {
@@ -335,7 +337,7 @@ func Rehearsal(w io.Writer, r *dryrun.Result) error {
 			b.WriteString("\n")
 		}
 		if len(h.CopyErrs) > 0 {
-			fmt.Fprintf(b, "Could not copy %d file(s), so they were not rehearsed: %s\n\n", len(h.CopyErrs), list(h.CopyErrs, 10))
+			fmt.Fprintf(b, "Could not copy %s, so they were not rehearsed: %s\n\n", words.Count(len(h.CopyErrs), "file"), list(h.CopyErrs, 10))
 		}
 	}
 	if len(r.Skipped) > 0 {

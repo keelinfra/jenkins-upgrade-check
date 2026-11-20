@@ -445,7 +445,7 @@ func TestDownload(t *testing.T) {
 
 	// The target has a plugin with nowhere to download it from.
 	r = cli(nil, "download", "--plan", pf, "--dir", t.TempDir(), "--cache-dir", cache)
-	r.wantError(t, "1 plugin(s) could not be downloaded; the plugins directory would be incomplete")
+	r.wantError(t, "1 plugin could not be downloaded; the plugins directory would be incomplete")
 	contains(t, "stderr", r.stderr, "not downloaded: private 0.1: no download known\n2 of 3 plugins downloaded\n")
 
 	file := write(t, filepath.Join(t.TempDir(), "file"), "")
@@ -562,7 +562,7 @@ func TestDryRunPluginsFile(t *testing.T) {
 	// code says so.
 	r := cli(nil, "dry-run", "--plugins-file", plugins, "--core", "2.462.3", "--update-center-dir", uc, "--cache-dir", t.TempDir(), "--timeout", "1m")
 	r.wantCode(t, 1)
-	contains(t, "report", r.stdout, "# Dry run: Jenkins 2.462.3 with 1 plugins", "but 1 plugin(s) did not load",
+	contains(t, "report", r.stdout, "# Dry run: Jenkins 2.462.3 with 1 plugin", "but 1 plugin did not load",
 		"| git 1.0 | needs the mailer plugin (1.0 or newer), which is not installed | install mailer 1.0 or newer |")
 
 	// --resolve adds the dependency, and says what it could not settle.

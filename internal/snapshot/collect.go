@@ -19,6 +19,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/keelinfra/jenkins-upgrade-check/internal/words"
 )
 
 // Collector reads a live controller. It only ever sends GET requests: the
@@ -324,7 +326,7 @@ func (c *Collector) agentJava(ctx context.Context, agents []Agent) string {
 	if refused {
 		why = "reading their System Information page needs Overall/Administer"
 	}
-	return fmt.Sprintf("the Java version of %d online agent(s) is not known (%s): %s; install the Versions Node Monitors plugin (versioncolumn) to have it reported", len(missed), why, strings.Join(missed, ", "))
+	return fmt.Sprintf("the Java version of %s is not known (%s): %s; install the Versions Node Monitors plugin (versioncolumn) to have it reported", words.Count(len(missed), "online agent"), why, strings.Join(missed, ", "))
 }
 
 var propertyRow = regexp.MustCompile(`(?s)<td[^>]*>\s*([A-Za-z0-9_.]+)\s*</td>\s*<td[^>]*>(.*?)</td>`)

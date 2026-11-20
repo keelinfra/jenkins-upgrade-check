@@ -14,6 +14,8 @@ import (
 	"github.com/keelinfra/jenkins-upgrade-check/internal/plan"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/snapshot"
 	"github.com/keelinfra/jenkins-upgrade-check/internal/version"
+
+	"github.com/keelinfra/jenkins-upgrade-check/internal/words"
 )
 
 // Verdicts.
@@ -185,9 +187,9 @@ func Run(in Input) *Result {
 		case len(r.Unreadable) == 0:
 			add(Check{Name: "Settings", State: OK, Detail: "Jenkins read all configuration"})
 		case lost > 0:
-			add(Check{Name: "Settings", State: Fail, Detail: fmt.Sprintf("%d setting(s) come from plugins that ran before and do not now; Jenkins drops them when the item is next saved", lost)})
+			add(Check{Name: "Settings", State: Fail, Detail: fmt.Sprintf("%s %s from plugins that ran before and do not now; Jenkins drops %s when the item is next saved", words.Count(lost, "setting"), words.Verb(lost, "comes", "come"), words.Verb(lost, "it", "them"))})
 		default:
-			add(Check{Name: "Settings", State: Warn, Detail: fmt.Sprintf("%d setting(s) Jenkins cannot read, from plugins that were not running before the upgrade either, or old fields this version ignores; see Manage Jenkins > Manage Old Data", len(r.Unreadable))})
+			add(Check{Name: "Settings", State: Warn, Detail: fmt.Sprintf("%s Jenkins cannot read, from plugins that were not running before the upgrade either, or old fields this version ignores; see Manage Jenkins > Manage Old Data", words.Count(len(r.Unreadable), "setting"))})
 		}
 		for _, m := range in.Probe.Monitors {
 			if !dryrun.IsNoise(m.ID) {
@@ -230,10 +232,10 @@ func Run(in Input) *Result {
 		add(Check{Name: "Agents", State: OK, Detail: fmt.Sprintf("all %d agents that were online are online", len(wasOnline))})
 	}
 	if len(stuck) > 0 {
-		add(Check{Name: "Agents", State: Fail, Detail: fmt.Sprintf("%d agent(s) cannot connect to this version, so builds that need them would wait for good. Give them the Java it needs and run verify again, or roll back", len(stuck)), Items: stuck})
+		add(Check{Name: "Agents", State: Fail, Detail: fmt.Sprintf("%s cannot connect to this version, so builds that need %s would wait for good. Give %s the Java it needs and run verify again, or roll back", words.Count(len(stuck), "agent"), words.Verb(len(stuck), "it", "them"), words.Verb(len(stuck), "it", "them")), Items: stuck})
 	}
 	if len(waiting) > 0 {
-		add(Check{Name: "Agents", State: Warn, Detail: fmt.Sprintf("%d agent(s) online before are offline now. Agents can take a few minutes to reconnect; run verify again. If they stay offline, check their Java version and logs", len(waiting)), Items: waiting})
+		add(Check{Name: "Agents", State: Warn, Detail: fmt.Sprintf("%s online before %s offline now. Agents can take a few minutes to reconnect; run verify again. If they stay offline, check their Java version and logs", words.Count(len(waiting), "agent"), words.Verb(len(waiting), "is", "are")), Items: waiting})
 	}
 
 	r.Verdict = Go
